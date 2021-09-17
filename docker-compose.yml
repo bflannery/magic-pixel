@@ -1,0 +1,30 @@
+version: "3"
+services:
+#  test-website:
+#    container_name: test-website
+#    build:
+#      context: .
+#      dockerfile: ./test-website/Dockerfile
+#    ports:
+#      - "8080:80"
+#    volumes:
+#      - ./test-website/src:/var/www
+#  tracker:
+#    container_name: website-tracker
+#    build:
+#      context: .
+#      dockerfile: ./website-tracker/Dockerfile
+#    ports:
+#      - "8081:80"
+#    volumes:
+#      - ./trackingjs:/var/www
+  db:
+    image: postgres
+    container_name: pg-docker
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    volumes:
+      - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data

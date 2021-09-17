@@ -1,0 +1,16 @@
+Flask-Cognito==1.13
+Flask-Cors==3.0.8
+Flask-Migrate==2.4.0
+Flask-SQLAlchemy==2.4.0
+Flask==1.0.2
+Werkzeug==0.15.2
+aws-xray-sdk==2.5.0
+boto3==1.9.142
+botocore==1.12.142
+flask-login==0.4.1
+psycopg2-binary==2.8.2
+pytest-flask==0.12.0
+pytest-mock==2.0.0
+pytest==3.8.1
+requests==2.21.0
+sqlalchemy==1.3.23

@@ -1,0 +1,327 @@
+service: magicPixel
+
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  runtime: python3.7
+  versionFunctions: false
+  region: us-east-1
+  tracing:
+    apiGateway: true
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - cloudwatch:PutMetricData
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - "s3:GetObject"
+        - "s3:PutObject"
+        - "s3:PutObjectAcl"
+      Resource:
+        - arn:aws:s3:::${self:custom.magicPixelBucket}/*
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:GetQueueUrl
+      Resource:
+        - Fn::GetAtt:
+            - EventQueue
+            - Arn
+#        - Fn::GetAtt:
+#            - EventBrowserQueue
+#            - Arn
+#        - Fn::GetAtt:
+#            - EventDocoumentQueue
+#            - Arn
+#        - Fn::GetAtt:
+#            - EventLocaledQueue
+#            - Arn
+#        - Fn::GetAtt:
+#            - EventSourceQueue
+#            - Arn
+#        - Fn::GetAtt:
+#            - EventTargetQueue
+#            - Arn
+  environment:
+    NODE_ENV: 'test'
+    ENV: ${opt:stage, 'dev'}
+    EVENT_QUEUE_NAME: ${self:custom.eventQueueName}
+    EVENT_BROWSER_QUEUE_NAME: ${self:custom.eventBrowserQueueName}
+    EVENT_DOCUMENT_QUEUE_NAME: ${self:custom.eventDocumentQueueName}
+    EVENT_FORM_QUEUE_NAME: ${self:custom.eventFormQueueName}
+    EVENT_LOCALE_QUEUE_NAME: ${self:custom.eventLocaleQueueName}
+    EVENT_SOURCE_QUEUE_NAME: ${self:custom.eventSourceQueueName}
+    EVENT_TARGET_QUEUE_NAME: ${self:custom.eventTargetQueueName}
+    SECRET_KEY: ${self:custom.flaskSecretKey}
+    POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
+    POSTGRES_PW: ${self:custom.postgres.${opt:stage, 'dev'}.pw}
+    POSTGRES_URL: ${self:custom.postgres.${opt:stage, 'dev'}.url}
+    POSTGRES_DB: ${self:custom.postgres.${opt:stage, 'dev'}.db}
+    MAGIC_PIXEL_BUCKET: ${self:custom.magicPixelBucket}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi
+  - serverless-finch
+  - serverless-offline-sqs
+  - serverless-offline
+
+custom:
+  magicPixelBucket: ${opt:stage, 'dev'}-magic-pixel
+  eventQueueName: ${opt:stage, 'dev'}-event-queue
+  eventBrowserQueueName: ${opt:stage, 'dev'}-event-browser-queue
+  eventDocumentQueueName: ${opt:stage, 'dev'}-event-document-queue
+  eventFormQueueName: ${opt:stage, 'dev'}-event-form-queue
+  eventLocaleQueueName: ${opt:stage, 'dev'}-event-locale-queue
+  eventSourceQueueName: ${opt:stage, 'dev'}-event-source-queue
+  eventTargetQueueName: ${opt:stage, 'dev'}-event-target-queue
+  flaskSecretKey: ''
+  postgres:
+    dev:
+      user: 'root'
+      pw: 'password'
+      url: 'url'
+      db: 'db'
+  wsgi:
+    app: app.app
+    packRequirements: false
+    pythonBin: python
+    pythonRequirements:
+      dockerizePip: "non-linux"
+  serverless-offline:
+    httpPort: 5000
+  serverless-offline-sqs:
+    autoCreate: false                 # create queue if not exists
+    apiVersion: '2012-11-05'
+    endpoint: http://0.0.0.0:9324
+    region: us-east-1
+    accessKeyId: root
+    secretAccessKey: root
+    skipCacheInvalidation: false
+
+
+package:
+  exclude:
+    - node_modules/**
+    - venv/**
+    - .venv/**
+    - package.json
+    - package-lock.json
+    - README.md
+
+  include:
+    - magic_pixel/**
+
+functions:
+  app:
+    handler: wsgi_handler.handler
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: "/{proxy+}"
+          method: ANY
+          cors:
+            origins:
+              - "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+            maxAge: 86400
+  sendEvent:
+    handler: lambdas.send_event
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /send-event
+          method: post
+  consumeEvent:
+    handler: lambdas.consume_event
+    timeout: 60
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - EventQueue
+              - Arn
+#  consumeEventBrowser:
+#    handler: lambdas.consume_event_browser
+#    timeout: 60
+#    events:
+#      - sqs:
+#          arn:
+#            Fn::GetAtt:
+#              - EventBrowserQueue
+#              - Arn
+#  consumeEventDocument:
+#    handler: lambdas.consume_event_document
+#    timeout: 60
+#    events:
+#      - sqs:
+#          arn:
+#            Fn::GetAtt:
+#              - EventDocumentQueue
+#              - Arn
+#  consumeEventForm:
+#    handler: lambdas.consume_event_form
+#    timeout: 60
+#    events:
+#      - sqs:
+#          arn:
+#            Fn::GetAtt:
+#              - EventFormQueue
+#              - Arn
+#  consumeEventLocale:
+#    handler: lambdas.consume_event_locale
+#    timeout: 60
+#    events:
+#      - sqs:
+#          arn:
+#            Fn::GetAtt:
+#              - EventLocaleQueue
+#              - Arn
+#  consumeEventSource:
+#    handler: lambdas.consume_event_source
+#    timeout: 60
+#    events:
+#      - sqs:
+#          arn:
+#            Fn::GetAtt:
+#              - EventSourceQueue
+#              - Arn
+#  consumeEventTarget:
+#    handler: lambdas.consume_event_target
+#    timeout: 60
+#    events:
+#      - sqs:
+#          arn:
+#            Fn::GetAtt:
+#              - EventTargetQueue
+#              - Arn
+
+resources:
+  Resources:
+    EventQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.eventQueueName}
+        VisibilityTimeout: 300
+        RedrivePolicy:
+          maxReceiveCount: 5
+          deadLetterTargetArn:
+            Fn::GetAtt:
+              - EventDLQueue
+              - Arn
+    EventDLQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.eventQueueName}-deadletter
+        MessageRetentionPeriod: 604800
+#    EventBrowserQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventBrowserQueueName}
+#        VisibilityTimeout: 300
+#        RedrivePolicy:
+#          maxReceiveCount: 5
+#          deadLetterTargetArn:
+#            Fn::GetAtt:
+#              - EventBrowserDLQueue
+#              - Arn
+#    EventBrowserDLQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventBrowserQueueName}-deadletter
+#        MessageRetentionPeriod: 604800
+#    EventDocumentQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventDocumentQueueName}
+#        VisibilityTimeout: 300
+#        RedrivePolicy:
+#          maxReceiveCount: 5
+#          deadLetterTargetArn:
+#            Fn::GetAtt:
+#              - EventDocumentDLQueue
+#              - Arn
+#    EventDocumentDLQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventDocumentQueueName}-deadletter
+#        MessageRetentionPeriod: 604800
+#    EventFormQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventFormQueueName}
+#        VisibilityTimeout: 300
+#        RedrivePolicy:
+#          maxReceiveCount: 5
+#          deadLetterTargetArn:
+#            Fn::GetAtt:
+#              - EventFormDLQueue
+#              - Arn
+#    EventFormDLQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventFormQueueName}-deadletter
+#        MessageRetentionPeriod: 604800
+#    EventLocaleQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventLocaleQueueName}
+#        VisibilityTimeout: 300
+#        RedrivePolicy:
+#          maxReceiveCount: 5
+#          deadLetterTargetArn:
+#            Fn::GetAtt:
+#              - EventLocaleDLQueue
+#              - Arn
+#    EventLocaleDLQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventLocaleQueueName}-deadletter
+#        MessageRetentionPeriod: 604800
+#    EventSourceQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventSourceQueueName}
+#        VisibilityTimeout: 300
+#        RedrivePolicy:
+#          maxReceiveCount: 5
+#          deadLetterTargetArn:
+#            Fn::GetAtt:
+#              - EventSourceDLQueue
+#              - Arn
+#    EventSourceDLQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventSourceQueueName}-deadletter
+#        MessageRetentionPeriod: 604800
+#    EventTargetQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventTargetQueueName}
+#        VisibilityTimeout: 300
+#        RedrivePolicy:
+#          maxReceiveCount: 5
+#          deadLetterTargetArn:
+#            Fn::GetAtt:
+#              - EventTargetDLQueue
+#              - Arn
+#    EventTargetDLQueue:
+#      Type: AWS::SQS::Queue
+#      Properties:
+#        QueueName: ${self:custom.eventTargetQueueName}-deadletter
+#        MessageRetentionPeriod: 604800
