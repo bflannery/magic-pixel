@@ -12,7 +12,5 @@ class EventForm(WithSoftDelete, Model):
         "Event",
         foreign_keys=[event_id],
     )
-
-    site_id = db.Column(db.BigInteger, nullable=False, index=True)
     form_id = db.Column(db.Text, nullable=False)
     form_fields = db.JSON(db.Text, nullable=False)

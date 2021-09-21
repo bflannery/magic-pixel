@@ -20,10 +20,10 @@ from magic_pixel.services.events import (
 
 
 class EventConsumer(QueueConsumer):
-    message_parser = EventMessage
+    # message_parser = EventMessage
 
     def consume_message(
-        self, sqs_id: str, message: EventMessage, context: dict
+        self, sqs_id: str, message, context: dict
     ) -> bool:
         print(f"consume event message_id : {sqs_id}")
         result = save_event_message(message)

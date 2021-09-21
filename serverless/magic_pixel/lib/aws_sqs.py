@@ -89,13 +89,11 @@ class QueueConsumer(Generic[T]):
             return True
     """
 
-    message_parser: ClassVar[Callable[..., T]]
-
     def parse_message(self, record: dict, context: dict) -> T:
+        print('PARSE MESSAGE')
         """ takes a sqs record and calls message_parser to convert it. """
         body_string = record.get("body")
-        body = json.loads(body_string)
-        return self.message_parser(**body)
+        return json.loads(body_string)
 
     def consume(self, sqs_id: str, record: dict, context: dict) -> bool:
         """ consume a sqs record. default is to convert to dataclass and call consume_message"""

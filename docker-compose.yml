@@ -1,23 +1,23 @@
 version: "3"
 services:
-#  test-website:
-#    container_name: test-website
-#    build:
-#      context: .
-#      dockerfile: ./test-website/Dockerfile
-#    ports:
-#      - "8080:80"
-#    volumes:
-#      - ./test-website/src:/var/www
-#  tracker:
-#    container_name: website-tracker
-#    build:
-#      context: .
-#      dockerfile: ./website-tracker/Dockerfile
-#    ports:
-#      - "8081:80"
-#    volumes:
-#      - ./trackingjs:/var/www
+  test-website:
+    container_name: test-website
+    build:
+      context: test-website
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./test-website/src:/var/www
+  website-tracker:
+    container_name: website-tracker
+    build:
+      context: website-tracker
+      dockerfile: Dockerfile
+    ports:
+      - "8081:80"
+    volumes:
+      - ./website-tracker:/var/www
   db:
     image: postgres
     container_name: pg-docker

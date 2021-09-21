@@ -12,8 +12,6 @@ class EventBrowser(WithSoftDelete, Model):
         "Event",
         foreign_keys=[event_id],
     )
-
-    site_id = db.Column(db.BigInteger, nullable=False, index=True)
     language = db.Column(db.Text, nullable=True)
     name = db.Column(db.Text, nullable=True)
     platform = db.Column(db.Text, nullable=True)

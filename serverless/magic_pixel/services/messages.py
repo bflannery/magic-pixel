@@ -16,7 +16,7 @@ from magic_pixel.lib.messages import (
 )
 
 
-def publish_event_message(message: EventMessage):
+def publish_event_message(message):
     return event_queue.send_message(message)
 
 

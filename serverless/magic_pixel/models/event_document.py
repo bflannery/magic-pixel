@@ -12,8 +12,6 @@ class EventDocument(WithSoftDelete, Model):
         "Event",
         foreign_keys=[event_id],
     )
-
-    site_id = db.Column(db.BigInteger, nullable=False, index=True)
     title = db.Column(db.Text, nullable=True)
     referrer = db.Column(db.Text, nullable=True)
     document_url = db.Column(db.Text, nullable=False)

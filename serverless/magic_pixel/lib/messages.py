@@ -47,7 +47,6 @@ class EventMessage:
 
 @dataclass
 class EventBrowserMessage:
-    site_id: int
     language: str
     name: Optional[str]
     plugins: Optional[str]
@@ -60,7 +59,6 @@ class EventBrowserMessage:
 
 @dataclass
 class EventDocumentMessage:
-    site_id: int
     title: Optional[str]
     referrer: Optional[str]
     document_url: str
@@ -70,30 +68,24 @@ class EventDocumentMessage:
 
 @dataclass
 class EventFormMessage:
-    site_id: int
     form_id: str
     form_fields: str
 
 
 @dataclass
 class EventLocaleMessage:
-    site_id: int
     language: Optional[str]
     tz_offset: Optional[str]
 
 
 @dataclass
 class EventSourceMessage:
-    id: str
-    created_at: str
-    site_id: int
     url: str
     parameters: Optional[str]
 
 
 @dataclass
 class EventTargetMessage:
-    site_id: int
     url: int
     selector: Optional[str]
     parameters: Optional[str]
