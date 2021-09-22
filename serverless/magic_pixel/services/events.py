@@ -1,20 +1,33 @@
+import json
+
 from magic_pixel.db import db
+from magic_pixel.models import (
+    Event,
+    EventBrowser,
+    EventDocument,
+    EventForm,
+    EventLocale,
+    EventSource,
+    EventTarget,
+)
+from magic_pixel.lib.aws_sqs import event_queue
+from magic_pixel.utilities import parse_url
 
-from magic_pixel.models import Event
-from magic_pixel.models.event_browser import EventBrowser
-from magic_pixel.models.event_document import EventDocument
-from magic_pixel.models.event_form import EventForm
-from magic_pixel.models.event_locale import EventLocale
-from magic_pixel.models.event_source import EventSource
-from magic_pixel.models.event_target import EventTarget
+
+def queue_event_message(event):
+    return event_queue.send_message(event)
 
 
-def parse_url(url_dict):
-    return f"{url_dict.protocol}//{url_dict.host}{url_dict.pathname}"
+def consume_event_message(sqs_id: str, record: dict) -> bool:
+    body_string = record.get("body")
+    message = json.loads(body_string)
+    print(f"consume event message_id: {sqs_id}")
+    result = save_event_message(message)
+    return result
 
 
 def save_event_message(event):
-    print("save_event_message: ", event)
+    print(f"save_event_message: {event}")
     try:
         new_event = save_event(event)
 
@@ -104,7 +117,7 @@ def save_event_message(event):
 
 
 def save_event(event):
-    print("save_event: ", event)
+    print(f"save_event: {event}")
     try:
         new_event = Event(
             site_id=event.get("siteId"),
@@ -116,6 +129,7 @@ def save_event(event):
             user_id=event.get("userId"),
             event_timestamp=event.get("timestamp"),
         ).save()
+        print(f"New Event: {new_event}")
         return new_event
     except Exception as e:
         print(e)
@@ -123,7 +137,7 @@ def save_event(event):
 
 
 def save_event_browser(event_browser):
-    print("save_event_browser: ", event_browser)
+    print(f"save_event_browser: {event_browser}")
     try:
         new_event_browser = EventBrowser(
             event_id=event_browser["event_id"],
@@ -136,7 +150,7 @@ def save_event_browser(event_browser):
             screen_height=event_browser["screen_height"],
             screen_width=event_browser["screen_width"],
         ).save()
-        print("New Browser Event: ", new_event_browser)
+        print(f"New Browser Event: {new_event_browser}")
         return new_event_browser
     except Exception as e:
         print(e)
@@ -144,7 +158,7 @@ def save_event_browser(event_browser):
 
 
 def save_event_document(event_document):
-    print("save_event_document: ", event_document)
+    print(f"save_event_document: {event_document}")
     try:
         new_document_event = EventDocument(
             title=event_document["title"],
@@ -153,7 +167,7 @@ def save_event_document(event_document):
             document_parameters=event_document["document_parameters"],
             referral_parameters=event_document["referral_parameters"],
         ).save()
-        print("New Document Event: ", new_document_event)
+        print(f"New Document Event: {new_document_event}")
         return new_document_event
     except Exception as e:
         print(e)
@@ -161,13 +175,13 @@ def save_event_document(event_document):
 
 
 def save_event_form(event_form):
-    print("save_event_form: ", event_form)
+    print(f"save_event_form: {event_form}")
     try:
         new_event_form = EventForm(
             form_id=event_form["form_id"],
             form_fields=event_form["form_fields"],
         ).save()
-        print("New Form Event: ", new_event_form)
+        print(f"New Form Event: {new_event_form}")
         return new_event_form
     except Exception as e:
         print(e)
@@ -175,13 +189,13 @@ def save_event_form(event_form):
 
 
 def save_event_locale(event_locale):
-    print("save_event_locale: ", event_locale)
+    print(f"save_event_locale: {event_locale}")
     try:
         new_locale_event = EventLocale(
             language=event_locale["language"],
             tz_offset=event_locale["tz_offset"],
         ).save()
-        print("New Locale Event: ", new_locale_event)
+        print(f"New Locale Event: {new_locale_event}")
         return new_locale_event
     except Exception as e:
         print(e)
@@ -189,13 +203,13 @@ def save_event_locale(event_locale):
 
 
 def save_event_source(event_source):
-    print("save_event_source")
+    print(f"save_event_source: {event_source}")
     try:
         new_source_event = EventSource(
             url=event_source["url"],
             parameters=event_source["parameters"],
         ).save()
-        print("New Source Event: ", new_source_event)
+        print(f"New Source Event: {new_source_event}")
         return new_source_event
     except Exception as e:
         print(e)
@@ -203,14 +217,14 @@ def save_event_source(event_source):
 
 
 def save_event_target_message(event_target):
-    print("save_event_target_message")
+    print(f"save_event_target_message: {event_target}")
     try:
         new_target_event = EventTarget(
             url=event_target["url"],
             selector=event_target["selector"],
             parameters=event_target["parameters"],
         ).save()
-        print("New Target Event: ", new_target_event)
+        print(f"New Target Event: {new_target_event}")
         return new_target_event
     except Exception as e:
         print(e)
