@@ -28,3 +28,8 @@ services:
       - 5432:5432
     volumes:
       - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data
+  fake-sqs:
+    container_name: fake-sqs
+    image: s12v/elasticmq
+    ports:
+      - "9324:9324"
