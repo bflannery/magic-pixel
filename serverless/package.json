@@ -20,7 +20,6 @@
     "serverless-wsgi": "^2.0.1"
   },
   "devDependencies": {
-    "serverless-lambda-edge-pre-existing-cloudfront": "^1.1.5",
     "serverless-offline": "^8.2.0"
   }
 }

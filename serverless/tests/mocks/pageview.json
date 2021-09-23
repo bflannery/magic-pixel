@@ -18,30 +18,30 @@
                 "mimeType": {
                     "type": "application/x-google-chrome-pdf",
                     "description": "Portable Document Format",
-                    "suffixes": "pdf",
-                },
+                    "suffixes": "pdf"
+                }
             },
             {
                 "name": "Chrome PDF Viewer",
                 "filename": "mhjfbmdgcfjbbpaeojofohoefgiehjai",
-                "mimeType": {"type": "application/pdf", "suffixes": "pdf"},
+                "mimeType": {"type": "application/pdf", "suffixes": "pdf"}
             },
             {
                 "name": "Native Client",
                 "filename": "internal-nacl-plugin",
                 "mimeType": {
                     "type": "application/x-nacl",
-                    "description": "Native Client Executable",
-                },
-            },
-        ],
+                    "description": "Native Client Executable"
+                }
+            }
+        ]
     },
     "document": {
         "url": {
             "host": "localhost:8080",
             "hostname": "localhost",
             "pathname": "/",
-            "protocol": "http:",
+            "protocol": "http:"
         }
     },
     "screen": {"height": 900, "width": 1440, "colorDepth": 30},
@@ -50,7 +50,7 @@
         "host": "localhost:8080",
         "hostname": "localhost",
         "pathname": "/",
-        "protocol": "http:",
+        "protocol": "http:"
     },
     "timestamp": "2021-09-20T22:07:41.941Z",
     "event": "pageview",
@@ -59,9 +59,9 @@
             "host": "localhost:8080",
             "hostname": "localhost",
             "pathname": "/",
-            "protocol": "http:",
+            "protocol": "http:"
         }
     },
     "siteId": "3aNgZ99g",
-    "qId": "g7BCbR3CVE7egGVZ",
+    "qId": "g7BCbR3CVE7egGVZ"
 }

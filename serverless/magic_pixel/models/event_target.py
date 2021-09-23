@@ -12,6 +12,6 @@ class EventTarget(WithSoftDelete, Model):
         "Event",
         foreign_keys=[event_id],
     )
-    selector = db.Column(db.Text, nullable=True)
     url = db.Column(db.Text, nullable=False)
+    selector = db.Column(db.Text, nullable=True)
     parameters = db.JSON(db.Text, nullable=True)

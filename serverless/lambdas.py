@@ -18,7 +18,8 @@ def serverless_function(func):
 
 @serverless_function
 def send_event(event, context):
-    print("send_event")
+    print("Sending event messages to the event queue ")
+
     queue_event_message(event)
     return {
         "statusCode": 200,
@@ -39,9 +40,11 @@ def consume_event(event, context):
     has_failed = False
     for record in records:
         message_id = record.get("messageId")
-        logger.log_info(f"consuming message: {message_id}")
+        logger.log_info(f"consuming event message: {message_id}")
         try:
-            consume_succeeded = consume_event_message(message_id, record, context)
+            body_string = record.get("body")
+            message = json.loads(body_string)
+            consume_succeeded = consume_event_message(message)
             has_failed |= not consume_succeeded
         except Exception as e:
             logger.log_exception(e)

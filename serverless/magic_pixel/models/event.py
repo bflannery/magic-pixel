@@ -7,10 +7,10 @@ class Event(WithSoftDelete, Model):
 
     site_id = db.Column(db.BigInteger, nullable=False, index=True)
     event_type = db.Column(db.Text, nullable=False, index=True)
-    fingerprint = db.Column(db.Text, nullable=True, index=True)
+    fingerprint = db.Column(db.Text, nullable=True)
     q_id = db.Column(db.Text, nullable=True)
-    session_id = db.Column(db.Text, nullable=True, index=True)
-    visitor_id = db.Column(db.Text, nullable=True, index=True)
+    session_id = db.Column(db.Text, nullable=True)
+    visitor_id = db.Column(db.Text, nullable=True)
     user_id = db.Column(db.Text, nullable=True)
     user_profile = db.Column(db.Text, nullable=True)
     event_timestamp = db.Column(db.DateTime, nullable=True)

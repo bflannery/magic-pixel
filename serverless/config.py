@@ -10,6 +10,11 @@ DB_URL = "postgresql+psycopg2://{user}:{pw}@{url}/{db}".format(
     user=POSTGRES_USER, pw=POSTGRES_PW, url=POSTGRES_URL, db=POSTGRES_DB
 )
 
+ENV = os.environ.get("ENV", default="local")
+
+SQS_REGION_NAME = os.environ.get("SQS_ENDPOINT_URL", default="elasticmq")
+SQS_ENDPOINT_URL = os.environ.get("SQS_ENDPOINT_URL", default="http://localhost:9324")
+
 SQLALCHEMY_DATABASE_URI = DB_URL
 SQLALCHEMY_TRACK_MODIFICATIONS = False
 
