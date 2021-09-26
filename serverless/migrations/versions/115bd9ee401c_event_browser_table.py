@@ -35,13 +35,14 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("event_id", sa.BigInteger(), nullable=False),
         sa.Column("language", sa.Text(), nullable=True),
+        sa.Column("name", sa.Text(), nullable=True),
         sa.Column("platform", sa.Text(), nullable=True),
         sa.Column("plugins", sa.JSON(), nullable=True),
         sa.Column("ua", sa.Text(), nullable=True),
-        sa.Column("version", sa.Text(), nullable=True),
-        sa.Column("screen_cd", sa.Text(), nullable=True),
-        sa.Column("screen_height", sa.Text(), nullable=True),
-        sa.Column("screen_width", sa.Text(), nullable=True),
+        sa.Column("version", sa.Integer(), nullable=True),
+        sa.Column("screen_cd", sa.Integer(), nullable=True),
+        sa.Column("screen_height", sa.Integer(), nullable=True),
+        sa.Column("screen_width", sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["event_id"], ["event.id"], name="event_browser_event_id_fkey"

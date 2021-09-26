@@ -1,27 +1,26 @@
 import boto3
 import json
+import os
 from werkzeug.local import LocalProxy
 from flask import current_app
 from magic_pixel import logger
 from magic_pixel.utility import env
 
+SQS_REGION_NAME = os.environ.get("SQS_ENDPOINT_URL", default="elasticmq")
+SQS_ENDPOINT_URL = os.environ.get("SQS_ENDPOINT_URL", default="http://localhost:9324")
+
 env = env()
 
-local_sqs_config = {
-    "endpoint_url": current_app.config.get("SQS_ENDPOINT_URL"),
-    "region_name": current_app.config.get("SQS_REGION_NAME"),
-    "aws_secret_access_key": "x",
-    "aws_access_key_id": "x",
-    "useSSL": False,
+sqs_config = {
+    "endpoint_url": SQS_ENDPOINT_URL,
+    "region_name": SQS_REGION_NAME,
 }
 
-live_sqs_config = {
-    "endpoint_url": current_app.config.get("SQS_ENDPOINT_URL"),
-    "region_name": current_app.config.get("SQS_REGION_NAME"),
-}
+if env == "local":
+    sqs_config["use_ssl"] = False
 
-sqs_env_config = local_sqs_config if env == "local" else live_sqs_config
-sqs_client = boto3.resource(**sqs_env_config)
+print(sqs_config)
+sqs_client = boto3.resource("sqs", **sqs_config)
 
 
 class RetryException(Exception):

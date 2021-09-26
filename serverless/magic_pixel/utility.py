@@ -2,7 +2,7 @@ import os
 
 
 def parse_url(url_dict):
-    return f"{url_dict.protocol}//{url_dict.host}{url_dict.pathname}"
+    return f"{url_dict['protocol']}//{url_dict['host']}{url_dict['pathname']}"
 
 
 def env():
@@ -13,3 +13,8 @@ def env():
 
 def is_offline():
     return os.environ.get("IS_OFFLINE")
+
+
+def is_local():
+    env_var = env()
+    return env_var == "local" or is_offline()

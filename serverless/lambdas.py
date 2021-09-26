@@ -35,6 +35,7 @@ def send_event(event, context):
 
 @serverless_function
 def consume_event(event, context):
+    print(f'CONSUME_EVENT: {event}')
     records = event.get("Records", [])
     logger.log_info(f"consume_event| {len(records)}")
     has_failed = False
@@ -42,9 +43,10 @@ def consume_event(event, context):
         message_id = record.get("messageId")
         logger.log_info(f"consuming event message: {message_id}")
         try:
-            body_string = record.get("body")
-            message = json.loads(body_string)
-            consume_succeeded = consume_event_message(message)
+            lambda_body_string = record.get("body")
+            lambda_message = json.loads(lambda_body_string)
+            event_message = json.loads(lambda_message["body"])
+            consume_succeeded = consume_event_message(event_message)
             has_failed |= not consume_succeeded
         except Exception as e:
             logger.log_exception(e)

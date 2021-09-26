@@ -1,5 +1,6 @@
 from magic_pixel.models.base import WithSoftDelete, Model
 from magic_pixel.db import db
+from sqlalchemy.orm import backref
 
 
 class EventLocale(WithSoftDelete, Model):
@@ -11,6 +12,7 @@ class EventLocale(WithSoftDelete, Model):
     event = db.relationship(
         "Event",
         foreign_keys=[event_id],
+        backref=backref("event_locale", uselist=False)
     )
     language = db.Column(db.Text, nullable=True)
     tz_offset = db.Column(db.Text, nullable=True)

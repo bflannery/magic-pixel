@@ -35,9 +35,9 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("event_id", sa.BigInteger(), nullable=False),
         sa.Column("title", sa.Text(), nullable=True),
-        sa.Column("referrer", sa.Text(), nullable=True),
         sa.Column("document_url", sa.Text(), nullable=True),
         sa.Column("document_parameters", sa.JSON(), nullable=True),
+        sa.Column("referrer_url", sa.Text(), nullable=True),
         sa.Column("referral_parameters", sa.JSON(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(

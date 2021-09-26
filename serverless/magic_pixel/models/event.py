@@ -5,7 +5,7 @@ from magic_pixel.db import db
 class Event(WithSoftDelete, Model):
     __tablename__ = "event"
 
-    site_id = db.Column(db.BigInteger, nullable=False, index=True)
+    site_id = db.Column(db.Text, nullable=False, index=True)
     event_type = db.Column(db.Text, nullable=False, index=True)
     fingerprint = db.Column(db.Text, nullable=True)
     q_id = db.Column(db.Text, nullable=True)
@@ -14,3 +14,4 @@ class Event(WithSoftDelete, Model):
     user_id = db.Column(db.Text, nullable=True)
     user_profile = db.Column(db.Text, nullable=True)
     event_timestamp = db.Column(db.DateTime, nullable=True)
+

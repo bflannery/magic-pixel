@@ -32,7 +32,7 @@ provider:
             - Arn
   environment:
     NODE_ENV: 'test'
-    ENV: ${opt:stage, 'dev'}
+    ENV: ${opt:stage, 'local'}
     EVENT_QUEUE_NAME: ${self:custom.eventQueueName}
     SECRET_KEY: ${self:custom.flaskSecretKey}
     POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
@@ -59,6 +59,11 @@ custom:
   eventTargetQueueName: ${opt:stage, 'dev'}-event-target-queue
   flaskSecretKey: 'c0cbf5992af08ede97e11a3e'
   postgres:
+    local:
+      user: 'postgres'
+      pw: 'docker'
+      url: 'localhost'
+      db: 'postgres'
     dev:
       user: 'root'
       pw: 'password'

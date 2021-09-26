@@ -35,7 +35,7 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("event_id", sa.BigInteger(), nullable=False),
         sa.Column("language", sa.Text(), nullable=True),
-        sa.Column("tz_offset", sa.Text(), nullable=True),
+        sa.Column("tz_offset", sa.Integer(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["event_id"], ["event.id"], name="event_locale_event_id_fkey"
