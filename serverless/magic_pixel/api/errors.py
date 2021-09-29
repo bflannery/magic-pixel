@@ -2,8 +2,8 @@ import json
 from typing import Dict
 from flask import jsonify, make_response
 from werkzeug.exceptions import HTTPException
-from .. import logger
-from .blueprint import api_blueprint
+from magic_pixel import logger
+from .routes import api_routes
 from werkzeug.exceptions import BadRequest
 
 
@@ -14,20 +14,20 @@ class ValidationError(BadRequest):
 
 
 # Turn all exceptions into json
-@api_blueprint.errorhandler(Exception)
+@api_routes.errorhandler(Exception)
 def handle_error(e):
     logger.log_exception(e)
     return make_response(jsonify({"error": "internal error"})), 500
 
 
-@api_blueprint.errorhandler(500)
+@api_routes.errorhandler(500)
 def handle_internal_error(e):
     logger.log_exception(e)
     return make_response(jsonify({"error": "internal error"})), 500
 
 
 # Add more data for known http exceptions (ones that map to status codes)
-@api_blueprint.errorhandler(HTTPException)
+@api_routes.errorhandler(HTTPException)
 def handle_http_error(e):
     response = e.get_response()
     data = {

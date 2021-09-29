@@ -34,7 +34,7 @@ def upgrade():
         ),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("event_id", sa.BigInteger(), nullable=False),
-        sa.Column("url", sa.Text(), nullable=False),
+        sa.Column("url", sa.Text(), nullable=True),
         sa.Column("selector", sa.Text(), nullable=True),
         sa.Column("parameters", sa.JSON(), nullable=True),
         sa.PrimaryKeyConstraint("id"),

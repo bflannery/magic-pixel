@@ -18,8 +18,7 @@ def serverless_function(func):
 
 @serverless_function
 def send_event(event, context):
-    print("Sending event messages to the event queue ")
-
+    logger.log_info("Sending event messages to the event queue.")
     queue_event_message(event)
     return {
         "statusCode": 200,
@@ -35,13 +34,13 @@ def send_event(event, context):
 
 @serverless_function
 def consume_event(event, context):
-    print(f'CONSUME_EVENT: {event}')
+    logger.log_info("Consuming event messages on the event queue.")
     records = event.get("Records", [])
-    logger.log_info(f"consume_event| {len(records)}")
+    logger.log_info(f"{len(records)} in message batch.")
     has_failed = False
     for record in records:
         message_id = record.get("messageId")
-        logger.log_info(f"consuming event message: {message_id}")
+        logger.log_info(f"consuming lambda record message: {message_id}")
         try:
             lambda_body_string = record.get("body")
             lambda_message = json.loads(lambda_body_string)
@@ -53,3 +52,15 @@ def consume_event(event, context):
             has_failed = True
     if has_failed:
         raise RetryException()
+    else:
+        logger.log_info("Messages successfully consumed from event queue.")
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(
+                {
+                    "status": "success",
+                    "description": f"Messages successfully consumed from event queue.",
+                }
+            ),
+        }

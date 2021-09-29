@@ -4,23 +4,7 @@ import os
 from werkzeug.local import LocalProxy
 from flask import current_app
 from magic_pixel import logger
-from magic_pixel.utility import env
-
-SQS_REGION_NAME = os.environ.get("SQS_ENDPOINT_URL", default="elasticmq")
-SQS_ENDPOINT_URL = os.environ.get("SQS_ENDPOINT_URL", default="http://localhost:9324")
-
-env = env()
-
-sqs_config = {
-    "endpoint_url": SQS_ENDPOINT_URL,
-    "region_name": SQS_REGION_NAME,
-}
-
-if env == "local":
-    sqs_config["use_ssl"] = False
-
-print(sqs_config)
-sqs_client = boto3.resource("sqs", **sqs_config)
+from magic_pixel.utility import is_local
 
 
 class RetryException(Exception):
@@ -33,7 +17,19 @@ class RetryException(Exception):
 
 class Queue:
     def __init__(self, name: str):
-        self.queue = sqs_client.get_queue_by_name(QueueName=name)
+        self.queue_name = name
+        self.endpoint_url = current_app.config.get("SQS_ENDPOINT_URL")
+        self.region_name = current_app.config.get("SQS_REGION")
+        self.use_ssl = False if is_local() else True
+        self.sqs_client = boto3.resource(
+            "sqs",
+            **{
+                "endpoint_url": self.endpoint_url,
+                "region_name": self.region_name,
+                "use_ssl": self.use_ssl,
+            },
+        )
+        self.queue = self.sqs_client.get_queue_by_name(QueueName=self.queue_name)
 
     @staticmethod
     def _encode_message_body(message: dict) -> str:
@@ -50,4 +46,4 @@ class Queue:
             logger.log_exception(e)
 
 
-event_queue = LocalProxy(lambda: Queue(current_app.config.get("EVENT_QUEUE_NAME")))
+event_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_EVENT_QUEUE_NAME")))
