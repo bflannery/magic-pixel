@@ -12,10 +12,10 @@ else:
 
 app = Flask(__name__)
 
-app.config.from_pyfile("config.py")
+app.config.from_pyfile("config/config.py")
 
 if utility.is_local():
-    app.config.from_pyfile("config.local.py")
+    app.config.from_pyfile("config/config.local.py")
 
 CORS(app)
 

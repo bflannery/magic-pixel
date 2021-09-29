@@ -4,7 +4,7 @@
     "description": "",
     "main": "index.js",
     "scripts": {
-        "start": "sls wsgi serve",
+        "start": "export IS_OFFLINE=True && sls wsgi serve",
         "start:app:local": "sls offline wsgi serve",
         "start:offline": "sls offline start",
         "start:offline:debug": "export SLS_DEBUG=* && sls offline start"
