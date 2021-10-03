@@ -18,31 +18,31 @@ services:
       - "8081:80"
     volumes:
       - ./website-tracker:/var/www
-  db:
-    image: postgres
-    container_name: pg-docker
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: password
-    ports:
-      - 5432:5432
-    volumes:
-      - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data
-  test-db:
-    image: postgres
-    container_name: pg-test
-    restart: unless-stopped
-    environment:
-      POSTGRES_PASSWORD: password
-    ports:
-      - 5433:5432
-    volumes:
-      - $HOME/docker/volumes/postgres/pixel-test:/var/lib/postgresql/data
-  fake-sqs:
-    container_name: fake-sqs
-    image: softwaremill/elasticmq-native
-    ports:
-      - "9324:9324"
-      - "9325:9325"
-    volumes:
-      - ./serverless/config/elasticmq.conf:/opt/elasticmq.conf
+#  db:
+#    image: postgres
+#    container_name: pg-docker
+#    restart: unless-stopped
+#    environment:
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - 5432:5432
+#    volumes:
+#      - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data
+#  test-db:
+#    image: postgres
+#    container_name: pg-test
+#    restart: unless-stopped
+#    environment:
+#      POSTGRES_PASSWORD: password
+#    ports:
+#      - 5433:5432
+#    volumes:
+#      - $HOME/docker/volumes/postgres/pixel-test:/var/lib/postgresql/data
+#  fake-sqs:
+#    container_name: fake-sqs
+#    image: softwaremill/elasticmq-native
+#    ports:
+#      - "9324:9324"
+#      - "9325:9325"
+#    volumes:
+#      - ./serverless/config/elasticmq.conf:/opt/elasticmq.conf

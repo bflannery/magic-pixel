@@ -101,13 +101,13 @@ def save_event(event: dict) -> dict:
     try:
         new_event = Event(
             site_id=event["site_id"],
-            event_type=event["event"],
+            event_type=event["event_type"],
             q_id=event["q_id"],
             fingerprint=event["fingerprint"],
             session_id=event["session_id"],
             visitor_id=event["visitor_id"],
             user_id=event["user_id"],
-            event_timestamp=event["timestamp"],
+            event_timestamp=event["event_timestamp"],
         ).save()
         db.session.commit()
         return new_event

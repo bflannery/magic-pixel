@@ -1755,6 +1755,8 @@ ScribeEventPublicTracker.prototype.tracker = function(info) {
 
 // Initialize the tracker
 
+console.log('Initializing Scribe')
+
 var scribe = new Scribe({
   tracker:          new ScribeEventPublicTracker(),
   trackPageViews:   true,

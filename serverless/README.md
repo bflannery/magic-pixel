@@ -4,7 +4,7 @@ This project is the monorepo for the Magic Pixel application.
 
 ## Source
 
-Source is hosted on GitLab in a private repo [bflannery/magic-pixel](https://github.com/bflannery/magic-pixel)
+Source is hosted on Github in a private repo [bflannery/magic-pixel](https://github.com/bflannery/magic-pixel)
 
 
 ## Technology
@@ -56,15 +56,6 @@ Also install postgres locally for tooling.
 For Mac, it's recommend to use postico as an easy ui for postgres
 
 
-### Repo Setup
-
-Get access to gitlab repo
-ssh is recommended so [add a new ssh key to your github account](https://docs.github.com/en/authentication/connecting-to-github-with-ssh)
-you'll need ssh for prod db access as well
-
-### Clone the repo!
-ssh (recommended): `git@github.com:bflannery/magic-pixel.git`
-https: `https://github.com/bflannery/magic-pixel.git`
 
 #### Setup a venv for deps
 In root of project
