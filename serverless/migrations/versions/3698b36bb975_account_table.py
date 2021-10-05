@@ -36,6 +36,7 @@ def upgrade():
         sa.Column(
             "is_active", sa.Boolean(), server_default=sa.text("false"), nullable=False
         ),
+        sa.PrimaryKeyConstraint("id"),
     )
 
 
