@@ -1,4 +1,4 @@
-"""event target table
+"""adds event target table
 
 Revision ID: d714436f6d3b
 Revises: 27aad7b1586b

@@ -1,4 +1,4 @@
-"""user table
+"""adds user table
 
 Revision ID: 6cc01f1409c9
 Revises: 3698b36bb975
@@ -47,4 +47,6 @@ def upgrade():
 
 
 def downgrade():
+    op.drop_constraint("user_account_id_fkey", "user")
+    op.drop_index(op.f("ix_user_session"), table_name="user")
     op.drop_table("user")

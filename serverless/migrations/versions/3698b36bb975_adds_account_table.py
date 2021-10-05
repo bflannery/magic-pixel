@@ -1,7 +1,7 @@
-""" account table
+""" adds account table
 
 Revision ID: 3698b36bb975
-Revises: d714436f6d3b
+Revises:
 Create Date: 2021-10-04 20:14:37.166720
 
 """
@@ -10,7 +10,8 @@ import sqlalchemy as sa
 
 # revision identifiers, used by Alembic.
 revision = "3698b36bb975"
-down_revision = "d714436f6d3b"
+# down_revision = "d714436f6d3b"
+down_revision = None
 branch_labels = None
 depends_on = None
 

@@ -1,4 +1,4 @@
-"""event document table
+"""adds event document table
 
 Revision ID: 9e8c4d992953
 Revises: 115bd9ee401c

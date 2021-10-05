@@ -1,4 +1,4 @@
-"""event browser table
+"""adds event browser table
 
 Revision ID: 115bd9ee401c
 Revises: c90938bbfda7

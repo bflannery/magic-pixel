@@ -1,4 +1,4 @@
-"""event locale table
+"""adds event locale table
 
 Revision ID: 327adc538357
 Revises: 95eb3234cadb

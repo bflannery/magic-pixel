@@ -1,7 +1,7 @@
-"""Add event table
+"""adds event table
 
 Revision ID: c90938bbfda7
-Revises: 
+Revises: 6cc01f1409c9
 Create Date: 2021-09-22 22:44:23.847065
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "c90938bbfda7"
-down_revision = None
+down_revision = "6cc01f1409c9"
 branch_labels = None
 depends_on = None
 
@@ -34,6 +34,7 @@ def upgrade():
             nullable=True,
         ),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
+        sa.Column("account_id", sa.BigInteger(), nullable=False),
         sa.Column("site_id", sa.Text(), nullable=False),
         sa.Column("event_type", sa.Text(), nullable=False),
         sa.Column("fingerprint", sa.Text(), nullable=True),
@@ -44,12 +45,16 @@ def upgrade():
         sa.Column("user_profile", sa.Text(), nullable=True),
         sa.Column("event_timestamp", sa.DateTime(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(
+            ["account_id"], ["account.id"], name="event_account_id_fkey"
+        ),
     )
     op.create_index(op.f("ix_event_site_id"), "event", ["site_id"], unique=False)
     op.create_index(op.f("ix_event_event_type"), "event", ["event_type"], unique=False)
 
 
 def downgrade():
+    op.drop_constraint("event_account_id_fkey", "event")
     op.drop_index(op.f("ix_event_event_type"), table_name="event")
     op.drop_index(op.f("ix_event_site_id"), table_name="event")
     op.drop_table("event")
