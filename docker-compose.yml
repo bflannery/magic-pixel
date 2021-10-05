@@ -18,16 +18,16 @@ services:
       - "8081:80"
     volumes:
       - ./website-tracker:/var/www
-#  db:
-#    image: postgres
-#    container_name: pg-docker
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - 5432:5432
-#    volumes:
-#      - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data
+  db:
+    image: postgres
+    container_name: pg-docker
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    volumes:
+      - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data
 #  test-db:
 #    image: postgres
 #    container_name: pg-test

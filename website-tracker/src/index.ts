@@ -11,6 +11,8 @@ const hasMPData = localStorage.getItem('MP')
 if (!hasMPData) {
   // Call verification service to get blob data
   // Save blob data to local storage?
+
+
 }
 
 // create a new script element

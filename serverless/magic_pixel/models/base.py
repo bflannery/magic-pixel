@@ -1,6 +1,66 @@
+import base64
 from datetime import datetime
+from typing import Optional
+
 from sqlalchemy import text
 from magic_pixel.db import db
+
+
+class MpIdMixin:
+    """
+    Mixin to add calculated mp_id (a global id) to a sqlalchemy object.
+    Requires a unique prefix for object, this defaults to the
+    sqlalchemy object's __tablename__. it can be overwritten
+    with __mp_id_prefix__ attribute
+    """
+
+    __tablename__ = None
+    __mp_id_prefix__ = None
+    _mp_id = None  # internal to cache id, assumes sqlalchemy object id never changes
+
+    @classmethod
+    def mp_id_prefix(cls) -> str:
+        """ Calculate mp_id_prefix, should never change for a given class """
+        prefix = cls.__mp_id_prefix__ if cls.__mp_id_prefix__ else cls.__tablename__
+        if not prefix:
+            raise NotImplementedError(
+                "__mp_id_prefix__ or __tablename__ must be defined for mp_id"
+            )
+        return prefix
+
+    @property
+    def mp_id(self) -> Optional[str]:
+        """ Get mp_id for db object. Note: if object not flushed to db this will return none until a db id is set """
+        if self._mp_id:
+            return self._mp_id
+        return self._stash_mp_id()
+
+    @classmethod
+    def db_id_from_mp_id(cls, mp_id: str) -> int:
+        """ Get db pk id from mp_id """
+        if len(mp_id) % 4 != 0 and mp_id[-1] != "=":
+            # read padding back to base64 string
+            mp_id = mp_id + "=" * (-len(mp_id) % 4)
+        (prefix, db_id) = base64.urlsafe_b64decode(mp_id).decode("ascii").split(":")
+        if prefix != cls.mp_id_prefix() or not db_id or not db_id.isnumeric():
+            raise Exception("Invalid mp_id for type")
+
+        return int(db_id)
+
+    @classmethod
+    def get_by_mp_id(cls, mp_id: str):
+        """ Get db object by mp_id """
+        db_id = cls.db_id_from_mp_id(mp_id)
+        return cls.query.get(db_id)
+
+    def _stash_mp_id(self) -> Optional[str]:
+        if self.id is None:
+            return None
+        self._mp_id = base64.urlsafe_b64encode(
+            f"{self.mp_id_prefix()}:{self.id}".encode("ascii")
+        ).decode("ascii")
+        self._mp_id = self._mp_id.strip("=")
+        return self._mp_id
 
 
 class Base(db.Model):
