@@ -9,14 +9,17 @@ from magic_pixel.models import (
     EventForm,
     EventLocale,
     EventSource,
-    EventTarget,
+    EventTarget, Account,
 )
 from magic_pixel.lib.aws_sqs import event_queue
 from magic_pixel.utility import parse_url
 
 
 def _parse_event(event: dict) -> dict:
+    account_hid = event.get('accountHid')
+    account_id = Account.db_id_from_mp_id(account_hid)
     return {
+        "account_id": account_id,
         "site_id": event.get("siteId"),
         "event_type": event.get("event"),
         "q_id": event.get("qId"),

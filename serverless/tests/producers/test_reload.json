@@ -1,0 +1,28 @@
+{
+    "body": {
+        "fingerprint": "b29f33da6a9bc1b5ee9516759f186095",
+        "sessionId": "78d4e505-4912-2934-9d1c-78760954d459",
+        "visitorId": "7e7e6451-60f1-a237-6d04-1a73a90d870e",
+        "userId": null,
+        "userProfile": null,
+        "timestamp": "2021-10-15T10:31:53.951Z",
+        "event": "reload",
+        "source": {
+            "url": {
+                "host": "localhost:8080",
+                "hostname": "localhost",
+                "pathname": "/",
+                "protocol": "http:"
+            }
+        },
+        "target": {
+            "url": {
+                "host": "localhost:8080",
+                "hostname": "localhost",
+                "pathname": "/",
+                "protocol": "http:"
+            }
+        },
+        "accountHid": "YWNjb3VudDox"
+    }
+}

@@ -10,14 +10,14 @@ services:
     volumes:
       - ./test-website/src:/var/www
   website-tracker:
+    image: kyma/docker-nginx
     container_name: website-tracker
-    build:
-      context: website-tracker
-      dockerfile: Dockerfile
+    restart: "always"
     ports:
       - "8081:80"
     volumes:
-      - ./website-tracker:/var/www
+      - ./website-tracker/scribe/scribe-analytics.js:/var/www/scribe-analytics.js
+      - ./website-tracker/build/index.js:/var/www/mp-tracker.js
   db:
     image: postgres
     container_name: pg-docker
@@ -28,21 +28,21 @@ services:
       - 5432:5432
     volumes:
       - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data
-#  test-db:
-#    image: postgres
-#    container_name: pg-test
-#    restart: unless-stopped
-#    environment:
-#      POSTGRES_PASSWORD: password
-#    ports:
-#      - 5433:5432
-#    volumes:
-#      - $HOME/docker/volumes/postgres/pixel-test:/var/lib/postgresql/data
-#  fake-sqs:
-#    container_name: fake-sqs
-#    image: softwaremill/elasticmq-native
-#    ports:
-#      - "9324:9324"
-#      - "9325:9325"
-#    volumes:
-#      - ./serverless/config/elasticmq.conf:/opt/elasticmq.conf
+  test-db:
+    image: postgres
+    container_name: pg-test
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5433:5432
+    volumes:
+      - $HOME/docker/volumes/postgres/pixel-test:/var/lib/postgresql/data
+  fake-sqs:
+    container_name: fake-sqs
+    image: softwaremill/elasticmq-native
+    ports:
+      - "9324:9324"
+      - "9325:9325"
+    volumes:
+      - ./serverless/config/elasticmq.conf:/opt/elasticmq.conf

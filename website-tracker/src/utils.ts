@@ -18,3 +18,9 @@ export function getHostId(script: HTMLOrSVGScriptElement | null): string | null 
   const url = new URL(script.src)
   return url.searchParams.get('hid')
 }
+
+
+export function getDiffDaysFromTimestamp(time1: number, time2: number) {
+  const timeDiff = time1 - time2;
+  return timeDiff / (1000 * 3600 * 24);
+}

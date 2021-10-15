@@ -1,36 +1,3 @@
-var ScribeEventPublicTracker = function(config) {
-    if (!(this instanceof ScribeEventPublicTracker)) return new ScribeEventPublicTracker(config);
-
-    this.config = config;
-};
-
-ScribeEventPublicTracker.prototype.tracker = function(info) {
-
-    console.log({ info })
-    var path = info.path;
-    var value = info.value;
-
-    value.siteId = window.ep_site_id;
-    value.qId = window.ep_q_id;
-
-    var event = JSON.stringify(value);
-
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("POST", "http://localhost:5000/dev/send-event", true);
-    xhttp.setRequestHeader("Content-type", "application/json");
-    xhttp.send(event);
-
-    if (typeof console !== 'undefined') {
-        console.log(path);
-        console.log(value);
-        console.log(event);
-
-        info.success && setTimeout(info.success, 0);
-    } else {
-        info.failure && setTimeout(info.failure, 0);
-    }
-};
-
 /**
  * The API exported by the Scribe Analytics.
  * @namespace scribe
@@ -319,6 +286,7 @@ ScribeEventPublicTracker.prototype.tracker = function(info) {
 
       options = options || {};
 
+      console.log({ ScribeOptions: options })
       this.options    = options;
       this.trackerInstance    = options.tracker;
 
@@ -1754,11 +1722,50 @@ ScribeEventPublicTracker.prototype.tracker = function(info) {
 });
 
 // Initialize the tracker
-
 console.log('Initializing Scribe')
 
+const storageData = localStorage.getItem('mp')
+
+var mpAccountHid = null
+if (storageData){
+  var mpData = JSON.parse(storageData)
+  mpAccountHid = mpData.accountHid
+}
+
+var ScribeEventPublicTracker = function(config) {
+  if (!(this instanceof ScribeEventPublicTracker)) return new ScribeEventPublicTracker(config);
+
+  this.config = config;
+};
+
+ScribeEventPublicTracker.prototype.tracker = function(info) {
+  var path = info.path;
+  var value = info.value;
+  var accountHid = this.config.mpAccountHid
+  var accountEvent = Object.assign(value, { accountHid: accountHid });
+  var event = JSON.stringify(accountEvent);
+
+  // var xhttp = new XMLHttpRequest();
+  // xhttp.open("POST", "http://localhost:5000/dev/send-event", true);
+  // xhttp.setRequestHeader("Content-type", "application/json");
+  // xhttp.send(event);
+  //
+  if (typeof console !== 'undefined') {
+    console.log(path);
+    console.log(value);
+    console.log(event);
+
+    info.success && setTimeout(info.success, 0);
+  } else {
+    info.failure && setTimeout(info.failure, 0);
+  }
+};
+
+
 var scribe = new Scribe({
-  tracker:          new ScribeEventPublicTracker(),
+  tracker:          new ScribeEventPublicTracker({
+    mpAccountHid: mpAccountHid,
+  }),
   trackPageViews:   true,
   trackClicks:      true,
   trackHashChanges: false,
