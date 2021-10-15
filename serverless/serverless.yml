@@ -146,6 +146,14 @@ functions:
             Fn::GetAtt:
               - EventQueue
               - Arn
+  verification:
+    handler: lambdas.verification
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /verification
+          method: post
 
 resources:
   Resources:

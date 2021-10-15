@@ -4,6 +4,7 @@ import json
 from app import app
 from magic_pixel import logger
 from magic_pixel.lib.aws_sqs import RetryException
+from magic_pixel.models import Account
 from magic_pixel.services.events import queue_event_message, consume_event_message
 
 
@@ -61,6 +62,50 @@ def consume_event(event, context):
                 {
                     "status": "success",
                     "description": f"Messages successfully consumed from event queue.",
+                }
+            ),
+        }
+
+
+@serverless_function
+def verification(event, context):
+    logger.log_info(f"Verification Event: {event}")
+
+    try:
+        body = event.get("body")
+        if not body:
+            raise Exception("Event has no body object.")
+        logger.log_info(f"Verification Event: {body}")
+
+        parsed_body = json.loads(body)
+        hid = parsed_body.get("hid")
+        if not hid:
+            raise Exception("Event has no hid.")
+        logger.log_info(f"Verification Account HID: {hid}")
+
+        account = Account.get_by_mp_id(hid)
+        if not account:
+            raise Exception(f"No account exists with hid: {hid}.")
+        logger.log_info(f"Verification Account: {account}")
+
+        # Check account plan status
+
+        logger.log_info(f"Account")
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"is_active": account.is_active}),
+        }
+
+    except Exception as e:
+        logger.log_exception(e)
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(
+                {
+                    "status": "error",
+                    "description": "Internal server error.",
                 }
             ),
         }

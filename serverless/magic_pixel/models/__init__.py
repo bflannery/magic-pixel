@@ -1,3 +1,4 @@
+from .account import Account
 from .base import Base
 from .event import Event
 from .event_browser import EventBrowser

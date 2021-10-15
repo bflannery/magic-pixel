@@ -1,14 +1,11 @@
 from flask_login import UserMixin
 from sqlalchemy import sql
-from magic_pixel.constants import AccountProductName
 from magic_pixel.db import db
 from magic_pixel.utility import random_hash
-from .base import Base, MpIdMixin
-
-AccountProductNameDBType = db.Enum(AccountProductName)
+from .base import Model
 
 
-class Account(MpIdMixin, Base):
+class Account(Model):
     __tablename__ = "account"
 
     name = db.Column(db.Text, nullable=False, index=True, unique=True)
@@ -17,7 +14,7 @@ class Account(MpIdMixin, Base):
     )
 
 
-class User(MpIdMixin, UserMixin, Base):
+class User(UserMixin, Model):
     __tablename__ = "user"
 
     account_id = db.Column(db.BigInteger, db.ForeignKey("account.id"), index=True)

@@ -13,7 +13,6 @@ from magic_pixel.models import (
 )
 from magic_pixel.lib.aws_sqs import event_queue
 from magic_pixel.utility import parse_url
-from flask import current_app
 
 
 def _parse_event(event: dict) -> dict:
