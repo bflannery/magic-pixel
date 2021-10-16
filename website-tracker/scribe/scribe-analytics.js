@@ -286,7 +286,6 @@
 
       options = options || {};
 
-      console.log({ ScribeOptions: options })
       this.options    = options;
       this.trackerInstance    = options.tracker;
 
@@ -1722,14 +1721,15 @@
 });
 
 // Initialize the tracker
-console.log('Initializing Scribe')
-
-const storageData = localStorage.getItem('mp')
+console.debug('Scribe: Initializing Scribe')
 
 var mpAccountHid = null
+var storageData = localStorage.getItem('mp')
 if (storageData){
   var mpData = JSON.parse(storageData)
   mpAccountHid = mpData.accountHid
+} else {
+  console.error('Scribe: No MP Hid')
 }
 
 var ScribeEventPublicTracker = function(config) {
@@ -1739,10 +1739,8 @@ var ScribeEventPublicTracker = function(config) {
 };
 
 ScribeEventPublicTracker.prototype.tracker = function(info) {
-  var path = info.path;
   var value = info.value;
-  var accountHid = this.config.mpAccountHid
-  var accountEvent = Object.assign(value, { accountHid: accountHid });
+  var accountEvent = Object.assign(value, { accountHid: this.config.mpAccountHid });
   var event = JSON.stringify(accountEvent);
 
   // var xhttp = new XMLHttpRequest();
@@ -1751,10 +1749,7 @@ ScribeEventPublicTracker.prototype.tracker = function(info) {
   // xhttp.send(event);
   //
   if (typeof console !== 'undefined') {
-    console.log(path);
-    console.log(value);
-    console.log(event);
-
+    console.log({ value, event });
     info.success && setTimeout(info.success, 0);
   } else {
     info.failure && setTimeout(info.failure, 0);

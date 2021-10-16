@@ -24,3 +24,15 @@ export function getDiffDaysFromTimestamp(time1: number, time2: number) {
   const timeDiff = time1 - time2;
   return timeDiff / (1000 * 3600 * 24);
 }
+
+
+export function uuidv4() {
+  var s4 = function() {
+    return Math.floor((1 + Math.random()) * 0x10000)
+      .toString(16)
+      .substring(1);
+  };
+
+  return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
+    s4() + '-' + s4() + s4() + s4();
+}

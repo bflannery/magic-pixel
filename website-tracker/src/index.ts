@@ -1,17 +1,17 @@
-import {getDiffDaysFromTimestamp, getHostId} from './utils'
+import {getDiffDaysFromTimestamp, getHostId, uuidv4} from './utils'
 
 const script = document.currentScript
 
 async function init() {
-
   const hostId = getHostId(script)
-  const storageData = localStorage.getItem('mp')
+  const mpLocalStorageData = localStorage.getItem('mp')
+  const mpSessionID  = sessionStorage.getItem('mp_sid')
 
-  let accountIsActive
+  let accountIsActive = false
 
-  async function verifyActiveHostId() {
+  async function authenticateHostId(): Promise<boolean>  {
     try {
-      const response = await fetch('http://localhost:5000/dev/verification', {
+      const response = await fetch('http://localhost:5000/dev/authentication', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -22,14 +22,14 @@ async function init() {
       })
       const accountData = await response.json()
 
-      console.log({accountData})
-
-      if (accountData.is_active) {
+      if (accountData.status === 'active') {
         localStorage.setItem('mp', JSON.stringify({
           accountHid: hostId,
-          accountActive: true,
+          accountStatus: 'active',
           lastVerified: Date.now(),
         }))
+
+        sessionStorage.setItem('mp_sid',  JSON.stringify(uuidv4()))
         return true
       }
       return false
@@ -39,31 +39,29 @@ async function init() {
     }
   }
 
-  if (!storageData) {
-    console.log('No data in storage. Verifying host id..')
-    console.log({ hostId })
+  if (!mpLocalStorageData || !mpSessionID) {
+    console.debug(`MP: Invalid browser data. Authenticating host id ${hostId}`)
     // Call verification service to check account status and other data
-
-    accountIsActive = await verifyActiveHostId()
-
+    accountIsActive = await authenticateHostId()
   } else {
-    accountIsActive = true
-    const mpData = JSON.parse(storageData)
-    const { lastVerified, accountActive } = mpData
-    const now = new Date().getTime()
-    const daysDiff = getDiffDaysFromTimestamp(now, lastVerified)
+    const mpData = JSON.parse(mpLocalStorageData)
+    const {lastVerified, accountStatus} = mpData
 
-    console.log({ daysDiff })
+    if (accountStatus === 'active') {
+      const now = new Date().getTime()
+      const daysDiff = getDiffDaysFromTimestamp(now, lastVerified)
 
-    if (daysDiff >= 1) {
-      accountIsActive = await verifyActiveHostId()
-    } else {
-      accountIsActive = accountActive
+      if (daysDiff >= 1) {
+        console.debug(`MP: Re-authenticating host id ${hostId}`)
+        accountIsActive = await authenticateHostId()
+      } else {
+        accountIsActive = accountStatus
+      }
     }
   }
 
   if (accountIsActive) {
-    console.log('Account is active.')
+    console.debug('MP: Account is active.')
     // create a new script element
     const newScript = document.createElement('script');
     newScript.src = 'http://localhost:8081/scribe-analytics.js';
@@ -73,6 +71,8 @@ async function init() {
     document.head.appendChild(newScript);
   } else {
     console.error('MP: Account is not active.')
+    localStorage.removeItem('mp')
+    sessionStorage.removeItem('mp_sid')
   }
 }
 
