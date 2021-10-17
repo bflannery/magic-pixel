@@ -42,12 +42,6 @@ class MpIdMixin:
             # read padding back to base64 string
             mp_id = mp_id + "=" * (-len(mp_id) % 4)
         (prefix, db_id) = base64.urlsafe_b64decode(mp_id).decode("ascii").split(":")
-        print(f"Prefix: {prefix}")
-        print(f"mp_id_prefix: {cls.mp_id_prefix()}")
-        print(f"db_id: {db_id}")
-        print(f"type db_id: {type(db_id)}")
-        print(f"length db_id: {len(db_id)}")
-        print(f"db_id.isnumeric: {db_id.isnumeric()}")
         if prefix != cls.mp_id_prefix() or not db_id or not db_id.isnumeric():
             raise Exception("Invalid mp_id for type")
 

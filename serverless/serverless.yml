@@ -146,13 +146,13 @@ functions:
             Fn::GetAtt:
               - EventQueue
               - Arn
-  verification:
-    handler: lambdas.verification
+  authentication:
+    handler: lambdas.authentication
     timeout: 30
     memorySize: 512
     events:
       - http:
-          path: /verification
+          path: /authentication
           method: post
 
 resources:

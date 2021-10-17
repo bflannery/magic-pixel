@@ -68,33 +68,32 @@ def consume_event(event, context):
 
 
 @serverless_function
-def verification(event, context):
-    logger.log_info(f"Verification Event: {event}")
+def authentication(event, context):
+    logger.log_info(f"Authentication Event: {event}")
 
     try:
         body = event.get("body")
         if not body:
             raise Exception("Event has no body object.")
-        logger.log_info(f"Verification Event: {body}")
+        logger.log_info(f"Authentication Body: {body}")
 
         parsed_body = json.loads(body)
         hid = parsed_body.get("hid")
         if not hid:
             raise Exception("Event has no hid.")
-        logger.log_info(f"Verification Account HID: {hid}")
+        logger.log_info(f"Authentication Account HID: {hid}")
 
         account = Account.get_by_mp_id(hid)
         if not account:
             raise Exception(f"No account exists with hid: {hid}.")
-        logger.log_info(f"Verification Account: {account}")
+        logger.log_info(f"Authentication Account: {account}")
 
         # Check account plan status
 
-        logger.log_info(f"Account")
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"is_active": account.is_active}),
+            "body": json.dumps({"status": "active"}),
         }
 
     except Exception as e:

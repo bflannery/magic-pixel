@@ -2,7 +2,8 @@ from flask_login import UserMixin
 from sqlalchemy import sql
 from magic_pixel.db import db
 from magic_pixel.utility import random_hash
-from .base import Model
+from .base import Model, MpIdMixin
+from magic_pixel.constants import UserRoleType
 
 
 class Account(Model):
@@ -24,4 +25,28 @@ class User(UserMixin, Model):
     email = db.Column(db.Text, nullable=False, index=True, unique=True)
     session = db.Column(db.Text, default=lambda: random_hash(), index=True, unique=True)
     last_login_at = db.Column(db.DateTime, nullable=True)
+    roles = db.relationship(
+        "Role",
+        secondary="user_roles",
+        backref=db.backref("users", lazy="dynamic"),
+    )
 
+    @property
+    def is_admin(self):
+        return self.has_role(UserRoleType.ADMIN)
+
+    @property
+    def is_owner(self):
+        return self.has_role(UserRoleType.OWNER)
+
+
+class Role(MpIdMixin, db.Model):
+    __tablename__ = "role"
+    id = db.Column(db.Integer(), primary_key=True)
+    name = db.Column(db.String(50), unique=True, nullable=False)
+
+
+class UserRoles(db.Model):
+    id = db.Column(db.Integer(), primary_key=True)
+    user_id = db.Column(db.Integer(), db.ForeignKey("user.id"))
+    role_id = db.Column(db.Integer(), db.ForeignKey("role.id"))
