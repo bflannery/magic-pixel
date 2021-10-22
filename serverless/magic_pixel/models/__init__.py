@@ -1,4 +1,4 @@
-from .account import Account
+from .account import Account, Role, UserRoles, User
 from .base import Base
 from .event import Event
 from .event_browser import EventBrowser

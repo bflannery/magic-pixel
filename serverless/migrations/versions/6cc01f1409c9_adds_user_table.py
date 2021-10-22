@@ -38,15 +38,17 @@ def upgrade():
         sa.Column("email", sa.Text(), nullable=False),
         sa.Column("session", sa.Text(), nullable=True),
         sa.Column("last_login_at", sa.Text(), nullable=True),
+        sa.Column("is_admin", sa.Boolean(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["account_id"], ["account.id"], name="user_account_id_fkey"
         ),
     )
-    op.create_index(op.f("ix_user_session"), "user", ["session"], unique=True)
+
+    op.create_index(op.f('ix_user_account_id'), 'user', ['account_id'], unique=False)
 
 
 def downgrade():
     op.drop_constraint("user_account_id_fkey", "user")
-    op.drop_index(op.f("ix_user_session"), table_name="user")
+    op.drop_index(op.f("ix_user_account_id"), table_name="user")
     op.drop_table("user")

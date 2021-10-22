@@ -10,3 +10,21 @@ class UserRoleType(enum.Enum):
     MAIN = "MAIN"
     ADMIN = "ADMIN"
     OWNER = "OWNER"
+
+
+class TimeDimension(enum.Enum):
+    DAY = "day"
+    WEEK = "week"
+    MONTH = "month"
+
+
+class DateRangeFilterType(enum.Enum):
+    RELATIVE = "RELATIVE"
+    ABSOLUTE = "ABSOLUTE"
+
+
+class DateRangeFilterUnits(enum.Enum):
+    DAYS = "DAYS"
+    WEEKS = "WEEKS"
+    MONTHS = "MONTHS"
+    YEARS = "YEARS"

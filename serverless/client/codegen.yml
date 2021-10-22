@@ -1,0 +1,39 @@
+overwrite: true
+schema:
+  - http://localhost:5000/graphql
+  - src/client-schema.graphql
+documents:
+  - ./src/**/*.graphql
+  - ./src/**/*!(generated.).tsx
+config:
+  scalars:
+    DateTime: Date
+    Date: Date
+  withComponent: false
+  withHOC: false
+  withHooks: true
+  nonOptionalTypename: true
+hooks:
+  afterOneFileWrite:
+    - npx prettier --write
+generates:
+  src/introspection.json:
+    config:
+      minify: true
+    plugins:
+      - introspection
+  src/gql-global.ts:
+    - typescript
+  src/:
+    preset: near-operation-file
+    presetConfig:
+      folder: operations
+      baseTypesPath: gql-global.ts
+    plugins:
+      - typescript-operations
+      - typescript-react-apollo
+  src/fragments.json:
+   plugins:
+     - fragment-matcher
+   config:
+     apolloClientVersion: 3

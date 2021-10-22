@@ -32,13 +32,13 @@ def upgrade():
             server_default=sa.text("(now() at time zone 'utc')"),
             nullable=True,
         ),
-        sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("name", sa.Text(), nullable=False),
         sa.Column(
             "is_active", sa.Boolean(), server_default=sa.text("false"), nullable=False
         ),
         sa.PrimaryKeyConstraint("id"),
     )
+    op.create_index(op.f('ix_account_name'), 'account', ['name'], unique=True)
 
 
 def downgrade():

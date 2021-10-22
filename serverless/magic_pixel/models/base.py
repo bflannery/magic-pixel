@@ -38,6 +38,8 @@ class MpIdMixin:
     @classmethod
     def db_id_from_mp_id(cls, mp_id: str) -> int:
         """ Get db pk id from mp_id """
+        if mp_id.isdigit():
+            return int(mp_id)
         if len(mp_id) % 4 != 0 and mp_id[-1] != "=":
             # read padding back to base64 string
             mp_id = mp_id + "=" * (-len(mp_id) % 4)

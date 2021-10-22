@@ -2,11 +2,11 @@ from flask_login import UserMixin
 from sqlalchemy import sql
 from magic_pixel.db import db
 from magic_pixel.utility import random_hash
-from .base import Model, MpIdMixin
+from .base import Model, MpIdMixin, WithSoftDelete, WithHardDelete
 from magic_pixel.constants import UserRoleType
 
 
-class Account(Model):
+class Account(Model, WithHardDelete):
     __tablename__ = "account"
 
     name = db.Column(db.Text, nullable=False, index=True, unique=True)
@@ -15,7 +15,7 @@ class Account(Model):
     )
 
 
-class User(UserMixin, Model):
+class User(Model, UserMixin, WithSoftDelete):
     __tablename__ = "user"
 
     account_id = db.Column(db.BigInteger, db.ForeignKey("account.id"), index=True)
@@ -40,13 +40,14 @@ class User(UserMixin, Model):
         return self.has_role(UserRoleType.OWNER)
 
 
-class Role(MpIdMixin, db.Model):
+class Role(Model, WithHardDelete):
     __tablename__ = "role"
     id = db.Column(db.Integer(), primary_key=True)
     name = db.Column(db.String(50), unique=True, nullable=False)
 
 
-class UserRoles(db.Model):
+class UserRoles(Model, WithHardDelete):
+    __tablename__ = "user_roles"
     id = db.Column(db.Integer(), primary_key=True)
     user_id = db.Column(db.Integer(), db.ForeignKey("user.id"))
     role_id = db.Column(db.Integer(), db.ForeignKey("role.id"))

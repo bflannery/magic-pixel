@@ -1,0 +1,8 @@
+query UserPreferences {
+  whoami {
+    id
+    preferences @client {
+      id
+    }
+  }
+}

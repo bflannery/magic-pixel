@@ -3,6 +3,7 @@ from datetime import datetime
 import pytest
 from os import path
 from app import app as _app
+from magic_pixel.constants import UserRoleType
 from magic_pixel.db import db as _db
 from flask_migrate import upgrade
 
@@ -13,6 +14,7 @@ from tests.factories import (
     EventDocumentFactory,
     EventLocaleFactory,
 )
+from tests.factories.role_factory import RoleFactory
 
 
 @pytest.fixture(scope="session", autouse=True)
@@ -36,6 +38,13 @@ def db():
 @pytest.fixture
 def test_client(app):
     return app.test_client()
+
+@pytest.fixture
+def roles():
+    main_role = RoleFactory(name=UserRoleType.MAIN.value)
+    admin_role = RoleFactory(name=UserRoleType.ADMIN.value)
+    owner_role = RoleFactory(name=UserRoleType.OWNER.value)
+    return (main_role, admin_role, owner_role)
 
 
 @pytest.fixture

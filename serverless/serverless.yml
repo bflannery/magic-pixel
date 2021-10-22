@@ -33,6 +33,18 @@ provider:
   environment:
     NODE_ENV: 'test'
     ENV: ${opt:stage, 'local'}
+#    REACT_APP_AUTH0_CUSTOM_DOMAIN: ${self:custom.auth0.customDomain}
+    REACT_APP_AUTH0_DB: ${self:custom.auth0.db.connection.${opt:stage, 'dev'}}
+    REACT_APP_AUTH0_API_URL: ${self:custom.auth0.api.url.${opt:stage, 'dev'}}
+    REACT_APP_AUTH0_CLIENT_ID: ${self:custom.auth0.app.clientId.${opt:stage, 'dev'}}
+    REACT_APP_AUTH0_CLIENT_SECRET: ${self:custom.auth0.app.clientSecret.${opt:stage, 'dev'}}
+#    AUTH0_CUSTOM_DOMAIN: ${self:custom.auth0.customDomain}
+    AUTH0_MGMT_DOMAIN: ${self:custom.auth0.mgmtDomain}
+    AUTH0_DB: ${self:custom.auth0.db.connection.${opt:stage, 'dev'}}
+    AUTH0_API_URL: ${self:custom.auth0.api.url.${opt:stage, 'dev'}}
+    AUTH0_API_CLIENT_ID: ${self:custom.auth0.api.clientId}
+    AUTH0_API_CLIENT_SECRET: ${self:custom.auth0.api.clientSecret}
+    AUTH0_APP_CLIENT_ID: ${self:custom.auth0.app.clientId.${opt:stage, 'dev'}}
     SQS_REGION: ${self:custom.sqs.region}
     SQS_ENDPOINT_URL: ${self:custom.sqs.endpointUrl}
     SQS_EVENT_QUEUE_NAME: ${self:custom.sqs.eventQueueName}
@@ -51,6 +63,29 @@ plugins:
   - serverless-offline
 
 custom:
+  auth0:
+    mgmtDomain: "dev-w565qv55.us.auth0.com"
+#    customDomain: "login.mp.com"
+    app:
+      clientId:
+        dev: "gJTg1l8BJpRvyxbf3Y9Q5IMv6XSrrMRL"
+        production: ""
+      clientSecret:
+        dev: "bI4AlAXtJlPP1oe3zorq5Iysjp-LeHdfseixZZXsL5eSUMTSA4vx-TpF5cI8o13d"
+        production: ""
+    api:
+      clientId: "tTkNOJN2F1yWeH56FxW5fVkgNeArLKc1"
+      clientSecret: "ZLBriU3sHSiJoDdhJcyeJWjJdAizo7_xtlTTqkuF4QeHn5P-U25McXnVgqFGUN1i"
+      url:
+        dev: "https://magic-pixel.dev-api.com"
+        production: ""
+    db:
+      connection:
+        dev: "mp-dev-db"
+        production: ""
+  client:
+    bucketName: magic-pixel-static
+    distributionFolder: static
   flask:
     secretKey: 'c0cbf5992af08ede97e11a3e'
   s3:
@@ -93,8 +128,11 @@ package:
     - node_modules/**
     - venv/**
     - .venv/**
+    - static/**
+    - client/**
     - package.json
     - package-lock.json
+    - .pytest_cache/**
     - README.md
 
   include:
