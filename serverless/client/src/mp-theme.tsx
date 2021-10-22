@@ -1,7 +1,6 @@
 import React from 'react'
-import { createMuiTheme } from '@material-ui/core/styles'
+import { createTheme } from '@material-ui/core/styles'
 import { Palette, PaletteColor } from '@material-ui/core/styles/createPalette'
-import { DialogTransition } from './mp-transition'
 import { ReactComponent as Cross } from './icons/cross.svg'
 import { ReactComponent as Checkbox } from './icons/checkbox.svg'
 import { ReactComponent as CheckboxBlank } from './icons/checkbox-blank.svg'
@@ -67,7 +66,7 @@ export const success = {
   700: '#00624C',
 }
 
-const theme = createMuiTheme({
+const theme = createTheme({
   palette: {
     primary: {
       light: primary[100],
@@ -398,9 +397,6 @@ const theme = createMuiTheme({
     },
   },
   props: {
-    MuiDialog: {
-      TransitionComponent: DialogTransition,
-    },
     MuiChip: {
       deleteIcon: <Cross width={8} height={8} color={secondary[600]}></Cross>,
     },
