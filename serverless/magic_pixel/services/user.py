@@ -2,6 +2,7 @@ from typing import Dict, Optional
 from magic_pixel.db import db
 from magic_pixel.lib.auth0 import Auth0Api
 from magic_pixel.models import Account, User, Role
+from datetime import datetime, timedelta
 
 
 def create_new_user(
@@ -34,9 +35,7 @@ def create_new_user(
 
 
 def create_basic_user_from_auth0(email, full_name, auth0_id):
-    user = User.query.filter_by(
-        email=email, auth0_id=None
-    ).first()
+    user = User.query.filter_by(email=email, auth0_id=None).first()
     if user and user.deleted_at is None:
         raise Exception("User already exists")
     else:
@@ -85,10 +84,15 @@ def get_auth0_user_from_token(token):
         auth0_user_info = Auth0Api().get_user_info(token)
         print(f"Auth0 User Info: {auth0_user_info}")
         user = create_basic_user_from_auth0(
-            auth0_user_info["email"],
-            auth0_user_info["name"],
-            auth0_user_id
+            auth0_user_info["email"], auth0_user_info["name"], auth0_user_id
         )
+    elif (
+        user
+        and not user.last_login_at
+        or user.last_login_at < datetime.utcnow() - timedelta(days=1)
+    ):
+        user.last_login_at = datetime.utcnow()
+        user.save()
     db.session.commit()
     return user
 

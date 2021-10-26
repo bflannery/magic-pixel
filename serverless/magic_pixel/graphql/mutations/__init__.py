@@ -1,10 +1,10 @@
 import graphene
-from .account import SignupAccount
+from .account import CreateAccount
 from .user import CreateUser, UpdateUser, DeleteUser, ResendUserInvite, ResendUserEmail
 
 
 class Mutations(graphene.ObjectType):
-    signup_account = SignupAccount.Field()
+    create_account = CreateAccount.Field()
     create_user = CreateUser.Field()
     delete_user = DeleteUser.Field()
     update_user = UpdateUser.Field()

@@ -37,7 +37,7 @@ class Query(
     @staticmethod
     @is_graphql_user
     def resolve_account(root, info, id):
-        account = Account.get_by_lc_id(id)
+        account = Account.get_by_mp_id(id)
         if not account.user_has_access:
             return None
 

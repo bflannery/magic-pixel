@@ -29,10 +29,17 @@ export type AccountType = {
   __typename: 'AccountType'
   createdAt: Scalars['DateTime']
   id: Scalars['Float']
+  industry?: Maybe<Scalars['String']>
   isActive: Scalars['Boolean']
   name: Scalars['String']
   updatedAt?: Maybe<Scalars['DateTime']>
   users?: Maybe<Array<UserType>>
+}
+
+export type CreateAccount = {
+  __typename: 'CreateAccount'
+  account?: Maybe<AccountType>
+  ok?: Maybe<Scalars['Boolean']>
 }
 
 export type CreateUser = {
@@ -53,12 +60,18 @@ export type KeywordFilterInput = {
 
 export type Mutations = {
   __typename: 'Mutations'
+  createAccount?: Maybe<CreateAccount>
   createUser?: Maybe<CreateUser>
   deleteUser?: Maybe<DeleteUser>
   resendUserEmail?: Maybe<ResendUserEmail>
   resendUserInvite?: Maybe<ResendUserInvite>
-  signupAccount?: Maybe<SignupAccount>
   updateUser?: Maybe<UpdateUser>
+}
+
+export type MutationsCreateAccountArgs = {
+  industry?: Maybe<Scalars['String']>
+  name: Scalars['String']
+  title?: Maybe<Scalars['String']>
 }
 
 export type MutationsCreateUserArgs = {
@@ -73,12 +86,6 @@ export type MutationsDeleteUserArgs = {
 
 export type MutationsResendUserInviteArgs = {
   userId: Scalars['ID']
-}
-
-export type MutationsSignupAccountArgs = {
-  industry?: Maybe<Scalars['String']>
-  name: Scalars['String']
-  title?: Maybe<Scalars['String']>
 }
 
 export type MutationsUpdateUserArgs = {
@@ -130,12 +137,6 @@ export type RoleType = {
   updatedAt?: Maybe<Scalars['DateTime']>
 }
 
-export type SignupAccount = {
-  __typename: 'SignupAccount'
-  account?: Maybe<AccountType>
-  ok?: Maybe<Scalars['Boolean']>
-}
-
 /** An enumeration. */
 export enum SortDirection {
   Asc = 'ASC',
@@ -164,6 +165,7 @@ export type UserType = {
   __typename: 'UserType'
   account?: Maybe<AccountType>
   accountId?: Maybe<Scalars['Float']>
+  auth0Id?: Maybe<Scalars['String']>
   createdAt: Scalars['DateTime']
   deletedAt?: Maybe<Scalars['DateTime']>
   email: Scalars['String']

@@ -10,7 +10,7 @@ from magic_pixel.models import (
 from magic_pixel.db import db
 
 
-class SignupAccount(graphene.Mutation):
+class CreateAccount(graphene.Mutation):
     class Arguments:
         name = graphene.String(required=True)
         industry = graphene.String()
@@ -34,7 +34,7 @@ class SignupAccount(graphene.Mutation):
         if existing_account:
             raise DuplicateKeyError("Account name already exists.")
 
-        new_account = Account(name=name, industry=industry).save()
+        new_account = Account(name=name, industry=industry, is_active=True).save()
         owner_role = Role.query.filter(Role.name == "OWNER").one()
         main_role = Role.query.filter(Role.name == "MAIN").one()
         current_user.account = new_account
@@ -43,4 +43,4 @@ class SignupAccount(graphene.Mutation):
         current_user.save()
         db.session.commit()
 
-        return SignupAccount(ok=True, account=new_account)
+        return CreateAccount(ok=True, account=new_account)

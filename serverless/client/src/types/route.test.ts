@@ -1,13 +1,12 @@
 import { Route } from './route'
 import * as fm from '../utils/feature-manager'
-import { AccountProductName } from '../gql-global'
 
 type Writable<T> = { -readonly [P in keyof T]: T[P] }
 
 describe('route.hasAccess', () => {
   it('returns true if no required roles or ffs', () => {
     const route = new Route('/test')
-    expect(route.hasAccess(['rand', 'roles'], [AccountProductName.Customer], 'asdfasdf')).toBeTruthy()
+    expect(route.hasAccess(['rand', 'roles'], 'asdfasdf')).toBeTruthy()
   })
   it('returns true if has roles', () => {
     const tests: [Route, string[]][] = [
@@ -15,8 +14,8 @@ describe('route.hasAccess', () => {
       [new Route('/test2', ['1', '2', '3']), ['1', '3']],
       [new Route('/test1', ['1']), ['1', '2']],
     ]
-    tests.map(t => {
-      expect(t[0].hasAccess(t[1], [AccountProductName.Customer])).toBeTruthy()
+    tests.map((t) => {
+      expect(t[0].hasAccess(t[1])).toBeTruthy()
     })
   })
   it('returns false if does not have has roles', () => {
@@ -25,7 +24,7 @@ describe('route.hasAccess', () => {
       [new Route('/test2', ['1', '2', '3']), ['4', '5']],
       [new Route('/test1', ['1']), ['2']],
     ]
-    tests.map(t => {
+    tests.map((t) => {
       expect(t[0].hasAccess(t[1])).toBeFalsy()
     })
   })
@@ -34,10 +33,9 @@ describe('route.hasAccess', () => {
     ;(fm as Writable<typeof fm>).userHasFeature = mock
     const route = new Route('/test', undefined, 'testff')
     const roles = ['1']
-    const products = [AccountProductName.Customer]
-    const username = 'testuser'
-    const result = route.hasAccess(roles, products, username)
-    expect(mock).toHaveBeenCalledWith({ roles, username }, 'testff')
+    const email = 'testuser@gmail.com'
+    const result = route.hasAccess(roles, email)
+    expect(mock).toHaveBeenCalledWith({ roles, email }, 'testff')
     expect(result).toBeFalsy()
   })
   it('returns true if user has feature', () => {
@@ -45,10 +43,9 @@ describe('route.hasAccess', () => {
     ;(fm as Writable<typeof fm>).userHasFeature = mock
     const route = new Route('/test', ['1'], 'testff')
     const roles = ['1']
-    const products = [AccountProductName.Customer]
-    const username = 'testuser'
-    const result = route.hasAccess(roles, products, username)
-    expect(mock).toHaveBeenCalledWith({ roles, username }, 'testff')
+    const email = 'testuser@gmail.com'
+    const result = route.hasAccess(roles, email)
+    expect(mock).toHaveBeenCalledWith({ roles, email }, 'testff')
     expect(result).toBeTruthy()
   })
 
@@ -57,10 +54,9 @@ describe('route.hasAccess', () => {
     ;(fm as Writable<typeof fm>).userHasFeature = mock
     const route = new Route('/test', ['2'], 'testff')
     const roles = ['1']
-    const products = [AccountProductName.Customer]
-    const username = 'testuser'
-    const result = route.hasAccess(roles, products, username)
-    expect(mock).toHaveBeenCalledWith({ roles, username }, 'testff')
+    const email = 'testuser@gmail.com'
+    const result = route.hasAccess(roles, email)
+    expect(mock).toHaveBeenCalledWith({ roles, email }, 'testff')
     expect(result).toBeFalsy()
   })
 })

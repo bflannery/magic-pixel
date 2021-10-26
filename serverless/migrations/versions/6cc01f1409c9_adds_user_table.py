@@ -37,14 +37,14 @@ def upgrade():
         sa.Column("first_name", sa.Text(), nullable=True),
         sa.Column("last_name", sa.Text(), nullable=True),
         sa.Column("email", sa.Text(), nullable=False),
-        sa.Column("is_admin", sa.Boolean(), nullable=True),
+        sa.Column("last_login_at", sa.DateTime(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["account_id"], ["account.id"], name="user_account_id_fkey"
         ),
     )
 
-    op.create_index(op.f('ix_user_account_id'), 'user', ['account_id'], unique=False)
+    op.create_index(op.f("ix_user_account_id"), "user", ["account_id"], unique=False)
     op.create_index(op.f("ix_user_auth0_id"), "user", ["auth0_id"], unique=True)
 
 

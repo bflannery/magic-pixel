@@ -96,13 +96,14 @@ function Auth0ForgotPassword(): React.ReactElement {
         }),
       })
       history.push(FORGOT_PASSWORD_EMAIL_ROUTE.path, { email: fields.email })
-    } catch (error: any) {
-      const errMsg = error.message
-      setAlert({
-        severity: 'error',
-        title: 'Error while trying to send forgot password email.',
-        message: errMsg,
-      })
+    } catch (e) {
+      if (e instanceof Error) {
+        setAlert({
+          severity: 'error',
+          title: 'Error while trying to send forgot password email.',
+          message: e.message,
+        })
+      }
     }
   }
 

@@ -15,6 +15,11 @@ class Account(Model, WithHardDelete):
         db.Boolean, nullable=False, default=False, server_default=sql.expression.false()
     )
 
+    def user_has_access(self, user):
+        if user.is_authenticated and user.is_admin:
+            return True
+        return self.id == getattr(user, "account_id", None)
+
 
 class User(Model, UserMixin, WithSoftDelete):
     __tablename__ = "user"
@@ -25,6 +30,7 @@ class User(Model, UserMixin, WithSoftDelete):
     first_name = db.Column(db.Text, nullable=True)
     last_name = db.Column(db.Text, nullable=True)
     email = db.Column(db.Text, nullable=False, index=True, unique=True)
+    last_login_at = db.Column(db.DateTime, nullable=True)
     roles = db.relationship(
         "Role",
         secondary="user_roles",
@@ -38,6 +44,9 @@ class User(Model, UserMixin, WithSoftDelete):
     @property
     def is_owner(self):
         return self.has_role(UserRoleType.OWNER)
+
+    def has_role(self, role):
+        return role.value in map(lambda x: x.name, self.roles)
 
     def save_conflict_ignore(self):
         auth0_id = self.auth0_id

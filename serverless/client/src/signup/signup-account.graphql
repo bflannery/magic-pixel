@@ -1,5 +1,5 @@
 mutation SignupAccount($name: String!, $industry: String, $title: String) {
-  signupAccount(name: $name, industry: $industry, title: $title) {
+  createAccount(name: $name, industry: $industry, title: $title) {
     ok
     account {
       id

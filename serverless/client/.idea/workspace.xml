@@ -2,28 +2,31 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c03202a6-bfa4-469d-baf1-baf9ac7adc7a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/dashboard/Dashboard.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/checkmark.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/chevron-down_minor.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/chevron-up-down.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/kebab.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/user-add.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/NavSidebar/NavItem.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/NavSidebar/NavSidebar.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/icons/analytics-major-monotone.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/icons/settings-major-monotone.svg" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/apollo-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/apollo-client.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/auth/ForgotPassword.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth/ForgotPassword.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/Alert/Alert.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Alert/Alert.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/Container/Container.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Container/Container.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/components/Page/Page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Page/Page.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/dashboard/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/dashboard/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gql-global.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/gql-global.ts" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/home/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/home/Home.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/introspection.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/introspection.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/mp-theme.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/mp-theme.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/settings/routes.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/settings/routes.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/settings/users/InviteUserDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/settings/users/InviteUserDialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/settings/users/RemoveUserDialog.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/settings/users/RemoveUserDialog.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/settings/users/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/settings/users/constants.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/signup/SignupAccount.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/signup/CreateAccount.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/signup/SignupContainer.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/route.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/utils/feature-manager.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/utils/feature-manager.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/signup/operations/current-user-info.generated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/signup/operations/current-user-info.generated.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/signup/operations/signup-account.generated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/signup/operations/signup-account.generated.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/signup/signup-account.graphql" beforeDir="false" afterPath="$PROJECT_DIR$/src/signup/signup-account.graphql" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/route.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/route.test.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/__init__.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/account.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/account.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tests/services/test_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/services/test_user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/query.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/query.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/models/account.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/models/account.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/services/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -90,7 +93,8 @@
       <workItem from="1634727532046" duration="850000" />
       <workItem from="1634728419012" duration="3305000" />
       <workItem from="1634865348132" duration="6313000" />
-      <workItem from="1634952899632" duration="11596000" />
+      <workItem from="1634952899632" duration="13688000" />
+      <workItem from="1635244661482" duration="2268000" />
     </task>
     <servers />
   </component>

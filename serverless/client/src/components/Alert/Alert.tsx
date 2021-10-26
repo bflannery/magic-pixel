@@ -68,7 +68,7 @@ const Alert: React.FC<AlertProps> = ({
       anchorOrigin={{ vertical: 'top', horizontal: 'center' }}
       autoHideDuration={autoHideDuration}
       onClose={onClose}
-      onExited={handleOnExit}
+      TransitionProps={{ onExited: handleOnExit }}
     >
       <MUIAlert
         square

@@ -7,7 +7,6 @@ import { useWhatAreMyRolesQuery } from './operations/what-are-my-roles.generated
 import { LOGOUT_ROUTE } from '../auth/routes'
 
 const Home: React.FC = () => {
-  console.log('HOME')
   const { data, loading, error } = useWhatAreMyRolesQuery()
   const [isUnloading, setIsUnloading] = useState(false)
   useEffect(() => {

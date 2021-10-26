@@ -2,14 +2,20 @@ import * as Types from '../../gql-global'
 
 import { gql } from '@apollo/client'
 import * as Apollo from '@apollo/client'
+const defaultOptions = {}
 export type CurrentUserInfoQueryVariables = Types.Exact<{ [key: string]: never }>
 
-export type CurrentUserInfoQuery = { __typename: 'Query' } & {
-  whoami?: Types.Maybe<
-    { __typename: 'UserType' } & Pick<Types.UserType, 'id' | 'email'> & {
-        account?: Types.Maybe<{ __typename: 'AccountType' } & Pick<Types.AccountType, 'id'>>
+export type CurrentUserInfoQuery = {
+  __typename: 'Query'
+  whoami?:
+    | {
+        __typename: 'UserType'
+        id: number
+        email: string
+        account?: { __typename: 'AccountType'; id: number } | null | undefined
       }
-  >
+    | null
+    | undefined
 }
 
 export const CurrentUserInfoDocument = gql`
@@ -42,12 +48,14 @@ export const CurrentUserInfoDocument = gql`
 export function useCurrentUserInfoQuery(
   baseOptions?: Apollo.QueryHookOptions<CurrentUserInfoQuery, CurrentUserInfoQueryVariables>,
 ) {
-  return Apollo.useQuery<CurrentUserInfoQuery, CurrentUserInfoQueryVariables>(CurrentUserInfoDocument, baseOptions)
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useQuery<CurrentUserInfoQuery, CurrentUserInfoQueryVariables>(CurrentUserInfoDocument, options)
 }
 export function useCurrentUserInfoLazyQuery(
   baseOptions?: Apollo.LazyQueryHookOptions<CurrentUserInfoQuery, CurrentUserInfoQueryVariables>,
 ) {
-  return Apollo.useLazyQuery<CurrentUserInfoQuery, CurrentUserInfoQueryVariables>(CurrentUserInfoDocument, baseOptions)
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useLazyQuery<CurrentUserInfoQuery, CurrentUserInfoQueryVariables>(CurrentUserInfoDocument, options)
 }
 export type CurrentUserInfoQueryHookResult = ReturnType<typeof useCurrentUserInfoQuery>
 export type CurrentUserInfoLazyQueryHookResult = ReturnType<typeof useCurrentUserInfoLazyQuery>

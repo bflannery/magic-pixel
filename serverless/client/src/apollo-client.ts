@@ -16,13 +16,13 @@ import fragments from './fragments.json'
 import { buildClientSchema, IntrospectionQuery } from 'graphql'
 import { UserPreferencesDocument, UserPreferencesQuery } from './queries/operations/user-prefs.generated'
 import { UserPreferences, UserType } from './gql-global'
-import produce from 'immer'
+// import produce from 'immer'
 import { KeyArgsFunction } from '@apollo/client/cache/inmemory/policies'
 import { LOGIN_ROUTE } from './auth/routes'
 
 const USER_PREF_KEY = 'userpref'
 
-type GqlContext = { cache: InMemoryCache }
+// type GqlContext = { cache: InMemoryCache }
 
 const dateFormat = 'yyyy-MM-dd'
 const typesMap = {
@@ -54,34 +54,34 @@ const typesMap = {
 
 const schema = buildClientSchema(introspectionResult as unknown as IntrospectionQuery)
 
-function updateUserPref<K extends keyof UserPreferences>(
-  pref: K,
-  value: UserPreferences[K],
-  context: GqlContext,
-): UserPreferences[K] | null {
-  const data = context.cache.readQuery<UserPreferencesQuery>({
-    query: UserPreferencesDocument,
-  })
-  if (data && data.whoami) {
-    const { whoami } = data
-    if (whoami.preferences[pref] === value) {
-      return value
-    }
-    const newData = produce(data, (draft: any) => {
-      if (!draft.whoami) {
-        return draft
-      }
-      draft.whoami.preferences[pref] = value
-      return draft
-    })
-    context.cache.writeQuery<UserPreferencesQuery>({
-      query: UserPreferencesDocument,
-      data: newData,
-    })
-    return value
-  }
-  return null
-}
+// function updateUserPref<K extends keyof UserPreferences>(
+//   pref: K,
+//   value: UserPreferences[K],
+//   context: GqlContext,
+// ): UserPreferences[K] | null {
+//   const data = context.cache.readQuery<UserPreferencesQuery>({
+//     query: UserPreferencesDocument,
+//   })
+//   if (data && data.whoami) {
+//     const { whoami } = data
+//     if (whoami.preferences[pref] === value) {
+//       return value
+//     }
+//     const newData = produce(data, (draft: any) => {
+//       if (!draft.whoami) {
+//         return draft
+//       }
+//       draft.whoami.preferences[pref] = value
+//       return draft
+//     })
+//     context.cache.writeQuery<UserPreferencesQuery>({
+//       query: UserPreferencesDocument,
+//       data: newData,
+//     })
+//     return value
+//   }
+//   return null
+// }
 
 const resolvers = {
   UserType: {

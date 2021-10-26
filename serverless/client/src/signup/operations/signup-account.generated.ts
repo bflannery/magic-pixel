@@ -2,23 +2,28 @@ import * as Types from '../../gql-global'
 
 import { gql } from '@apollo/client'
 import * as Apollo from '@apollo/client'
+const defaultOptions = {}
 export type SignupAccountMutationVariables = Types.Exact<{
   name: Types.Scalars['String']
   industry?: Types.Maybe<Types.Scalars['String']>
   title?: Types.Maybe<Types.Scalars['String']>
 }>
 
-export type SignupAccountMutation = { __typename: 'Mutations' } & {
-  signupAccount?: Types.Maybe<
-    { __typename: 'SignupAccount' } & Pick<Types.SignupAccount, 'ok'> & {
-        account?: Types.Maybe<{ __typename: 'AccountType' } & Pick<Types.AccountType, 'id' | 'name'>>
+export type SignupAccountMutation = {
+  __typename: 'Mutations'
+  createAccount?:
+    | {
+        __typename: 'CreateAccount'
+        ok?: boolean | null | undefined
+        account?: { __typename: 'AccountType'; id: number; name: string } | null | undefined
       }
-  >
+    | null
+    | undefined
 }
 
 export const SignupAccountDocument = gql`
   mutation SignupAccount($name: String!, $industry: String, $title: String) {
-    signupAccount(name: $name, industry: $industry, title: $title) {
+    createAccount(name: $name, industry: $industry, title: $title) {
       ok
       account {
         id
@@ -51,7 +56,8 @@ export type SignupAccountMutationFn = Apollo.MutationFunction<SignupAccountMutat
 export function useSignupAccountMutation(
   baseOptions?: Apollo.MutationHookOptions<SignupAccountMutation, SignupAccountMutationVariables>,
 ) {
-  return Apollo.useMutation<SignupAccountMutation, SignupAccountMutationVariables>(SignupAccountDocument, baseOptions)
+  const options = { ...defaultOptions, ...baseOptions }
+  return Apollo.useMutation<SignupAccountMutation, SignupAccountMutationVariables>(SignupAccountDocument, options)
 }
 export type SignupAccountMutationHookResult = ReturnType<typeof useSignupAccountMutation>
 export type SignupAccountMutationResult = Apollo.MutationResult<SignupAccountMutation>
