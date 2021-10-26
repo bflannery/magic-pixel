@@ -33,12 +33,12 @@ provider:
   environment:
     NODE_ENV: 'test'
     ENV: ${opt:stage, 'local'}
-#    REACT_APP_AUTH0_CUSTOM_DOMAIN: ${self:custom.auth0.customDomain}
+    REACT_APP_AUTH0_CUSTOM_DOMAIN: ${self:custom.auth0.customDomain}
     REACT_APP_AUTH0_DB: ${self:custom.auth0.db.connection.${opt:stage, 'dev'}}
     REACT_APP_AUTH0_API_URL: ${self:custom.auth0.api.url.${opt:stage, 'dev'}}
     REACT_APP_AUTH0_CLIENT_ID: ${self:custom.auth0.app.clientId.${opt:stage, 'dev'}}
     REACT_APP_AUTH0_CLIENT_SECRET: ${self:custom.auth0.app.clientSecret.${opt:stage, 'dev'}}
-#    AUTH0_CUSTOM_DOMAIN: ${self:custom.auth0.customDomain}
+    AUTH0_CUSTOM_DOMAIN: ${self:custom.auth0.customDomain}
     AUTH0_MGMT_DOMAIN: ${self:custom.auth0.mgmtDomain}
     AUTH0_DB: ${self:custom.auth0.db.connection.${opt:stage, 'dev'}}
     AUTH0_API_URL: ${self:custom.auth0.api.url.${opt:stage, 'dev'}}
@@ -64,18 +64,18 @@ plugins:
 
 custom:
   auth0:
-    mgmtDomain: "dev-w565qv55.us.auth0.com"
-#    customDomain: "login.mp.com"
+    mgmtDomain: "dev-rvsp8waa.us.auth0.com"
+    customDomain: "dev-rvsp8waa.us.auth0.com"
     app:
       clientId:
-        dev: "gJTg1l8BJpRvyxbf3Y9Q5IMv6XSrrMRL"
+        dev: "VVGfoJXe1Fa4mYZLbQSi0yNh37L5hyRe"
         production: ""
       clientSecret:
-        dev: "bI4AlAXtJlPP1oe3zorq5Iysjp-LeHdfseixZZXsL5eSUMTSA4vx-TpF5cI8o13d"
+        dev: "VqF9cqMQLafbUp7iKtW3YjEUD6Fyr9dEyY52JNU544jvj0DrmvCmiaQa3SO3zppi"
         production: ""
     api:
-      clientId: "tTkNOJN2F1yWeH56FxW5fVkgNeArLKc1"
-      clientSecret: "ZLBriU3sHSiJoDdhJcyeJWjJdAizo7_xtlTTqkuF4QeHn5P-U25McXnVgqFGUN1i"
+      clientId: "oZEsfWNP8SoFjQH2lBBbvJpAdcdGIIud"
+      clientSecret: "es349JQUA6HUOeJuAhGna7nmUvMwzYnqsCrqpIW__qKuuuYNn0iKe1GNFVHAnTqp"
       url:
         dev: "https://magic-pixel.dev-api.com"
         production: ""

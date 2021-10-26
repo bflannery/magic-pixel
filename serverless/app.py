@@ -2,7 +2,7 @@ import logging
 from flask import Flask
 from flask_cors import CORS
 
-from magic_pixel import api, utility
+from magic_pixel import api, auth, utility
 from magic_pixel.db import db, migrate
 from magic_pixel.graphql import graphql_view
 
@@ -20,6 +20,7 @@ if utility.is_local():
 
 CORS(app)
 
+auth.init_app(app)
 db.init_app(app)
 migrate.init_app(app, db)
 api.init_app(app)

@@ -1,0 +1,20 @@
+mutation CreateUser($email: String!, $accountId: ID!, $roles: [UserRoleType!]) {
+  createUser(email: $email, accountId: $accountId, roles: $roles) {
+    ok
+    user {
+      id
+      email
+      account {
+        id
+        name
+        users {
+          id
+        }
+      }
+      roles {
+        id
+        name
+      }
+    }
+  }
+}

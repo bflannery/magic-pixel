@@ -13,3 +13,6 @@ def test_create_new_user(roles):
         account_id=str(account.id),
     )
     assert user
+
+
+def test_create_basic_user_from_auth0():

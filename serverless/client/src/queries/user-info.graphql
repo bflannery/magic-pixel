@@ -1,0 +1,17 @@
+query UserInfo {
+  whoami {
+    id
+    email
+    account {
+      id
+      name
+    }
+    roles {
+      id
+      name
+    }
+    preferences @client {
+      id
+    }
+  }
+}

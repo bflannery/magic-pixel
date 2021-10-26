@@ -20,7 +20,7 @@ class SignupAccount(graphene.Mutation):
     account = graphene.Field(AccountType)
 
     @is_graphql_user
-    def mutate(self, info, name):
+    def mutate(self, info, name, industry):
         if current_user.account_id:
             raise ForbiddenError(
                 "You can't create a new account if your user is "
@@ -34,7 +34,7 @@ class SignupAccount(graphene.Mutation):
         if existing_account:
             raise DuplicateKeyError("Account name already exists.")
 
-        new_account = Account(name=name).save()
+        new_account = Account(name=name, industry=industry).save()
         owner_role = Role.query.filter(Role.name == "OWNER").one()
         main_role = Role.query.filter(Role.name == "MAIN").one()
         current_user.account = new_account

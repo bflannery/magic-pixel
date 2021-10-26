@@ -55,6 +55,8 @@ function Auth0ConfirmEmail(): React.ReactElement {
 
   const userEmail = auth0User?.email
 
+  console.log({ auth0User, userEmail })
+
   async function handleResendEmail() {
     // try {
     //   await resentUserEmail()

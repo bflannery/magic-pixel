@@ -32,12 +32,11 @@ def upgrade():
             nullable=True,
         ),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
-        sa.Column("account_id", sa.BigInteger(), nullable=False),
+        sa.Column("account_id", sa.BigInteger(), nullable=True),
+        sa.Column("auth0_id", sa.Text(), nullable=True),
         sa.Column("first_name", sa.Text(), nullable=True),
         sa.Column("last_name", sa.Text(), nullable=True),
         sa.Column("email", sa.Text(), nullable=False),
-        sa.Column("session", sa.Text(), nullable=True),
-        sa.Column("last_login_at", sa.Text(), nullable=True),
         sa.Column("is_admin", sa.Boolean(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
@@ -46,9 +45,11 @@ def upgrade():
     )
 
     op.create_index(op.f('ix_user_account_id'), 'user', ['account_id'], unique=False)
+    op.create_index(op.f("ix_user_auth0_id"), "user", ["auth0_id"], unique=True)
 
 
 def downgrade():
-    op.drop_constraint("user_account_id_fkey", "user")
+    op.drop_index(op.f("ix_user_auth0_id"), table_name="user")
     op.drop_index(op.f("ix_user_account_id"), table_name="user")
+    op.drop_constraint("user_account_id_fkey", "user")
     op.drop_table("user")

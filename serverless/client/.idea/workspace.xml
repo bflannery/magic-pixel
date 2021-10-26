@@ -2,14 +2,71 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c03202a6-bfa4-469d-baf1-baf9ac7adc7a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/client-schema.graphql" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/checkbox-blank.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/checkbox-indeterminate.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/checkbox.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/cross.svg" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mp-theme.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/mp-theme.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mp-transition.tsx" beforeDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/serviceWorker.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/serviceWorker.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/auth/Auth0Provider.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Container/Container.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/ContainerError/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Page/Page.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/Tooltip/Tooltip.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/components/index.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/dashboard/routes.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hoc/withAuthentication.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/hoc/withAuthorization.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/home/Home.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/home/operations/what-are-my-roles.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/home/routes.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/home/what-are-my-roles.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/images/error.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/queries/auth-user-info.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/queries/operations/user-info.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/queries/user-info.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/Settings.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/routes.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/InviteUserDialog.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/RemoveUserDialog.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/UserManagement.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/UserRow.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/account-users.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/constants.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/create-user.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/delete-user.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/operations/account-users.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/operations/create-user.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/operations/delete-user.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/operations/resend-invite.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/operations/update-user.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/resend-invite.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/users/update-user.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/signup/SignupAccount.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/signup/SignupContainer.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/signup/current-user-info.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/signup/operations/current-user-info.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/signup/operations/signup-account.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/signup/routes.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/signup/signup-account.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/utils/use-title.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../magic_pixel/auth.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../magic_pixel/graphql/types/account_product_name.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../app.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/App.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/App.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/auth/ConfirmEmail.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth/ConfirmEmail.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/auth/Login.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth/Login.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/auth/Logout.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth/Logout.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/gql-global.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/gql-global.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/introspection.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/introspection.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../config/config.py" beforeDir="false" afterPath="$PROJECT_DIR$/../config/config.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/account.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/account.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/types/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/types/__init__.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/models/account.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/models/account.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/services/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../migrations/versions/3698b36bb975_adds_account_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/3698b36bb975_adds_account_table.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../serverless.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../serverless.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/services/test_user.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/services/test_user.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -55,10 +112,14 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src" />
-      <recent name="$PROJECT_DIR$/src/icons" />
-      <recent name="$PROJECT_DIR$/src/queries" />
-      <recent name="$PROJECT_DIR$/src/auth" />
       <recent name="$PROJECT_DIR$/src/components" />
+      <recent name="$PROJECT_DIR$/src/queries" />
+      <recent name="$PROJECT_DIR$/src/utils" />
+      <recent name="$PROJECT_DIR$/src/components/Page" />
+    </key>
+    <key name="MoveFile.RECENT_KEYS">
+      <recent name="$PROJECT_DIR$/src/components/Container" />
+      <recent name="$PROJECT_DIR$/src" />
     </key>
   </component>
   <component name="SpellCheckerSettings" RuntimeDictionaries="0" Folders="0" CustomDictionaries="0" DefaultDictionary="application-level" UseSingleDictionary="true" transferred="true" />
@@ -71,7 +132,8 @@
       <updated>1634727529965</updated>
       <workItem from="1634727532046" duration="850000" />
       <workItem from="1634728419012" duration="3305000" />
-      <workItem from="1634865348132" duration="1842000" />
+      <workItem from="1634865348132" duration="6313000" />
+      <workItem from="1634952899632" duration="8584000" />
     </task>
     <servers />
   </component>
@@ -89,5 +151,15 @@
       </map>
     </option>
     <option name="oldMeFiltersMigrated" value="true" />
+  </component>
+  <component name="XDebuggerManager">
+    <breakpoint-manager>
+      <breakpoints>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/components/Container/Container.tsx</url>
+          <option name="timeStamp" value="1" />
+        </line-breakpoint>
+      </breakpoints>
+    </breakpoint-manager>
   </component>
 </project>

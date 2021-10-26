@@ -1,0 +1,12 @@
+query WhatAreMyRoles {
+  whoami {
+    id
+    roles {
+      id
+      name
+    }
+    account {
+      id
+    }
+  }
+}

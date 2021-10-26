@@ -36,9 +36,10 @@ def upgrade():
         sa.Column(
             "is_active", sa.Boolean(), server_default=sa.text("false"), nullable=False
         ),
+        sa.Column("industry", sa.Text(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
     )
-    op.create_index(op.f('ix_account_name'), 'account', ['name'], unique=True)
+    op.create_index(op.f("ix_account_name"), "account", ["name"], unique=True)
 
 
 def downgrade():

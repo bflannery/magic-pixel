@@ -8,8 +8,9 @@ import { MuiPickersUtilsProvider } from '@material-ui/pickers'
 import { QueryParamProvider } from 'use-query-params'
 
 import theme from './mp-theme'
-// import Container from './Container'
+import { Container } from './components'
 import AppErrorBoundary from './AppErrorBoundary'
+import Auth0ProviderWithHistory from './auth/Auth0Provider'
 import { AUTH_ROUTE, SIGNUP_ROUTE } from './auth/routes'
 import Auth from './auth/Auth'
 // import { SIGNUP_ROUTE } from './signup/routes'
@@ -21,15 +22,17 @@ const App: React.FC = () => {
       <CssBaseline />
       <MuiPickersUtilsProvider utils={DateFnsUtils}>
         <BrowserRouter>
-          <QueryParamProvider ReactRouterRoute={Route}>
-            <AppErrorBoundary>
-              <Switch>
-                <Route path={AUTH_ROUTE.path} component={Auth} />
-                {/*<Route path={SIGNUP_ROUTE.path} component={SignupContainer} />*/}
-                {/*<Route component={Container} />*/}
-              </Switch>
-            </AppErrorBoundary>
-          </QueryParamProvider>
+          <Auth0ProviderWithHistory>
+            <QueryParamProvider ReactRouterRoute={Route}>
+              <AppErrorBoundary>
+                <Switch>
+                  <Route path={AUTH_ROUTE.path} component={Auth} />
+                  {/*<Route path={SIGNUP_ROUTE.path} component={SignupContainer} />*/}
+                  <Route component={Container} />
+                </Switch>
+              </AppErrorBoundary>
+            </QueryParamProvider>
+          </Auth0ProviderWithHistory>
         </BrowserRouter>
       </MuiPickersUtilsProvider>
     </MuiThemeProvider>

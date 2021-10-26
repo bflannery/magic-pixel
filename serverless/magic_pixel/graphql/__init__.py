@@ -12,6 +12,6 @@ graphql_view = cross_origin(
         schema=schema,
         graphiql=True,
         get_context=create_loaders,
-        middleware=[], # TODO: Add Xray and Sentry Monitoring
+        middleware=[],  # TODO: Add Xray and Sentry Monitoring
     )
 )

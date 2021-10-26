@@ -35,19 +35,55 @@ export type AccountType = {
   users?: Maybe<Array<UserType>>
 }
 
+export type CreateUser = {
+  __typename: 'CreateUser'
+  ok?: Maybe<Scalars['Boolean']>
+  user?: Maybe<UserType>
+}
+
+export type DeleteUser = {
+  __typename: 'DeleteUser'
+  ok?: Maybe<Scalars['Boolean']>
+  user?: Maybe<UserType>
+}
+
 export type KeywordFilterInput = {
   keywords: Array<Scalars['String']>
 }
 
 export type Mutations = {
   __typename: 'Mutations'
+  createUser?: Maybe<CreateUser>
+  deleteUser?: Maybe<DeleteUser>
+  resendUserEmail?: Maybe<ResendUserEmail>
+  resendUserInvite?: Maybe<ResendUserInvite>
   signupAccount?: Maybe<SignupAccount>
+  updateUser?: Maybe<UpdateUser>
+}
+
+export type MutationsCreateUserArgs = {
+  accountId: Scalars['ID']
+  email: Scalars['String']
+  roles?: Maybe<Array<UserRoleType>>
+}
+
+export type MutationsDeleteUserArgs = {
+  userId: Scalars['ID']
+}
+
+export type MutationsResendUserInviteArgs = {
+  userId: Scalars['ID']
 }
 
 export type MutationsSignupAccountArgs = {
   industry?: Maybe<Scalars['String']>
   name: Scalars['String']
   title?: Maybe<Scalars['String']>
+}
+
+export type MutationsUpdateUserArgs = {
+  roles?: Maybe<Array<UserRoleType>>
+  userId: Scalars['ID']
 }
 
 export type PagedAccountType = {
@@ -76,6 +112,16 @@ export type QueryAccountsArgs = {
   where?: Maybe<AccountFilterInput>
 }
 
+export type ResendUserEmail = {
+  __typename: 'ResendUserEmail'
+  ok?: Maybe<Scalars['Boolean']>
+}
+
+export type ResendUserInvite = {
+  __typename: 'ResendUserInvite'
+  ok?: Maybe<Scalars['Boolean']>
+}
+
 export type RoleType = {
   __typename: 'RoleType'
   createdAt: Scalars['DateTime']
@@ -96,9 +142,22 @@ export enum SortDirection {
   Desc = 'DESC',
 }
 
+export type UpdateUser = {
+  __typename: 'UpdateUser'
+  ok?: Maybe<Scalars['Boolean']>
+  user?: Maybe<UserType>
+}
+
 export type UserPreferences = {
   __typename: 'UserPreferences'
   id: Scalars['ID']
+}
+
+/** An enumeration. */
+export enum UserRoleType {
+  Admin = 'ADMIN',
+  Main = 'MAIN',
+  Owner = 'OWNER',
 }
 
 export type UserType = {
