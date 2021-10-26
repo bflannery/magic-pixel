@@ -19,9 +19,10 @@ export class Route {
     return new Route(`${this.path}${subpath}`, roles, featureFlag)
   }
 
-  hasAccess(roles: string[] = [], username = ''): boolean {
+  hasAccess(roles: string[] = [], userEmail = ''): boolean {
+    console.log({ roles, userEmail })
     if (this.featureFlag) {
-      if (!userHasFeature({ username: username, roles: roles }, this.featureFlag)) {
+      if (!userHasFeature({ email: userEmail, roles: roles }, this.featureFlag)) {
         return false
       }
     }

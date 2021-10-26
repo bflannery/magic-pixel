@@ -11,10 +11,10 @@ import theme from './mp-theme'
 import { Container } from './components'
 import AppErrorBoundary from './AppErrorBoundary'
 import Auth0ProviderWithHistory from './auth/Auth0Provider'
-import { AUTH_ROUTE, SIGNUP_ROUTE } from './auth/routes'
+import { AUTH_ROUTE } from './auth/routes'
 import Auth from './auth/Auth'
-// import { SIGNUP_ROUTE } from './signup/routes'
-// import SignupContainer from './signup/SignupContainer'
+import CreateAccount from './signup/CreateAccount'
+import { CREATE_ACCOUNT_ROUTE } from './signup/routes'
 
 const App: React.FC = () => {
   return (
@@ -27,7 +27,7 @@ const App: React.FC = () => {
               <AppErrorBoundary>
                 <Switch>
                   <Route path={AUTH_ROUTE.path} component={Auth} />
-                  {/*<Route path={SIGNUP_ROUTE.path} component={SignupContainer} />*/}
+                  <Route path={CREATE_ACCOUNT_ROUTE.path} component={CreateAccount} />
                   <Route component={Container} />
                 </Switch>
               </AppErrorBoundary>

@@ -13,7 +13,7 @@ import {
 } from '@material-ui/core'
 import { ReactComponent as CrossIcon } from '../../icons/cross.svg'
 
-const useStyles = makeStyles(theme =>
+const useStyles = makeStyles((theme) =>
   createStyles({
     paper: {
       width: 420,

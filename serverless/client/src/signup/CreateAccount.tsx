@@ -2,6 +2,7 @@ import React, { useState } from 'react'
 import {
   Box,
   Button,
+  Container,
   createStyles,
   FormControl,
   InputLabel,
@@ -18,6 +19,7 @@ import Alert, { AlertData } from '../components/Alert/Alert'
 import { useHistory } from 'react-router-dom'
 import { useCurrentUserInfoQuery } from './operations/current-user-info.generated'
 import { HOME_ROUTE } from '../home/routes'
+import useTitle from '../utils/use-title'
 
 const INDUSTRIES = [
   'Fashion / Apparel',
@@ -38,6 +40,12 @@ const INDUSTRIES = [
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
     bold: { fontWeight: 600 },
+    container: {
+      backgroundColor: theme.palette.common.white,
+      paddingBottom: 72,
+      height: '100vh',
+      overflow: 'hidden',
+    },
     field: {
       marginTop: theme.spacing(5),
       '& .MuiInputLabel-shrink': {
@@ -56,6 +64,9 @@ const useStyles = makeStyles((theme: Theme) =>
       height: 56,
       '& .MuiOutlinedInput-input': {
         paddingLeft: 16,
+        '&:hover': {
+          borderColor: '#009688',
+        },
       },
     },
     roundedRectangleButton: {
@@ -79,8 +90,9 @@ const defaultFields: SignupAccountFormFields = {
   title: '',
 }
 
-function SignupAccount(): React.ReactElement {
-  const styles = useStyles()
+function CreateAccount(): React.ReactElement {
+  useTitle('Create Account')
+  const classes = useStyles()
   const history = useHistory()
   const { data: currentUserData, loading: currentUserDataIsLoading } = useCurrentUserInfoQuery()
   if (!!currentUserData?.whoami?.account) {
@@ -117,74 +129,76 @@ function SignupAccount(): React.ReactElement {
   }
 
   return (
-    <Box width={484} margin="auto">
-      <Formik<SignupAccountFormFields> initialValues={defaultFields} validationSchema={schema} onSubmit={onSubmit}>
-        <Form noValidate>
-          <Box display="flex" flexDirection="column" alignItems="center" pt={27}>
-            <Typography className={styles.bold} variant="h4">
-              Welcome to Magic Pixel
-            </Typography>
-            <Box mt={2} mb={6.5}>
-              <Typography variant="body1">Tell us a bit about yourself.</Typography>
-            </Box>
-            <Field
-              className={styles.textField}
-              variant="outlined"
-              component={TextField}
-              label="Where do you work?"
-              name="name"
-              fullWidth
-            />
-
-            <FormControl className={styles.field} variant="outlined" fullWidth>
-              <InputLabel htmlFor="industry">What industry are you in?</InputLabel>
+    <Container maxWidth={false} className={classes.container}>
+      <Box width={484} margin="auto">
+        <Formik<SignupAccountFormFields> initialValues={defaultFields} validationSchema={schema} onSubmit={onSubmit}>
+          <Form noValidate>
+            <Box display="flex" flexDirection="column" alignItems="center" pt={27}>
+              <Typography className={classes.bold} variant="h4">
+                Welcome to Magic Pixel
+              </Typography>
+              <Box mt={2} mb={6.5}>
+                <Typography variant="body1">Tell us a bit about yourself.</Typography>
+              </Box>
               <Field
-                component={Select}
-                className={styles.select}
-                name="industry"
-                inputProps={{
-                  id: 'industry',
-                }}
+                className={classes.textField}
+                variant="outlined"
+                component={TextField}
+                label="Where do you work?"
+                name="name"
+                fullWidth
+              />
+
+              <FormControl className={classes.field} variant="outlined" fullWidth>
+                <InputLabel htmlFor="industry">What industry are you in?</InputLabel>
+                <Field
+                  component={Select}
+                  className={classes.select}
+                  name="industry"
+                  inputProps={{
+                    id: 'industry',
+                  }}
+                >
+                  {INDUSTRIES.map((i) => (
+                    <MenuItem key={i} value={i}>
+                      {i}
+                    </MenuItem>
+                  ))}
+                  <MenuItem value="Other">Other</MenuItem>
+                </Field>
+              </FormControl>
+              <Field
+                className={classes.textField}
+                variant="outlined"
+                component={TextField}
+                label="What's your title?"
+                name="title"
+                fullWidth
+              />
+              <Button
+                disabled={currentUserDataIsLoading || signupIsLoading}
+                className={classes.roundedRectangleButton}
+                variant="contained"
+                color="primary"
+                fullWidth
+                type="submit"
               >
-                {INDUSTRIES.map((i) => (
-                  <MenuItem key={i} value={i}>
-                    {i}
-                  </MenuItem>
-                ))}
-                <MenuItem value="Other">Other</MenuItem>
-              </Field>
-            </FormControl>
-            <Field
-              className={styles.textField}
-              variant="outlined"
-              component={TextField}
-              label="What's your title?"
-              name="title"
-              fullWidth
-            />
-            <Button
-              disabled={currentUserDataIsLoading || signupIsLoading}
-              className={styles.roundedRectangleButton}
-              variant="contained"
-              color="primary"
-              fullWidth
-              type="submit"
-            >
-              Save and Continue
-            </Button>
-          </Box>
-        </Form>
-      </Formik>
-      <Alert
-        open={!!alert}
-        title={alert?.title}
-        message={alert?.message || ''}
-        severity={alert?.severity || 'error'}
-        onClose={() => setAlert(null)}
-        autoHideDuration={alert?.autoHideDuration}
-      />
-    </Box>
+                Save and Continue
+              </Button>
+            </Box>
+          </Form>
+        </Formik>
+        <Alert
+          open={!!alert}
+          title={alert?.title}
+          message={alert?.message || ''}
+          severity={alert?.severity || 'error'}
+          onClose={() => setAlert(null)}
+          autoHideDuration={alert?.autoHideDuration}
+        />
+      </Box>
+    </Container>
   )
 }
 
-export default SignupAccount
+export default CreateAccount

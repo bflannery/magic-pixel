@@ -4,20 +4,18 @@ import { UserType } from '../gql-global'
 type GQLUser = Pick<UserType, 'email' | 'roles' | '__typename'>
 
 export interface FeatureUserType {
-  username: string
+  email: string | null
   roles: string[] | null
 }
 
 export const userHasFeature = (user: FeatureUserType | GQLUser, featureName: string): boolean => {
-  let username: string
+  let userEmail: string
   let roles: string[]
   if ('__typename' in user) {
-    username = user.email
+    userEmail = user.email
     roles = user.roles?.map((r) => r.name) || []
-  } else {
-    username = user.username
-    roles = user.roles || []
   }
+
   const features = getFeatureConfig()
   const feature = features.features.find((feature) => feature.id === featureName)
   if (!feature) {
@@ -28,7 +26,7 @@ export const userHasFeature = (user: FeatureUserType | GQLUser, featureName: str
     const segment = features.segments.find((segment) => segment.id === segmentName)
     if (segment) {
       //check explicit username
-      if (segment.users.includes(username)) {
+      if (segment.users.includes(userEmail)) {
         result = true
       }
 

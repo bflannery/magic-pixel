@@ -2,7 +2,7 @@ import React, { useEffect } from 'react'
 import { Container } from '@material-ui/core'
 
 interface PageProps {
-  children: React.ReactNode[]
+  children: React.ReactElement[]
 }
 
 const Page: React.FC<PageProps> = ({ children }) => {
