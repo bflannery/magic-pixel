@@ -13,6 +13,7 @@ from tests.factories import (
     EventBrowserFactory,
     EventDocumentFactory,
     EventLocaleFactory,
+    UserFactory,
 )
 from tests.factories.role_factory import RoleFactory
 
@@ -39,6 +40,7 @@ def db():
 def test_client(app):
     return app.test_client()
 
+
 @pytest.fixture
 def roles():
     main_role = RoleFactory(name=UserRoleType.MAIN.value)
@@ -56,3 +58,65 @@ def pageview_event():
     EventDocumentFactory(event=event)
     EventLocaleFactory(event=event)
     EventSourceFactory(event=event)
+
+
+@pytest.fixture
+def logged_in_user(app, roles):
+    current_user = UserFactory(roles=(roles[0],))
+    current_user.save()
+
+    with app.test_request_context():
+
+        @app.login_manager.request_loader
+        def load_user_from_request(request):
+            return current_user
+
+    yield current_user
+    with app.test_request_context():
+
+        @app.login_manager.request_loader
+        def load_user_from_request_reset(request):
+            return None
+
+
+@pytest.fixture
+def logged_in_brand_new_user(app, roles):
+    current_user = UserFactory(roles=(roles[0],), account=None)
+    current_user.save()
+
+    with app.test_request_context():
+
+        @app.login_manager.request_loader
+        def load_user_from_request(request):
+            return current_user
+
+    yield current_user
+    with app.test_request_context():
+
+        @app.login_manager.request_loader
+        def load_user_from_request_reset(request):
+            return None
+
+
+@pytest.fixture
+def logged_in_admin(app, roles):
+    current_user = UserFactory(
+        roles=(
+            roles[0],
+            roles[1],
+        )
+    )
+    current_user.save()
+
+    with app.test_request_context():
+
+        @app.login_manager.request_loader
+        def load_user_from_request(request):
+            return current_user
+
+    yield current_user
+    with app.test_request_context():
+
+        @app.login_manager.request_loader
+        def load_user_from_request_reset(request):
+            return None

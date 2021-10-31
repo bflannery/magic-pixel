@@ -10,10 +10,10 @@ export type AuthUserInfoQuery = {
   whoami?:
     | {
         __typename: 'UserType'
-        id: number
+        id: string
         email: string
-        roles?: Array<{ __typename: 'RoleType'; id: string; name: string }> | null | undefined
-        account?: { __typename: 'AccountType'; id: number } | null | undefined
+        roles: Array<{ __typename: 'RoleType'; id: string; name: string }>
+        account: { __typename: 'AccountType'; id: string }
       }
     | null
     | undefined

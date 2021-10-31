@@ -8,3 +8,4 @@ class AccountFactory(BaseFactory):
         model = Account
 
     name = Faker("company")
+    industry = Faker("name")

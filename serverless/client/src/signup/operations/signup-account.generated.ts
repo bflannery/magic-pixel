@@ -15,7 +15,7 @@ export type SignupAccountMutation = {
     | {
         __typename: 'CreateAccount'
         ok?: boolean | null | undefined
-        account?: { __typename: 'AccountType'; id: number; name: string } | null | undefined
+        account?: { __typename: 'AccountType'; id: string; name?: string | null | undefined } | null | undefined
       }
     | null
     | undefined

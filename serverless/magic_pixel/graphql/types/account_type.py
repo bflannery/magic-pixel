@@ -6,6 +6,7 @@ from magic_pixel.graphql.auth import owner_or_admin_only
 from magic_pixel.models import (
     Account,
 )
+from .meta import BaseDBObject
 
 from .paged_type import PagedType
 from .user_type import UserType
@@ -20,9 +21,10 @@ class AccountFilterInput(graphene.InputObjectType):
     search = KeywordFilterInput()
 
 
-class AccountType(SQLAlchemyObjectType):
-    class Meta:
-        model = Account
+class AccountType(BaseDBObject):
+    name = graphene.String()
+    industry = graphene.String()
+    is_active = graphene.Boolean()
 
     users = graphene.List(graphene.NonNull(UserType))
 
@@ -30,13 +32,6 @@ class AccountType(SQLAlchemyObjectType):
     @owner_or_admin_only
     def resolve_users(account_type, info):
         return [u for u in account_type.users if u.deleted_at is None]
-
-    @classmethod
-    def get_query(cls, info):
-        query = super().get_query(info)
-        if current_user.is_admin:
-            return query
-        return query.filter(Account.id == current_user.account_id)
 
 
 class PagedAccountType(PagedType):

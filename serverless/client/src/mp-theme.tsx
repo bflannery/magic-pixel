@@ -9,11 +9,11 @@ import { ReactComponent as CheckboxIndeterminate } from './icons/checkbox-indete
 export const white = '#FFF'
 
 export const primary = {
-  100: '#E8DDFF',
-  200: '#DDCCFF',
-  500: '#009688',
-  600: '#4400CC',
-  700: '#00695F',
+  100: '#B2DFD',
+  200: '#80CBC3',
+  500: '#009687',
+  600: '#00897A',
+  700: '#00796A',
   800: '#00695B',
   900: '#004D3F',
 }

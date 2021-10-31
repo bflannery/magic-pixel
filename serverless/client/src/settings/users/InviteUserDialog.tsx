@@ -9,7 +9,6 @@ import {
   createStyles,
   IconButton,
   Box,
-  Typography,
   Radio,
   FormControlLabel,
 } from '@material-ui/core'
@@ -65,14 +64,13 @@ function InviteUserDialog({ open, onCancel, onSave }: InviteUserDialogProps): Re
         <Form noValidate>
           <DialogTitle>
             <Box display="flex" justifyContent="space-between">
-              {'Invite others to LoudCrowd'}
+              {'Invite others to Magic Pixel'}
               <IconButton onClick={onCancel}>
                 <CrossIcon width={12} height={12} />
               </IconButton>
             </Box>
           </DialogTitle>
           <DialogContent className={classes.content}>
-            <Typography variant="body2">{`Get more EMV when you invite team users`}</Typography>
             <Field
               className={classes.textField}
               component={TextField}

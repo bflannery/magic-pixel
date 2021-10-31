@@ -15,6 +15,7 @@ from .types import (
 )
 from magic_pixel.models import (
     Account,
+    User,
 )
 
 
@@ -54,17 +55,12 @@ class Query(
             required=False, default_value=SortDirection.ASC.value
         ),
         cursor=None,
-        where=None,
     ):
-        query = AccountType.get_query(info)
+        query = Account.query
         if not current_user.is_admin:
             query = query.filter_by(id=current_user.account_id)
         else:
             query = query.order_by(Account.name)
-        if where and where.search and len(where.search.keywords) > 0:
-            query = query.filter(
-                Account.name.ilike(all_([f"%{k}%" for k in where.search.keywords]))
-            )
         count = query.count()
         paginator = AccountPaginator()
         values, next_cursor = paginator.get_paged(
@@ -74,5 +70,6 @@ class Query(
 
     @is_graphql_user
     def resolve_whoami(self, info):
-        me = UserType.get_query(info).get(current_user.id)
+        me = User.query.filter_by(id=current_user.id).first()
+        # me = UserType.get_query(info).get(current_user.id)
         return me

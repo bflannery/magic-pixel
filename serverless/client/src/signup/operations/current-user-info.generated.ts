@@ -8,12 +8,7 @@ export type CurrentUserInfoQueryVariables = Types.Exact<{ [key: string]: never }
 export type CurrentUserInfoQuery = {
   __typename: 'Query'
   whoami?:
-    | {
-        __typename: 'UserType'
-        id: number
-        email: string
-        account?: { __typename: 'AccountType'; id: number } | null | undefined
-      }
+    | { __typename: 'UserType'; id: string; email: string; account: { __typename: 'AccountType'; id: string } }
     | null
     | undefined
 }

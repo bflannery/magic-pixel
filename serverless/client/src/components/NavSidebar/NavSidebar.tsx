@@ -7,8 +7,9 @@ import { ReactComponent as SettingsIcon } from '../../icons/settings-major-monot
 import { primary } from '../../mp-theme'
 import { DASHBOARD_ROUTE } from '../../dashboard/routes'
 import NavItem from './NavItem'
-import { USER_MANAGEMENT_ROUTE } from '../../settings/routes'
+import { ACCOUNT_MANAGEMENT_ROUTE, USER_MANAGEMENT_ROUTE } from '../../settings/routes'
 import { Route } from '../../types/route'
+import AccountAvatar from '../Avatar/AccountAvatar'
 
 const drawerWidth = 260
 
@@ -38,9 +39,6 @@ type NavItemType = {
   route: Route
   label: string
   icon: React.ReactElement | null
-  allowFbTester: boolean
-  requiresProducts: boolean
-  dataIntercomTarget?: string
 }
 
 const navItems: NavItemType[] = [
@@ -48,8 +46,6 @@ const navItems: NavItemType[] = [
     route: DASHBOARD_ROUTE,
     label: 'Dashboard',
     icon: <AnalyticsIcon fill="currentColor" height="20px" width="20px" />,
-    allowFbTester: true,
-    requiresProducts: true,
   },
 ]
 
@@ -58,8 +54,11 @@ const settingsNavItems: NavItemType[] = [
     label: 'Users',
     icon: null,
     route: USER_MANAGEMENT_ROUTE,
-    requiresProducts: false,
-    allowFbTester: false,
+  },
+  {
+    label: 'Account',
+    icon: null,
+    route: ACCOUNT_MANAGEMENT_ROUTE,
   },
 ]
 
@@ -67,16 +66,23 @@ interface NavSidebarProps {
   roles?: string[]
   loading: boolean
   userEmail?: string
-  noPicker?: boolean
 }
 
-const NavSidebar: React.FC<NavSidebarProps> = ({ loading, roles = [], userEmail = '', noPicker = false }) => {
+const NavSidebar: React.FC<NavSidebarProps> = ({ loading, roles = [], userEmail = '' }) => {
   const classes = useStyles()
   const shownNavItems = navItems.filter((item) => item.route.hasAccess(roles, userEmail))
   const shownSettingsNavItems = settingsNavItems.filter((item) => item.route && item.route.hasAccess(roles, userEmail))
   return (
     <Drawer className={classes.drawer} variant="permanent" anchor="left" classes={{ paper: classes.drawerPaper }}>
-      <Box mb={5} bgcolor={primary[900]} height={80} color="white"></Box>
+      <Box marginBottom={8} bgcolor={primary[900]} height={64} color="white" display="flex" justifyContent="center">
+        <Box margin={2}>
+          <AccountAvatar
+            loading={loading}
+            avatarUrl={'https://upload.wikimedia.org/wikipedia/commons/8/89/Half-Life_lambda_logo.svg'}
+            size="small"
+          />
+        </Box>
+      </Box>
       <List className={classes.topBlock}>
         {!loading &&
           shownNavItems.map((item) => (

@@ -8,7 +8,7 @@ export type UserPreferencesQueryVariables = Types.Exact<{ [key: string]: never }
 export type UserPreferencesQuery = {
   __typename: 'Query'
   whoami?:
-    | { __typename: 'UserType'; id: number; preferences: { __typename: 'UserPreferences'; id: string } }
+    | { __typename: 'UserType'; id: string; preferences: { __typename: 'UserPreferences'; id: string } }
     | null
     | undefined
 }

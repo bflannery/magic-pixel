@@ -95,9 +95,9 @@ const UserManagement: React.FC = () => {
     setInviteDialogOpen(true)
   }
 
-  async function handleOnRoleChange(value: string, userId: number) {
+  async function handleOnRoleChange(value: string, userId: string) {
     const roles = value === 'OWNER' ? OWNER_ROLES : USER_ROLES
-    const variables: UpdateUserMutationVariables = { userId: userId.toString(), roles: roles }
+    const variables: UpdateUserMutationVariables = { userId: userId, roles: roles }
     await updateUser({ variables: variables })
   }
 
@@ -138,7 +138,7 @@ const UserManagement: React.FC = () => {
     return setRemoveDialogOpen(true)
   }
 
-  async function handleResend(userId: number) {
+  async function handleResend(userId: string) {
     await resendInvite({ variables: { userId: userId.toString() } }).then((data) => {
       const email = accountData?.account?.users?.find((u) => u.id === userId)?.email
       if (data.data?.resendUserInvite?.ok) {
@@ -196,10 +196,8 @@ const UserManagement: React.FC = () => {
   if (loading) return <p>Loading</p>
   if (error || (!loading && !accountData)) return <p>Error: {error && error.message}</p>
 
-  const ownerMode = userInfo?.whoami?.roles?.some((r) => r.name === 'OWNER') || !!inAdminRoute || false
-  const accountUsers = !inAdminRoute
-    ? accountData?.account?.users?.filter((u) => !u.email.includes('@loudcrowd.com')) || []
-    : accountData?.account?.users || []
+  const ownerMode = !!userInfo?.whoami?.roles?.some((r) => r.name === 'OWNER')
+  const accountUsers = accountData?.account?.users || []
   const owners = accountUsers.filter((u) => (u.roles || []).find((role) => role.name === 'OWNER'))
   let lastOwner: UserType | null = null
 

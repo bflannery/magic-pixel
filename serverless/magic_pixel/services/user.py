@@ -49,7 +49,7 @@ def create_basic_user_from_auth0(email, full_name, auth0_id):
             auth0_id=auth0_id,
         ).save_conflict_ignore()
 
-        main_role = Role.query.filter(Role.name == "MAIN").one_or_none()
+        main_role = Role.query.filter(Role.name == "MAIN").first()
         user.roles = [main_role]
         user.save()
     return user

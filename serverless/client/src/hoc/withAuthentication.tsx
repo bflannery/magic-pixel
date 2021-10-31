@@ -13,7 +13,7 @@ export default function withAuthentication<WrappedComponentProps>(): InnerCompon
       const { user, isLoading, isAuthenticated } = useAuth0()
       const { data: userInfo, loading: userInfoLoading } = useUserInfoQuery()
       const userHasAccount = !userInfoLoading && userInfo?.whoami?.account?.id
-
+      console.log({ user, isAuthenticated, userInfo })
       if (isLoading || userInfoLoading) {
         return null
       }

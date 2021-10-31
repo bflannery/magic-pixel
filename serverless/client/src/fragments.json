@@ -1,3 +1,5 @@
 {
-  "possibleTypes": {}
+  "possibleTypes": {
+    "Node": ["AccountType", "RoleType", "UserType"]
+  }
 }

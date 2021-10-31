@@ -10,9 +10,9 @@ export type WhatAreMyRolesQuery = {
   whoami?:
     | {
         __typename: 'UserType'
-        id: number
-        roles?: Array<{ __typename: 'RoleType'; id: string; name: string }> | null | undefined
-        account?: { __typename: 'AccountType'; id: number } | null | undefined
+        id: string
+        roles: Array<{ __typename: 'RoleType'; id: string; name: string }>
+        account: { __typename: 'AccountType'; id: string }
       }
     | null
     | undefined

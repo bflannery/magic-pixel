@@ -17,10 +17,10 @@ export type UpdateUserMutation = {
         user?:
           | {
               __typename: 'UserType'
-              id: number
+              id: string
               email: string
-              account?: { __typename: 'AccountType'; id: number; name: string } | null | undefined
-              roles?: Array<{ __typename: 'RoleType'; id: string; name: string }> | null | undefined
+              account: { __typename: 'AccountType'; id: string; name?: string | null | undefined }
+              roles: Array<{ __typename: 'RoleType'; id: string; name: string }>
             }
           | null
           | undefined

@@ -26,9 +26,9 @@ interface UserRowProps {
   isLastOwner: boolean
   user: UserType
   ownerMode: boolean
-  onRoleChange: (value: string, id: number) => void
+  onRoleChange: (value: string, id: string) => void
   onRemoveUser: (user: UserType) => void
-  onResend: (id: number) => void
+  onResend: (id: string) => void
 }
 
 const useStyles = makeStyles((theme: Theme) =>
@@ -129,7 +129,7 @@ const UserRow: React.FC<UserRowProps> = ({ isLastOwner, user, ownerMode, onRoleC
     <TableRow>
       <TableCell className={classes.firstColumn}>
         <Box display="flex" alignItems="center">
-          <Typography variant="body2" color={email.includes('@loudcrowd.com') ? 'secondary' : 'textPrimary'}>
+          <Typography variant="body2" color="textPrimary">
             {email}
           </Typography>
           {!lastLoginAt && (

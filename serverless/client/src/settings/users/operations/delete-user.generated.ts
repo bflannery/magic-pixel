@@ -13,7 +13,7 @@ export type DeleteUserMutation = {
     | {
         __typename: 'DeleteUser'
         ok?: boolean | null | undefined
-        user?: { __typename: 'UserType'; id: number } | null | undefined
+        user?: { __typename: 'UserType'; id: string } | null | undefined
       }
     | null
     | undefined

@@ -25,14 +25,12 @@ export enum AccountSort {
   Name = 'NAME',
 }
 
-export type AccountType = {
+export type AccountType = Node & {
   __typename: 'AccountType'
-  createdAt: Scalars['DateTime']
-  id: Scalars['Float']
+  id: Scalars['ID']
   industry?: Maybe<Scalars['String']>
-  isActive: Scalars['Boolean']
-  name: Scalars['String']
-  updatedAt?: Maybe<Scalars['DateTime']>
+  isActive?: Maybe<Scalars['Boolean']>
+  name?: Maybe<Scalars['String']>
   users?: Maybe<Array<UserType>>
 }
 
@@ -93,6 +91,10 @@ export type MutationsUpdateUserArgs = {
   userId: Scalars['ID']
 }
 
+export type Node = {
+  id: Scalars['ID']
+}
+
 export type PagedAccountType = {
   __typename: 'PagedAccountType'
   cursor?: Maybe<Scalars['String']>
@@ -129,12 +131,10 @@ export type ResendUserInvite = {
   ok?: Maybe<Scalars['Boolean']>
 }
 
-export type RoleType = {
+export type RoleType = Node & {
   __typename: 'RoleType'
-  createdAt: Scalars['DateTime']
   id: Scalars['ID']
   name: Scalars['String']
-  updatedAt?: Maybe<Scalars['DateTime']>
 }
 
 /** An enumeration. */
@@ -161,19 +161,16 @@ export enum UserRoleType {
   Owner = 'OWNER',
 }
 
-export type UserType = {
+export type UserType = Node & {
   __typename: 'UserType'
-  account?: Maybe<AccountType>
-  accountId?: Maybe<Scalars['Float']>
+  account: AccountType
   auth0Id?: Maybe<Scalars['String']>
   createdAt: Scalars['DateTime']
-  deletedAt?: Maybe<Scalars['DateTime']>
   email: Scalars['String']
   firstName?: Maybe<Scalars['String']>
-  id: Scalars['Float']
+  id: Scalars['ID']
   lastLoginAt?: Maybe<Scalars['DateTime']>
   lastName?: Maybe<Scalars['String']>
   preferences: UserPreferences
-  roles?: Maybe<Array<RoleType>>
-  updatedAt?: Maybe<Scalars['DateTime']>
+  roles: Array<RoleType>
 }

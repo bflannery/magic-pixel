@@ -12,16 +12,16 @@ export type AccountUsersQuery = {
   account?:
     | {
         __typename: 'AccountType'
-        id: number
-        name: string
+        id: string
+        name?: string | null | undefined
         users?:
           | Array<{
               __typename: 'UserType'
-              id: number
+              id: string
               email: string
               createdAt: Date
               lastLoginAt?: Date | null | undefined
-              roles?: Array<{ __typename: 'RoleType'; id: string; name: string }> | null | undefined
+              roles: Array<{ __typename: 'RoleType'; id: string; name: string }>
             }>
           | null
           | undefined
