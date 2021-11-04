@@ -7,7 +7,6 @@ import { useUserInfoQuery } from '../../queries/operations/user-info.generated'
 import { useParams } from 'react-router-dom'
 import Alert, { AlertData } from '../../components/Alert/Alert'
 import { Page } from '../../components'
-import { useAccountUsersQuery } from '../users/operations/account-users.generated'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -48,6 +47,10 @@ const AccountManagement: React.FC = () => {
           <Typography variant="h5" className={classes.title}>
             Account Management
           </Typography>
+        </Box>
+        <Box mt={4}>
+          <Typography> Account Id: {accountId}</Typography>
+          <Typography> Copy Embed Script</Typography>
         </Box>
       </Box>
       <Alert

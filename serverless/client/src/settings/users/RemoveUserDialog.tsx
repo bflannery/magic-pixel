@@ -61,7 +61,7 @@ function RemoveUserDialog({ email, open, onCancel, onRemove }: RemoveUserDialogP
         </Typography>
         <Typography display={'inline'} variant="body2">
           {' '}
-          will no longer have access to LoudCrowd. Please transfer ownership before removing this user
+          will no longer have access to Magic Pixel. Please transfer ownership before removing this user
         </Typography>
       </DialogContent>
       <DialogActions>

@@ -1,8 +1,8 @@
 import { useEffect } from 'react'
 
 export default function useTitle(titleExtension = ''): void {
-  const lc = 'LoudCrowd'
+  const mp = 'Magic Pixel'
   useEffect(() => {
-    document.title = titleExtension === '' ? lc : titleExtension + ' - ' + lc
+    document.title = titleExtension === '' ? mp : titleExtension + ' - ' + mp
   }, [titleExtension])
 }

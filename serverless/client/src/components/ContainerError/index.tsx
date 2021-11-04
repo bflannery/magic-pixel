@@ -15,7 +15,6 @@ const ContainerError: React.FC<ContainerErrorProps> = ({ text }) => (
     <Typography variant="h5">{text}</Typography>
     <Typography variant="body1" color="secondary">
       Please try again in a few minutes. If you are still having issues, please email:{' '}
-      <Link href="mailto:rita@loudcrowd.com">rita@loudcrowd.com</Link>
     </Typography>
   </Box>
 )
