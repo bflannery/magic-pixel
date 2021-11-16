@@ -27,6 +27,7 @@ export enum AccountSort {
 
 export type AccountType = Node & {
   __typename: 'AccountType'
+  embedScript?: Maybe<Scalars['String']>
   id: Scalars['ID']
   industry?: Maybe<Scalars['String']>
   isActive?: Maybe<Scalars['Boolean']>

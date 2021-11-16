@@ -88,12 +88,13 @@ def authentication(event, context):
             raise Exception(f"No account exists with hid: {hid}.")
         logger.log_info(f"Authentication Account: {account}")
 
-        # Check account plan status
-
+        # TODO: account.is_active is temporary.
+        #  We will want to check account plan status instead once stripe is setup.
+        status = "active" if account.is_active else "inactive"
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"status": "active"}),
+            "body": json.dumps({"status": status}),
         }
 
     except Exception as e:

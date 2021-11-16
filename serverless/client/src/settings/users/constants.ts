@@ -3,8 +3,8 @@ import { UserRoleType } from '../../gql-global'
 export const ROLES = [
   {
     id: '1',
-    value: UserRoleType.Main,
-    name: 'User',
+    value: UserRoleType.Admin,
+    name: 'Admin',
   },
   {
     id: '2',
@@ -13,11 +13,11 @@ export const ROLES = [
   },
   {
     id: '3',
-    value: UserRoleType.Admin,
-    name: 'Admin',
+    value: UserRoleType.Main,
+    name: 'User',
   },
 ]
 
-export const AVAILABLE_ROLES = [ROLES[0], ROLES[1]]
-export const OWNER_ROLES = [ROLES[0].value, ROLES[1].value]
-export const USER_ROLES = [ROLES[0].value]
+export const AVAILABLE_ROLES = [ROLES[1], ROLES[2]]
+export const OWNER_ROLES = [ROLES[1].value, ROLES[2].value]
+export const USER_ROLES = [ROLES[2].value]

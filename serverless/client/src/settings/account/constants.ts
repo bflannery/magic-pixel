@@ -3,7 +3,7 @@ import { UserRoleType } from '../../gql-global'
 export const ROLES = [
   {
     id: '1',
-    value: UserRoleType.Main,
+    value: UserRoleType.Admin,
     name: 'User',
   },
   {
@@ -13,7 +13,7 @@ export const ROLES = [
   },
   {
     id: '3',
-    value: UserRoleType.Admin,
+    value: UserRoleType.Main,
     name: 'Admin',
   },
 ]

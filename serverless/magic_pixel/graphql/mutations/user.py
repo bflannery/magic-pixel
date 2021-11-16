@@ -101,8 +101,8 @@ class UpdateUser(graphene.Mutation):
             raise NotFoundError(f"User {user_id} not found")
 
         old_roles = [*user.roles]
-        admin_role = Role.query.filter(Role.name == "ADMIN").one()
-        reviewer_role = Role.query.filter(Role.name == "REVIEWER").one()
+        admin_role = Role.query.filter(Role.name == "ADMIN").first()
+        reviewer_role = Role.query.filter(Role.name == "REVIEWER").first()
 
         all_roles = Role.query.all()
         if roles:

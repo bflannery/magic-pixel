@@ -4,9 +4,11 @@ import { Box, Typography } from '@material-ui/core'
 
 import useTitle from '../../utils/use-title'
 import { useUserInfoQuery } from '../../queries/operations/user-info.generated'
+import { useAccountQuery } from './queries/operations/account.generated'
 import { useParams } from 'react-router-dom'
 import Alert, { AlertData } from '../../components/Alert/Alert'
 import { Page } from '../../components'
+import HostScript from './HostLink'
 
 const useStyles = makeStyles((theme: Theme) =>
   createStyles({
@@ -33,24 +35,41 @@ const AccountManagement: React.FC = () => {
   const [alert, setAlert] = useState<AlertData | null>(null)
 
   const { id: accountIdParam } = useParams<AcctMgmtRouteParams>()
-  const { data: userInfo, loading, error } = useUserInfoQuery()
-
+  const { data: userInfo, loading: userInfoLoading, error: userInfoError } = useUserInfoQuery()
   const accountId = accountIdParam || userInfo?.whoami?.account?.id
 
-  if (loading) return <p>Loading</p>
-  if (error || (!loading && !accountId)) return <p>Error: {error && error.message}</p>
+  const {
+    data: accountInfo,
+    loading: accountLoading,
+    error: accountError,
+  } = useAccountQuery({
+    skip: !accountId,
+    variables: {
+      accountId: accountId || '',
+    },
+  })
+
+  const accountName = accountInfo?.account?.name
+  const accountEmbedScript = accountInfo?.account?.embedScript
+
+  const pageLoading = userInfoLoading || accountLoading
+  const pageError = userInfoError || accountError
+
+  if (pageLoading) return <p>Loading</p>
+  if (pageError || (!pageLoading && !accountId)) return <p>Error: {pageError && pageError.message}</p>
 
   return (
     <Page>
-      <Box px={12} py={10}>
+      <Box px={6} py={10}>
         <Box display="flex" flex={1}>
           <Typography variant="h5" className={classes.title}>
             Account Management
           </Typography>
         </Box>
         <Box mt={4}>
+          <Typography> Account Name: {accountName} </Typography>
           <Typography> Account Id: {accountId}</Typography>
-          <Typography> Copy Embed Script</Typography>
+          {accountEmbedScript && <HostScript embedScript={accountEmbedScript} />}
         </Box>
       </Box>
       <Alert

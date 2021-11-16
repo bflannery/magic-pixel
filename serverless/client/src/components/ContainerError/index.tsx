@@ -1,5 +1,5 @@
 import React from 'react'
-import { Box, Typography, Link } from '@material-ui/core'
+import { Box, Typography } from '@material-ui/core'
 
 import { ReactComponent as ErrorImage } from '../../images/error.svg'
 

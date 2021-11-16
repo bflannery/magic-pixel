@@ -9,14 +9,16 @@ from magic_pixel.models import (
     EventForm,
     EventLocale,
     EventSource,
-    EventTarget, Account,
+    EventTarget,
+    Account,
 )
 from magic_pixel.lib.aws_sqs import event_queue
+from magic_pixel.models.person import Person
 from magic_pixel.utility import parse_url
 
 
 def _parse_event(event: dict) -> dict:
-    account_hid = event.get('accountHid')
+    account_hid = event.get("accountHid")
     account_id = Account.db_id_from_mp_id(account_hid)
     return {
         "account_id": account_id,
@@ -98,14 +100,14 @@ def _parse_event_target(event_id: str, event_target: dict) -> dict:
     }
 
 
-def save_event(event: dict) -> dict:
+def save_event(person_id: int, event: dict) -> dict:
     logger.log_info(f"save_event: {event}")
     try:
         new_event = Event(
+            person_id=person_id,
             site_id=event["site_id"],
             event_type=event["event_type"],
             q_id=event["q_id"],
-            fingerprint=event["fingerprint"],
             session_id=event["session_id"],
             visitor_id=event["visitor_id"],
             user_id=event["user_id"],
@@ -216,12 +218,25 @@ def queue_event_message(event: dict) -> bool:
     return event_queue.send_message(event)
 
 
+def get_event_person(event: dict) -> dict:
+    fingerprint = event.get("fingerprint")
+    if not fingerprint:
+        logger.log_warning("No fingerprint attached to event.")
+
+    person = Person.query.filter_by(fingerprint=fingerprint).first()
+    if not person:
+        person = Person(fingerprint=fingerprint).save()
+    return person
+
+
 def consume_event_message(event: dict) -> bool:
     # logger.log_info(f"consume_event_message: {event}")
     try:
         logger.log_info("saving new event...")
         parsed_event = _parse_event(event)
-        new_event = save_event(parsed_event)
+
+        event_person = get_event_person(parsed_event)
+        new_event = save_event(event_person.id, parsed_event)
 
         event_browser = event.get("browser")
         event_screen = event.get("screen")
@@ -262,7 +277,8 @@ def consume_event_message(event: dict) -> bool:
             parsed_target_event = _parse_event_target(new_event.id, event_target)
             save_event_target_message(parsed_target_event)
         db.session.commit()
-        logger.log_info('New event saved')
+
+        logger.log_info("New event saved")
         return True
     except Exception as e:
         logger.log_exception(e)

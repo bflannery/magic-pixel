@@ -38,6 +38,7 @@ provider:
     REACT_APP_AUTH0_API_URL: ${self:custom.auth0.api.url.${opt:stage, 'dev'}}
     REACT_APP_AUTH0_CLIENT_ID: ${self:custom.auth0.app.clientId.${opt:stage, 'dev'}}
     REACT_APP_AUTH0_CLIENT_SECRET: ${self:custom.auth0.app.clientSecret.${opt:stage, 'dev'}}
+    REACT_APP_S3_TRACKER: ${self:custom.s3.magicPixelTracker}
     AUTH0_CUSTOM_DOMAIN: ${self:custom.auth0.customDomain}
     AUTH0_MGMT_DOMAIN: ${self:custom.auth0.mgmtDomain}
     AUTH0_DB: ${self:custom.auth0.db.connection.${opt:stage, 'dev'}}
@@ -90,6 +91,7 @@ custom:
     secretKey: 'c0cbf5992af08ede97e11a3e'
   s3:
     magicPixelBucket: ${opt:stage, 'dev'}-magic-pixel
+    magicPixelTracker: ''
   sqs:
     region: 'us-east-1'
     endpointUrl: ''

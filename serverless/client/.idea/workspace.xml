@@ -2,31 +2,42 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c03202a6-bfa4-469d-baf1-baf9ac7adc7a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/src/components/NavSidebar/NavItem.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/components/NavSidebar/NavSidebar.tsx" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/analytics-major-monotone.svg" afterDir="false" />
-      <change afterPath="$PROJECT_DIR$/src/icons/settings-major-monotone.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/icons/copy.svg" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/account/HostLink.tsx" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/account/queries/account.graphql" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/src/settings/account/queries/operations/account.generated.ts" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../magic_pixel/models/person.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../migrations/versions/d34ba7ae70bb_adds_person_table.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../test-website/src/purchase.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../website-tracker/scribe/scribe-analytics-debug.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../../docker-compose.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/.env" beforeDir="false" afterPath="$PROJECT_DIR$/.env" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/apollo-client.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/apollo-client.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/auth/ForgotPassword.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth/ForgotPassword.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Alert/Alert.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Alert/Alert.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Container/Container.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Container/Container.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/components/Page/Page.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/Page/Page.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/dashboard/Dashboard.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/dashboard/Dashboard.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/apollo.config.js" beforeDir="false" afterPath="$PROJECT_DIR$/apollo.config.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/codegen.yml" beforeDir="false" afterPath="$PROJECT_DIR$/codegen.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/auth/Auth0Provider.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/auth/Auth0Provider.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/components/ContainerError/index.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/components/ContainerError/index.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/gql-global.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/gql-global.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/home/Home.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/home/Home.tsx" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/src/introspection.json" beforeDir="false" afterPath="$PROJECT_DIR$/src/introspection.json" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/mp-theme.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/mp-theme.tsx" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/signup/operations/current-user-info.generated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/signup/operations/current-user-info.generated.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/signup/operations/signup-account.generated.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/signup/operations/signup-account.generated.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/signup/signup-account.graphql" beforeDir="false" afterPath="$PROJECT_DIR$/src/signup/signup-account.graphql" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/src/types/route.test.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/route.test.ts" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/__init__.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/__init__.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/account.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/account.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/query.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/query.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../magic_pixel/models/account.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/models/account.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/settings/account/AccountManagement.tsx" beforeDir="false" afterPath="$PROJECT_DIR$/src/settings/account/AccountManagement.tsx" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/settings/account/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/settings/account/constants.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/settings/users/constants.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/settings/users/constants.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/src/types/route.ts" beforeDir="false" afterPath="$PROJECT_DIR$/src/types/route.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../config/config.local.py" beforeDir="false" afterPath="$PROJECT_DIR$/../config/config.local.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lambdas.py" beforeDir="false" afterPath="$PROJECT_DIR$/../lambdas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/mutations/user.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/graphql/types/account_type.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/graphql/types/account_type.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/services/events.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/events.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../magic_pixel/services/user.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/user.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../migrations/versions/c90938bbfda7_adds_event_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/c90938bbfda7_adds_event_table.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../serverless.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../serverless.yml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test-website/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../../test-website/src/index.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test-website/src/page1.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../test-website/src/page2.html" beforeDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../website-tracker/.size-snapshot.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/.size-snapshot.json" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../website-tracker/build/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/build/index.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../website-tracker/scribe/scribe-analytics.js" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/scribe/scribe-analytics.js" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../website-tracker/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/src/index.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -72,10 +83,10 @@
   <component name="RecentsManager">
     <key name="CopyFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/icons" />
-      <recent name="$PROJECT_DIR$/src" />
+      <recent name="$PROJECT_DIR$/src/settings" />
+      <recent name="$PROJECT_DIR$/src/components/Avatar" />
       <recent name="$PROJECT_DIR$/src/components" />
-      <recent name="$PROJECT_DIR$/src/queries" />
-      <recent name="$PROJECT_DIR$/src/utils" />
+      <recent name="$PROJECT_DIR$/src" />
     </key>
     <key name="MoveFile.RECENT_KEYS">
       <recent name="$PROJECT_DIR$/src/components/Container" />
@@ -94,7 +105,16 @@
       <workItem from="1634728419012" duration="3305000" />
       <workItem from="1634865348132" duration="6313000" />
       <workItem from="1634952899632" duration="13688000" />
-      <workItem from="1635244661482" duration="2268000" />
+      <workItem from="1635244661482" duration="7676000" />
+      <workItem from="1635333009765" duration="6000" />
+      <workItem from="1635333153233" duration="46000" />
+      <workItem from="1635333346336" duration="3330000" />
+      <workItem from="1635505509861" duration="1989000" />
+      <workItem from="1635852918013" duration="646000" />
+      <workItem from="1636554344928" duration="2722000" />
+      <workItem from="1636888183778" duration="1029000" />
+      <workItem from="1636889282161" duration="1887000" />
+      <workItem from="1636891322273" duration="1075000" />
     </task>
     <servers />
   </component>
@@ -119,6 +139,11 @@
         <line-breakpoint enabled="true" type="javascript">
           <url>file://$PROJECT_DIR$/src/components/Container/Container.tsx</url>
           <option name="timeStamp" value="1" />
+        </line-breakpoint>
+        <line-breakpoint enabled="true" type="javascript">
+          <url>file://$PROJECT_DIR$/src/settings/account/AccountManagement.tsx</url>
+          <line>32</line>
+          <option name="timeStamp" value="2" />
         </line-breakpoint>
       </breakpoints>
     </breakpoint-manager>

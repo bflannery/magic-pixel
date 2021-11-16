@@ -82,7 +82,6 @@ def get_auth0_user_from_token(token):
     user = User.query.filter(User.auth0_id == auth0_user_id).first()
     if not user:
         auth0_user_info = Auth0Api().get_user_info(token)
-        print(f"Auth0 User Info: {auth0_user_info}")
         user = create_basic_user_from_auth0(
             auth0_user_info["email"], auth0_user_info["name"], auth0_user_id
         )

@@ -20,7 +20,6 @@ export class Route {
   }
 
   hasAccess(roles: string[] = [], userEmail = ''): boolean {
-    console.log({ roles, userEmail })
     if (this.featureFlag) {
       if (!userHasFeature({ email: userEmail, roles: roles }, this.featureFlag)) {
         return false

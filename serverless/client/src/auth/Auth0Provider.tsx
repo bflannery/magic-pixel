@@ -21,7 +21,6 @@ const Auth0ProviderWithHistory: React.FC = ({ children }) => {
     history.push(appState?.returnTo || window.location.pathname)
   }
 
-  console.log({ auth0Domain, auth0ClientId, auth0ApiUrl })
   return (
     <Auth0Provider
       domain={auth0Domain || ''}
