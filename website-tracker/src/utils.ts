@@ -20,11 +20,17 @@ export function getHostId(script: HTMLOrSVGScriptElement | null): string | null 
 }
 
 
-export function getDiffDaysFromTimestamp(time1: number, time2: number) {
+export function getDiffFromTimestamp(time1: number, time2: number, scope: 'days' | 'hours' | 'mins') {
   const timeDiff = time1 - time2;
-  return timeDiff / (1000 * 3600 * 24);
-}
 
+  if (scope === 'days') {
+    return timeDiff / (1000 * 3600 * 24);
+  } else if (scope === 'hours') {
+    return timeDiff / (60 * 60 * 1000);
+  } else {
+    return timeDiff / (60 * 1000);
+  }
+}
 
 export function uuidv4() {
   var s4 = function() {

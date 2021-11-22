@@ -1720,18 +1720,6 @@
   return Scribe;
 });
 
-// Initialize the tracker
-console.debug('Scribe: Initializing Scribe')
-
-var mpAccountHid = null
-var storageData = localStorage.getItem('mp')
-if (storageData){
-  var mpData = JSON.parse(storageData)
-  mpAccountHid = mpData.accountHid
-} else {
-  console.error('Scribe: No MP Hid')
-}
-
 var ScribeEventPublicTracker = function(config) {
   if (!(this instanceof ScribeEventPublicTracker)) return new ScribeEventPublicTracker(config);
 
@@ -1743,11 +1731,12 @@ ScribeEventPublicTracker.prototype.tracker = function(info) {
   var accountEvent = Object.assign(value, { accountHid: this.config.mpAccountHid });
   var event = JSON.stringify(accountEvent);
 
-  // var xhttp = new XMLHttpRequest();
-  // xhttp.open("POST", "http://localhost:5000/dev/send-event", true);
-  // xhttp.setRequestHeader("Content-type", "application/json");
-  // xhttp.send(event);
-  //
+
+  var xhttp = new XMLHttpRequest();
+  xhttp.open("POST", "http://localhost:5000/dev/send-event", true);
+  xhttp.setRequestHeader("Content-type", "application/json");
+  xhttp.send(event);
+
   if (typeof console !== 'undefined') {
     console.log({ value, event });
     info.success && setTimeout(info.success, 0);
@@ -1757,16 +1746,26 @@ ScribeEventPublicTracker.prototype.tracker = function(info) {
 };
 
 
-var scribe = new Scribe({
-  tracker:          new ScribeEventPublicTracker({
-    mpAccountHid: mpAccountHid,
-  }),
-  trackPageViews:   true,
-  trackClicks:      true,
-  trackHashChanges: false,
-  trackEngagement:  false,
-  trackLinkClicks:  true,
-  trackRedirects:   true,
-  trackSubmissions: true,
-  console: false
-});
+// Initialize the tracker
+console.debug('Scribe: Initializing Scribe')
+
+var MP = window.MP
+
+if (!MP) {
+console.log('Scribe: No MP window object')
+} else {
+  var scribe = new Scribe({
+    tracker:          new ScribeEventPublicTracker({
+      mpAccountHid: MP.tracker,
+    }),
+    trackPageViews:   true,
+    trackClicks:      true,
+    trackHashChanges: true,
+    trackEngagement:  false,
+    trackLinkClicks:  true,
+    trackRedirects:   true,
+    trackSubmissions: true,
+    console: false
+  });
+}
+
