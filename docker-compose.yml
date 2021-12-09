@@ -16,7 +16,7 @@ services:
     ports:
       - "8081:80"
     volumes:
-      - ./website-tracker/scribe/scribe-analytics.js:/var/www/scribe-analytics-debug.js
+      - ./website-tracker/scribe/scribe-analytics-debug.js:/var/www/scribe-analytics-debug.js
       - ./website-tracker/build/index.js:/var/www/mp-tracker.js
   db:
     image: postgres

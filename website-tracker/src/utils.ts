@@ -20,7 +20,7 @@ export function getHostId(script: HTMLOrSVGScriptElement | null): string | null 
 }
 
 
-export function getDiffFromTimestamp(time1: number, time2: number, scope: 'days' | 'hours' | 'mins') {
+export function getDiffFromTimestamp(time1: number, time2: number, scope: 'days' | 'hours' | 'mins'): number {
   const timeDiff = time1 - time2;
 
   if (scope === 'days') {
@@ -32,7 +32,7 @@ export function getDiffFromTimestamp(time1: number, time2: number, scope: 'days'
   }
 }
 
-export function uuidv4() {
+export function uuidv4(): string {
   var s4 = function() {
     return Math.floor((1 + Math.random()) * 0x10000)
       .toString(16)
@@ -41,4 +41,15 @@ export function uuidv4() {
 
   return s4() + s4() + '-' + s4() + '-' + s4() + '-' +
     s4() + '-' + s4() + s4() + s4();
+}
+
+
+export function formatFieldKey(key: string): string {
+  return key.replace(/[_-]/g, "").toLocaleLowerCase()
+}
+
+
+export function isValidEmail(email: string) {
+  const emailRegex = /^\w+([\.-]?\w+)*@\w+([\.-]?\w+)*(\.\w{2,3})+$/;
+  return email.match(emailRegex)
 }

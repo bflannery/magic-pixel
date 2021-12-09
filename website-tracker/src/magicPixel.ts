@@ -1,11 +1,14 @@
-import {getDiffFromTimestamp, uuidv4} from "./utils";
+import {formatFieldKey, getDiffFromTimestamp, isValidEmail, uuidv4} from "./utils";
 
 interface MpDataProps {
   accountHid: string
+  userId?: string | null
   accountStatus: string
   lastVerified: number,
   attempts: number
 }
+
+
 
 export interface MagicPixelType {
   hostId: string | null
@@ -22,15 +25,47 @@ export interface MagicPixelType {
   trackEvent: (scribeEvent: any) => void
 }
 
+interface ScribeFormType {
+  formId: string
+  formFields: Record<string, string>
+}
+
+interface FormFieldMapType {
+  email: string | null
+  lastName: string | null
+  firstName: string | null
+}
 
 interface ScribeEventType {
-  path: string,
-  value: JSON,
+  path: string
+  value: {
+    fingerprint : string
+    sessionId : string
+    visitorId : string
+    userProfile? : string | null
+    form?: ScribeFormType | null
+    event: string
+    timestamp: string
+    source?: {
+      url?: {
+        host?: string
+        hostname?: string
+        pathname?: string
+        protocol?: string
+      }
+    }
+  }
   op: string,
-  success: () => void,
+  success: () => void
   failure: () => void
 }
 
+
+const LOGIN_HINTS = ["login", "signin",  "enter"]
+const SIGN_UP_HINTS = ["signup", "join", "enroll", "register", "subscribe"]
+const FIRST_NAME_HINTS = ['firstname', 'fname']
+const LAST_NAME_HINTS = ['lastname', 'lname']
+const PHONE_HINTS = ['phone', 'telephone', 'cell', 'mobile']
 
 export default class MagicPixel {
   hostId: string | null
@@ -85,13 +120,21 @@ export default class MagicPixel {
   getLocalStorageData() {
     const mpLocalStorageData = localStorage.getItem('mp')
     if (mpLocalStorageData) {
-      return JSON.parse(mpLocalStorageData)
+      const parsedData = JSON.parse(mpLocalStorageData)
+      this._setMpData(parsedData)
+      return parsedData
     }
    return mpLocalStorageData
   }
 
   getSessionStorageData() {
-    return sessionStorage.getItem('mp_sid')
+    const sid = sessionStorage.getItem('mp_sid')
+    if (sid) {
+      const parsedSessionData = JSON.parse(sid)
+      this._setSessionMpData(parsedSessionData)
+      return parsedSessionData
+    }
+    return sid
   }
 
   setLocalStorageData(data: MpDataProps): void {
@@ -109,27 +152,126 @@ export default class MagicPixel {
     this._removeSessionMpData()
   }
 
+  //
+  // parseForm(form: ScribeFormType): FormFieldMapType  {
+  //   const formFields = form.formFields
+  //   const formFieldsKeys = Object.keys(formFields)
+  //
+  //   let isLoginForm = false
+  //   let isSignupForm = false
+  //
+  //   const formFieldMap: FormFieldMapType = {
+  //     email: null,
+  //     firstName: null,
+  //     lastName: null,
+  //   }
+  //
+  //  formFieldsKeys.forEach(formFieldKey => {
+  //    const formKey = formatFieldKey(formFieldKey)
+  //
+  //    // Check for signup hints
+  //    SIGN_UP_HINTS.forEach((signupHint =>{
+  //      const isSignUpKey = formKey.includes(signupHint)
+  //      if (isSignUpKey) {
+  //        isSignupForm = true
+  //      }
+  //    }))
+  //
+  //    // Check for login hints
+  //    LOGIN_HINTS.forEach((loginHint =>{
+  //      const isLoginKey = formKey.includes(loginHint)
+  //      if (isLoginKey) {
+  //        isLoginForm = true
+  //      }
+  //    }))
+  //
+  //    // Check for first name hints
+  //    FIRST_NAME_HINTS.forEach((firstNameHint =>{
+  //      const isFirstNameKey = formKey.includes(firstNameHint)
+  //      if (isFirstNameKey) {
+  //        formFieldMap.firstName = formFields[formKey]
+  //      }
+  //    }))
+  //
+  //    // Check for last name hints
+  //    LAST_NAME_HINTS.forEach((lastNameHint =>{
+  //      const isLastNameKey = formKey.includes(lastNameHint)
+  //      if (isLastNameKey) {
+  //        formFieldMap.lastName = formFields[formKey]
+  //      }
+  //    }))
+  //
+  //    // Check for email
+  //    const isEmailKey = formKey.includes("email")
+  //    if (isEmailKey) {
+  //      formFieldMap.email = formFields[formKey]
+  //    }
+  //
+  //    // If login/signup are false, look for unnamed fields for hints:
+  //    if (!isLoginForm && !isSignupForm) {
+  //      const anonFormKeyValue = formatFieldKey(formFields[formKey])
+  //      // Check for signup hints
+  //      SIGN_UP_HINTS.forEach((signupHint =>{
+  //        const isSignUpKey = anonFormKeyValue.includes(signupHint)
+  //        if (isSignUpKey) {
+  //          isSignupForm = true
+  //        }
+  //      }))
+  //
+  //      // Check for login hints
+  //      LOGIN_HINTS.forEach((loginHint =>{
+  //        const isLoginKey = anonFormKeyValue.includes(loginHint)
+  //        if (isLoginKey) {
+  //          isLoginForm = true
+  //        }
+  //      }))
+  //    }
+  //
+  //    if ((isLoginForm || isSignupForm) && !formFieldMap.email) {
+  //      const formFieldsValues = Object.values(formFields)
+  //      const emailValue = formFieldsValues.find(value => isValidEmail(value))
+  //      if (emailValue) {
+  //        formFieldMap.email = formFields[formKey]
+  //      }
+  //    }
+  //  })
+  //   return formFieldMap
+  // }
+
   /**
    * @function: trackEvent
    * @description: The trackEvent function will make an api call to send a scribe event
    * to an event queue if MP object is in a valid state
    */
   async trackEvent(scribeEvent: ScribeEventType): Promise<boolean> {
-    // TODO: Check account status before making the call
     try {
-      const eventValue = scribeEvent.value
-      const accountEvent = {
-        ...eventValue,
-        accountHid: this.hostId
-      }
+      console.log({ scribeEvent, This: this })
 
-      const body = JSON.stringify(accountEvent)
-      const response = await this._apiRequest('POST', `${this.apiDomain}/dev/send-event`, body)
-      if (response.status === '403') {
-        console.warn("MP: Unauthorized")
-        // TODO: Invalidate local storage data
+      if (this.mpData?.accountStatus !== 'active') {
         return false
       }
+
+      const event = scribeEvent.value
+      const fingerprint = event.fingerprint
+
+      if (this.mpData && !this.mpData?.userId) {
+        this.mpData.userId = fingerprint
+      }
+
+      let accountEvent = {
+        ...event,
+        accountHid: this.hostId,
+        userId: this.mpData?.userId || fingerprint
+      }
+
+      console.log({ accountEvent })
+      const body = JSON.stringify(accountEvent)
+      // const response = await this._apiRequest('POST', `${this.apiDomain}/send-event`, body)
+      // if (response.status === '403') {
+      //   console.warn("MP: Unauthorized")
+      //   // TODO: Invalidate local storage data
+      //   return false
+      // }
       return true
     } catch (e) {
       console.error('MP: Error sending scribe event to MP server.')
@@ -159,7 +301,7 @@ export default class MagicPixel {
           accountHid: this.hostId,
           accountStatus: accountData.status,
           lastVerified: Date.now(),
-          attempts: this.mpData?.attempts ? this.mpData?.attempts + 1 : 1
+          attempts: this.mpData?.attempts ? this.mpData?.attempts + 1 : 1,
         }
           const sessionId = JSON.stringify(uuidv4())
           this.setLocalStorageData(localStorageData)
@@ -199,7 +341,7 @@ export default class MagicPixel {
     // If account is inactive, kill it for 24 hours before trying to re-authenticate again
     // TODO: Add logic for delinquent once Stripe implemented
     if (accountStatus === 'inactive' || accountStatus === 'delinquent') {
-      if (lastVerifiedHours < 24) {
+      if (lastVerifiedHours < 1) {
         return false
       } else {
         return await this.authenticateHostId()

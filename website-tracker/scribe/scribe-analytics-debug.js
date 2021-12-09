@@ -1491,7 +1491,7 @@
 
         // Track JavaScript-based redirects, which can occur without warning:
         if(this.options.trackRedirects) {
-          console.log({ trackRedirects })
+          console.log('Scribe: Track Redirects')
           Events.onexit(function(e) {
             if (self.javascriptRedirect) {
               self.trackLater('redirect');
@@ -1742,10 +1742,9 @@ console.debug('Scribe: Initializing Scribe')
 
 var MP = window.MP
 
-if (!MP) {
-  console.error('Scribe: No MP window object. Stopping scribe initialization.')
-  return false
-} else {
+console.log({ MP })
+
+if (MP) {
   var scribe = new Scribe({
     tracker:          new ScribeEventPublicTracker({
       mpAccountHid: MP.tracker,
@@ -1759,4 +1758,7 @@ if (!MP) {
     trackSubmissions: true,
     console: false
   });
+
+} else {
+  console.error('Scribe: No MP window object. Stopping scribe initialization.')
 }
