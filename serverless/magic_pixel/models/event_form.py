@@ -1,6 +1,5 @@
 from magic_pixel.models.base import WithSoftDelete, Model
 from magic_pixel.db import db
-from sqlalchemy.orm import backref
 
 
 class EventForm(WithSoftDelete, Model):
@@ -12,7 +11,7 @@ class EventForm(WithSoftDelete, Model):
     event = db.relationship(
         "Event",
         foreign_keys=[event_id],
-        backref=backref("event_form", uselist=False)
+        backref=db.backref("event_form", uselist=False)
     )
     form_id = db.Column(db.Text, nullable=False)
     form_fields = db.JSON(db.Text)

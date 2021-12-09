@@ -169,23 +169,6 @@ functions:
               - X-Amz-User-Agent
             allowCredentials: true
             maxAge: 86400
-  sendEvent:
-    handler: lambdas.send_event
-    timeout: 30
-    memorySize: 512
-    events:
-      - http:
-          path: /send-event
-          method: post
-  consumeEvent:
-    handler: lambdas.consume_event
-    timeout: 60
-    events:
-      - sqs:
-          arn:
-            Fn::GetAtt:
-              - EventQueue
-              - Arn
   authentication:
     handler: lambdas.authentication
     timeout: 30
@@ -194,6 +177,23 @@ functions:
       - http:
           path: /authentication
           method: post
+  collection:
+    handler: lambdas.collection
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /send-event
+          method: post
+  ingestion:
+    handler: lambdas.ingestion
+    timeout: 60
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - EventQueue
+              - Arn
 
 resources:
   Resources:

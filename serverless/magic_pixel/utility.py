@@ -1,8 +1,12 @@
 import base64
 import os
+import re
 import secrets
 import string
 import random
+
+EMAIL_REGEX = "^[\\w'+_.-]+@[\\w.-]+$"
+USERNAME_REGEX = "^(?!.*\\.\\.)(?!.*\\.$)[^\\W][\\w.]{0,29}$"
 
 
 def env():
@@ -28,9 +32,13 @@ def random_hash():
     return "".join(
         [
             base64.urlsafe_b64encode(os.urandom(12)).decode("utf-8"),
-            choice(string.ascii_letters),
+            random.choice(string.ascii_letters),
         ]
     )
+
+
+def is_valid_email(email):
+    return re.search(EMAIL_REGEX, email)
 
 
 def getattr_deep(object, name, default=None):

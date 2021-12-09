@@ -1,9 +1,10 @@
-{
+MOCK_PAGE_VIEW_EVENT = {
+    "accountHid": None,
     "fingerprint": "a1a5185f519554c6011ce9c14483965d",
     "sessionId": "d12aa77d-9320-0c55-c9f7-342febb6f8f0",
     "visitorId": "91cbbfee-fe49-c430-51ac-031a323c5b61",
-    "userId": null,
-    "userProfile": null,
+    "userId": "a1a5185f519554c6011ce9c14483965d",
+    "userProfile": None,
     "browser": {
         "ua": "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/93.0.4577.63 Safari/537.36",
         "name": "Chrome",

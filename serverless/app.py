@@ -17,6 +17,9 @@ app.config.from_pyfile("config/config.py")
 
 if utility.is_local():
     app.config.from_pyfile("config/config.local.py")
+else:
+    env = utility.env()
+    app.config.from_pyfile(f"config.{env}.py")
 
 CORS(app)
 

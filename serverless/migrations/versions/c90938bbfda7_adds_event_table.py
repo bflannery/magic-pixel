@@ -53,11 +53,12 @@ def upgrade():
     )
     op.create_index(op.f("ix_event_site_id"), "event", ["site_id"], unique=False)
     op.create_index(op.f("ix_event_event_type"), "event", ["event_type"], unique=False)
-
+    op.create_index(op.f('ix_event_person_id'), 'event', ['person_id'], unique=False)
 
 def downgrade():
     op.drop_constraint("event_account_id_fkey", "event")
     op.drop_constraint("event_person_id_fkey", "event")
     op.drop_index(op.f("ix_event_event_type"), table_name="event")
     op.drop_index(op.f("ix_event_site_id"), table_name="event")
+    op.drop_index(op.f("ix_event_person_id"), table_name="event")
     op.drop_table("event")

@@ -1,4 +1,5 @@
 import json
+from typing import Dict, Optional
 
 from magic_pixel import logger
 from magic_pixel.db import db
@@ -13,11 +14,11 @@ from magic_pixel.models import (
     Account,
 )
 from magic_pixel.lib.aws_sqs import event_queue
-from magic_pixel.models.person import Person
+from magic_pixel.services.person import identify_event_person
 from magic_pixel.utility import parse_url
 
 
-def _parse_event(event: dict) -> dict:
+def _parse_event(event: dict) -> Optional[Dict]:
     account_hid = event.get("accountHid")
     account_id = Account.db_id_from_mp_id(account_hid)
     return {
@@ -100,10 +101,10 @@ def _parse_event_target(event_id: str, event_target: dict) -> dict:
     }
 
 
-def save_event(person_id: int, event: dict) -> dict:
-    logger.log_info(f"save_event: {event}")
+def save_event(account_id: int, person_id: int, event: dict):
     try:
         new_event = Event(
+            account_id=account_id,
             person_id=person_id,
             site_id=event["site_id"],
             event_type=event["event_type"],
@@ -214,29 +215,19 @@ def save_event_target_message(event_target: dict) -> bool:
         raise e
 
 
-def queue_event_message(event: dict) -> bool:
+def queue_event_ingestion(event: dict) -> bool:
     return event_queue.send_message(event)
 
 
-def get_event_person(event: dict) -> dict:
-    fingerprint = event.get("fingerprint")
-    if not fingerprint:
-        logger.log_warning("No fingerprint attached to event.")
-
-    person = Person.query.filter_by(fingerprint=fingerprint).first()
-    if not person:
-        person = Person(fingerprint=fingerprint).save()
-    return person
-
-
-def consume_event_message(event: dict) -> bool:
-    # logger.log_info(f"consume_event_message: {event}")
+def ingest_event_message(event: dict) -> bool:
+    # logger.log_info(f"ingest_event_message: {event}")
     try:
         logger.log_info("saving new event...")
         parsed_event = _parse_event(event)
 
-        event_person = get_event_person(parsed_event)
-        new_event = save_event(event_person.id, parsed_event)
+        account_id = parsed_event["account_id"]
+        event_person = identify_event_person(account_id, parsed_event)
+        new_event = save_event(account_id, event_person.id, parsed_event)
 
         event_browser = event.get("browser")
         event_screen = event.get("screen")

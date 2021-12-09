@@ -2,14 +2,23 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c03202a6-bfa4-469d-baf1-baf9ac7adc7a" name="Default Changelist" comment="">
-      <change beforePath="$PROJECT_DIR$/../../docker-compose.yml" beforeDir="false" afterPath="$PROJECT_DIR$/../../docker-compose.yml" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../config.test.py" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../tests/mocks/formsubmit.json" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../test-website/src/login.html" afterDir="false" />
+      <change afterPath="$PROJECT_DIR$/../../test-website/src/signup.html" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../app.py" beforeDir="false" afterPath="$PROJECT_DIR$/../app.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../config/config.local.py" beforeDir="false" afterPath="$PROJECT_DIR$/../config/config.local.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../lambdas.py" beforeDir="false" afterPath="$PROJECT_DIR$/../lambdas.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/services/account.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/account.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../magic_pixel/services/events.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/events.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../migrations/versions/d34ba7ae70bb_adds_person_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/d34ba7ae70bb_adds_person_table.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/fixtures.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/fixtures.py" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../tests/services/test_events.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/services/test_events.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../test-website/src/index.html" beforeDir="false" afterPath="$PROJECT_DIR$/../../test-website/src/index.html" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../website-tracker/.size-snapshot.json" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/.size-snapshot.json" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../../website-tracker/build/index.js" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/build/index.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../website-tracker/scribe/scribe-analytics-debug.js" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/scribe/scribe-analytics-debug.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../website-tracker/scribe/scribe-analytics.js" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/scribe/scribe-analytics.js" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../../website-tracker/src/index.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/src/index.ts" afterDir="false" />
+      <change beforePath="$PROJECT_DIR$/../../website-tracker/src/magicPixel.ts" beforeDir="false" afterPath="$PROJECT_DIR$/../../website-tracker/src/magicPixel.ts" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -87,6 +96,7 @@
       <workItem from="1636888183778" duration="1029000" />
       <workItem from="1636889282161" duration="1887000" />
       <workItem from="1636891322273" duration="1447000" />
+      <workItem from="1638529069356" duration="592000" />
     </task>
     <servers />
   </component>

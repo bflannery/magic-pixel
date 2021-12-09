@@ -1,4 +1,6 @@
 from datetime import datetime
+from sqlalchemy.engine.reflection import Inspector
+from sqlalchemy.schema import DropConstraint, DropTable, MetaData, Table
 
 import pytest
 from os import path
@@ -13,20 +15,42 @@ from tests.factories import (
     EventBrowserFactory,
     EventDocumentFactory,
     EventLocaleFactory,
-    UserFactory,
+    UserFactory, AccountFactory,
 )
 from tests.factories.role_factory import RoleFactory
 
 
 @pytest.fixture(scope="session", autouse=True)
 def app():
+    test_app = _app
+    test_db = _db
     db_url = _app.config["SQLALCHEMY_DATABASE_URI"]
     assert "prod" not in db_url
     assert "localhost" in db_url or "127.0.0.1" in db_url or "pg-test" in db_url
     # TODO: remove when table is removed
     with _app.test_request_context():
-        _db.drop_all()
-        _db.engine.execute("DROP TABLE IF EXISTS alembic_version")
+        inspector = Inspector.from_engine(_db.engine)
+        meta = MetaData()
+        tables = []
+        all_fkeys = []
+
+        for table_name in inspector.get_table_names():
+            fkeys = []
+
+            for fkey in inspector.get_foreign_keys(table_name):
+                if not fkey["name"]:
+                    continue
+
+                fkeys.append(_db.ForeignKeyConstraint((), (), name=fkey["name"]))
+
+            tables.append(Table(table_name, meta, *fkeys))
+            all_fkeys.extend(fkeys)
+
+        for fkey in all_fkeys:
+            _db.engine.execute(DropConstraint(fkey))
+
+        for table in tables:
+            _db.engine.execute(DropTable(table))
         upgrade(path.join(_app.root_path, "migrations"))
     yield _app
 
@@ -40,6 +64,10 @@ def db():
 def test_client(app):
     return app.test_client()
 
+
+@pytest.fixture
+def account():
+    return AccountFactory(is_active=True)
 
 @pytest.fixture
 def roles():
