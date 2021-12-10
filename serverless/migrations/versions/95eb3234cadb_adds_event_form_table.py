@@ -35,6 +35,11 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("event_id", sa.BigInteger(), nullable=False),
         sa.Column("form_id", sa.Text(), nullable=False),
+        sa.Column(
+            "form_type",
+            sa.Enum("SIGN_UP", "LOGIN", name="eventformtype"),
+            nullable=True,
+        ),
         sa.Column("form_fields", sa.JSON(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
@@ -50,3 +55,4 @@ def downgrade():
     op.drop_constraint("event_form_event_id_fkey", "event_form")
     op.drop_index(op.f("ix_event_form_event_id"), table_name="event_form")
     op.drop_table("event_form")
+    op.execute("DROP TYPE eventformtype")

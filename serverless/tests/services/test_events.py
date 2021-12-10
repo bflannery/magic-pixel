@@ -1,6 +1,4 @@
 import pytest
-import json
-
 from magic_pixel.models import Event
 from magic_pixel.models.person import Person
 from magic_pixel.services.events import (

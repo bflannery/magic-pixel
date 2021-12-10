@@ -1,5 +1,5 @@
 
-MOCK_FORM = {
+MOCK_FORM_UUID = {
     "formId": "545a0ef6-4324-c37f-cf7b-9b97b9ebf865",
     "formFields": {
         "gzdy-fname": "Testy",
@@ -16,7 +16,7 @@ MOCK_FORM_SUBMIT_EVENT = {
     "visitorId": "1d21f685-51ff-ebe9-e315-6c4f0a3175d7",
     "userId": "a1a5185f519554c6011ce9c14483965d",
     "userProfile": None,
-    "form": MOCK_FORM,
+    "form": MOCK_FORM_UUID,
     "timestamp": "2021-12-02T01:41:27.171Z",
     "event": "formsubmit",
     "source": {

@@ -28,3 +28,8 @@ class DateRangeFilterUnits(enum.Enum):
     WEEKS = "WEEKS"
     MONTHS = "MONTHS"
     YEARS = "YEARS"
+
+
+class EventFormTypeEnum(enum.Enum):
+    SIGN_UP = "sign_up"
+    LOGIN = "login"

@@ -46,10 +46,12 @@ def upgrade():
 
     op.create_index(op.f("ix_user_account_id"), "user", ["account_id"], unique=False)
     op.create_index(op.f("ix_user_auth0_id"), "user", ["auth0_id"], unique=True)
+    op.create_index(op.f('ix_user_email'), 'user', ['email'], unique=True)
 
 
 def downgrade():
     op.drop_index(op.f("ix_user_auth0_id"), table_name="user")
     op.drop_index(op.f("ix_user_account_id"), table_name="user")
+    op.drop_index(op.f("ix_user_email"), table_name="user")
     op.drop_constraint("user_account_id_fkey", "user")
     op.drop_table("user")

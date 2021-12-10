@@ -223,14 +223,26 @@ def ingest_event_message(event: dict) -> bool:
     # logger.log_info(f"ingest_event_message: {event}")
     try:
         logger.log_info("saving new event...")
-        parsed_event = _parse_event(event)
 
+        # Parse event
+        parsed_event = _parse_event(event)
         account_id = parsed_event["account_id"]
+
+        # Identify new/existing person for this event
         event_person = identify_event_person(account_id, parsed_event)
+
+        if not event_person:
+            raise Exception(f"No person found for event {event.id}")
+
+        # Create new event
         new_event = save_event(account_id, event_person.id, parsed_event)
 
         event_browser = event.get("browser")
         event_screen = event.get("screen")
+
+        # Breakdown event
+        # TODO: We could split these into unique SQS queues at this point to
+        # Reduce load on this single ingestion lambda
         if event_browser and event_screen:
             logger.log_info("parsing and saving new event browser...")
             parsed_browser_event = _parse_event_browser(
