@@ -1,14 +1,15 @@
 
-MOCK_FORM_UUID = {
-    "formId": "545a0ef6-4324-c37f-cf7b-9b97b9ebf865",
-    "formFields": {
-        "gzdy-fname": "Testy",
-        "customer[lname]": "McTester",
-        "gx7zy-email": "testy_mctester@gmail.com",
-        "anonymous": ['78721', 'Sign up'],
-    },
+MOCK_FORM_FIELDS = {
+    "gzdy-fname": "Testy",
+    "customer[lname]": "McTester",
+    "gx7zy-email": "testy_mctester@gmail.com",
+    "anonymous": ['78721', 'Sign up'],
 }
 
+MOCK_FORM_UUID = {
+    "formId": "545a0ef6-4324-c37f-cf7b-9b97b9ebf865",
+    "formFields": MOCK_FORM_FIELDS
+}
 
 MOCK_FORM_SUBMIT_EVENT = {
     "fingerprint": "5f275ee3f92ca2b90d504fe8d8d7ba4f",
@@ -18,7 +19,7 @@ MOCK_FORM_SUBMIT_EVENT = {
     "userProfile": None,
     "form": MOCK_FORM_UUID,
     "timestamp": "2021-12-02T01:41:27.171Z",
-    "event": "formsubmit",
+    "event": "form_submit",
     "source": {
         "url": {
             "host": "localhost:8080",

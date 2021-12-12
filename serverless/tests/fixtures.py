@@ -15,15 +15,14 @@ from tests.factories import (
     EventBrowserFactory,
     EventDocumentFactory,
     EventLocaleFactory,
-    UserFactory, AccountFactory,
+    UserFactory,
+    AccountFactory,
 )
 from tests.factories.role_factory import RoleFactory
 
 
 @pytest.fixture(scope="session", autouse=True)
 def app():
-    test_app = _app
-    test_db = _db
     db_url = _app.config["SQLALCHEMY_DATABASE_URI"]
     assert "prod" not in db_url
     assert "localhost" in db_url or "127.0.0.1" in db_url or "pg-test" in db_url
@@ -51,6 +50,11 @@ def app():
 
         for table in tables:
             _db.engine.execute(DropTable(table))
+
+        _db.engine.execute("DROP TYPE IF EXISTS attributetypeenum")
+        _db.engine.execute("DROP TYPE IF EXISTS eventtypeenum")
+        _db.engine.execute("DROP TYPE IF EXISTS eventformtypeenum")
+
         upgrade(path.join(_app.root_path, "migrations"))
     yield _app
 
@@ -68,6 +72,7 @@ def test_client(app):
 @pytest.fixture
 def account():
     return AccountFactory(is_active=True)
+
 
 @pytest.fixture
 def roles():

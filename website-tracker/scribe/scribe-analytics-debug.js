@@ -763,7 +763,13 @@
               if (child.type !== 'password') {
                 // Make sure it's not a radio or it's a checked radio:
                 if (child.type !== 'radio' || child.checked) {
-                  setField(child.name, child.value);
+                  if (!child.labels || child.labels.length === 0) {
+                    setField(child.name, child.value);
+                  } else {
+                    const inputLabel = child.labels[0]
+                    setField(inputLabel.innerText, child.value)
+                  }
+
                 }
               }
             }
@@ -1299,6 +1305,9 @@
 
             if (target.form && (targetType === 'submit' || targetType === 'button')) {
               e.form = target.form;
+              if (e.form.id) {
+                e.form.formId = e.form.id
+              }
               handle(e);
             }
           });
@@ -1508,7 +1517,7 @@
                 e.form.formId = Util.genGuid();
               }
 
-              self.trackLater('formsubmit', {
+              self.trackLater('form_submit', {
                 form: Util.merge({formId: e.form.formId}, DomUtil.getFormData(e.form))
               });
             }
@@ -1715,7 +1724,7 @@
       Scribe.prototype.pageview = function(url, success, failure) {
         url = url || document.location;
 
-        this.track('pageview', Util.merge(Env.getPageloadData(), {url: Util.parseUrl(url + '')}), success, failure);
+        this.track('page_view', Util.merge(Env.getPageloadData(), {url: Util.parseUrl(url + '')}), success, failure);
       };
 
       return Scribe;

@@ -54,7 +54,7 @@ MOCK_PAGE_VIEW_EVENT = {
         "protocol": "http:"
     },
     "timestamp": "2021-09-20T22:07:41.941Z",
-    "event": "pageview",
+    "event": "page_view",
     "source": {
         "url": {
             "host": "localhost:8080",

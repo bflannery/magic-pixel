@@ -14,7 +14,7 @@ from magic_pixel.models import (
     Account,
 )
 from magic_pixel.lib.aws_sqs import event_queue
-from magic_pixel.services.person import identify_event_person
+from magic_pixel.services.person import identify_event_person, identify_form_type
 from magic_pixel.utility import parse_url
 
 
@@ -65,10 +65,15 @@ def _parse_event_document(event_id: str, event_document: dict) -> dict:
 
 
 def _parse_event_form(event_id: str, event_form: dict) -> dict:
+    event_form_fields = event_form["formFields"]
+    source = event_form.get("source")
+    # Try to find out what time of form this is
+    form_type = identify_form_type(event_form_fields)
     return {
         "event_id": event_id,
         "form_id": event_form.get("formId"),
         "form_fields": event_form.get("formFields"),
+        "form_type": form_type
     }
 
 

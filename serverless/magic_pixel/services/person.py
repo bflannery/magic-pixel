@@ -1,35 +1,20 @@
 import re
-from typing import Dict, Optional
 
-from sqlalchemy import or_
 from magic_pixel import logger
-from magic_pixel.constants import EventFormTypeEnum
+from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum, EventTypeEnum
 from magic_pixel.db import db
 from magic_pixel.utility import is_valid_email, is_valid_uuid
-from magic_pixel.models.person import Person, Fingerprint
+from magic_pixel.models.person import Person, Fingerprint, Attribute, PersonAttribute
 
-login_hints = ["login", "signin" "enter"]
-
-sign_up_hints = ["signup", "join", "enroll", "register", "subscribe", "create"]
-
-first_name_hints = ["firstname", "fname"]
-last_name_hints = ["lastname", "lname"]
-name_hints = ["name"]
-email_hints = ["lastname", "lname"]
-
-form_hints = (
-    login_hints + sign_up_hints + first_name_hints + last_name_hints + email_hints
+LOGIN_HINTS = ["login", "signin" "enter"]
+SIGN_UP_HINTS = ["signup", "join", "enroll", "register", "subscribe", "create"]
+FIRST_NAME_HINTS = ["firstname", "fname"]
+LAST_NAME_HINTS = ["lastname", "lname"]
+NAME_HINTS = ["name"]
+EMAIL_HINTS = ["lastname", "lname"]
+FORM_HINTS = (
+    LOGIN_HINTS + SIGN_UP_HINTS + FIRST_NAME_HINTS + LAST_NAME_HINTS + EMAIL_HINTS
 )
-
-# "form": {
-#     "formId": "545a0ef6-4324-c37f-cf7b-9b97b9ebf865",
-#     "formFields": {
-#         "fname": "Testy",
-#         "lname": "McTester",
-#         "email": "bflannery66@gmail.com",
-#         "anonymous": "Sign up"
-#     }
-# },
 
 
 def strip_form_field(keyword: str) -> str:
@@ -46,172 +31,255 @@ def check_for_key(keys, hints):
     return None
 
 
-def build_form_field_map(form_fields_keys, form_fields):
-    email_key = check_for_key(form_fields_keys, ["email"])
-    first_name_key = check_for_key(form_fields_keys, first_name_hints)
-    last_name_key = check_for_key(form_fields_keys, last_name_hints)
-    # login_key = check_for_key(form_fields_keys, login_hints)
-    # signup_key = check_for_key(form_fields_keys, login_hints)
-
-    return {
-        "email": form_fields.get(email_key),
-        "first_name": form_fields.get(first_name_key),
-        "last_name": form_fields.get(last_name_key),
-        # "login_key": login_key,
-        # "signup_key": signup_key,
-    }
+def get_form_type(form_id):
+    stripped_form_id = strip_form_field(form_id)
+    is_login_form = check_for_key([stripped_form_id], LOGIN_HINTS)
+    if is_login_form:
+        return EventFormTypeEnum.LOGIN
+    is_signup_form = check_for_key([stripped_form_id], SIGN_UP_HINTS)
+    if is_signup_form:
+        return EventFormTypeEnum.SIGN_UP
+    return None
 
 
-def update_person_fields():
-    pass
+def build_form_field_map(account_id, form_fields):
+    try:
+        form_fields_keys = form_fields.keys()
+        form_type_field_map = {}
+        attribute_map = {}
+
+        for form_field_key in form_fields_keys:
+            form_field_value = form_fields[form_field_key]
+            # Check if field key attribute exists
+            account_attribute = Attribute.query.filter_by(
+                account_id=account_id, name=form_field_key
+            ).first()
+            if account_attribute:
+                form_type_field_map[account_attribute.type]: form_field_key
+                attribute_map[account_attribute.id] = {
+                    "type": account_attribute.type,
+                    "name": account_attribute.name,
+                }
+
+            if form_field_key == "anonymous":
+                anon_values = (
+                    form_field_value  # Anonymous key can be an array of strings
+                )
+                if len(anon_values):
+                    if not form_type_field_map.get(AttributeTypeEnum.EMAIL):
+                        # Search for email key in form fields
+                        email_key = check_for_key([anon_values], ["email"])
+                        if not email_key:
+                            # Check if field value is an email
+                            email_value = (
+                                form_field_value
+                                if is_valid_email(form_field_value)
+                                else None
+                            )
+                            if email_value:
+                                form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
+                        else:
+                            form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
+                    else:
+                        for anon_value in anon_values:
+                            form_type_field_map[AttributeTypeEnum.TEXT] = anon_value
+            else:
+                if not form_type_field_map.get(AttributeTypeEnum.EMAIL):
+                    # Search for email key in form fields
+                    email_key = check_for_key([form_field_key], ["email"])
+                    if not email_key:
+                        # Check if field value is an email
+                        email_value = (
+                            form_field_value
+                            if is_valid_email(form_field_value)
+                            else None
+                        )
+                        if email_value:
+                            form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
+                    else:
+                        form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
+
+                if not form_type_field_map.get(AttributeTypeEnum.FIRST_NAME):
+                    first_name_key = check_for_key(form_fields_keys, FIRST_NAME_HINTS)
+                    if first_name_key:
+                        form_type_field_map[
+                            AttributeTypeEnum.FIRST_NAME
+                        ] = first_name_key
+
+                if not form_type_field_map.get(AttributeTypeEnum.LAST_NAME):
+                    last_name_key = check_for_key(form_fields_keys, LAST_NAME_HINTS)
+                    if last_name_key:
+                        form_type_field_map[AttributeTypeEnum.LAST_NAME] = last_name_key
+
+                if not form_type_field_map.get(
+                    AttributeTypeEnum.FIRST_NAME
+                ) or form_type_field_map.get(AttributeTypeEnum.LAST_NAME):
+                    name = check_for_key(form_fields_keys, NAME_HINTS)
+                    if name:
+                        form_type_field_map[AttributeTypeEnum.FIRST_NAME] = name
+
+            is_known_type = form_field_key in form_type_field_map.values()
+            if not is_known_type:
+                form_type_field_map[AttributeTypeEnum.TEXT] = form_field_key
+
+        form_type_field_map_keys = form_type_field_map.keys()
+        for form_type_field_map_key in form_type_field_map_keys:
+            attribute_type = form_type_field_map_key
+            attribute_name = form_type_field_map[form_type_field_map_key]
+            new_attribute = Attribute(
+                account_id=account_id,
+                type=attribute_type,
+                name=attribute_name,
+            ).save()
+            db.session.commit()
+            attribute_map[new_attribute.id] = {
+                "type": new_attribute.type,
+                "name": new_attribute.name,
+            }
+        return attribute_map
+    except Exception as e:
+        print(e)
+        return e
 
 
-def identify_person_on_login_form(account_id, email):
-    person_by_email = Person.query.filter_by(email).first()
-    # If a person created a new account on the host site before implementing MP, we may not have the
-    # person yet, in this case create a new one
-    if not person_by_email:
-        person_by_email = Person(account_id=account_id, email=email).save()
-    person_by_email.save()
-    return person_by_email
+def identify_form_type_by_id(form_id):
+    # Check for the form id is a UUID
+    form_id_is_uuid = is_valid_uuid(form_id)
+
+    # If form id is not UUID, check id against login/signup hints
+    if not form_id_is_uuid:
+        return get_form_type(form_id)
+    return None
 
 
-def identify_person_on_signup_form(account_id, form_field_map):
-    person = Person(
-        account_id=account_id,
-        email=form_field_map["email"],
-        first_name=form_field_map["first_name"],
-        last_name=form_field_map["last_name"],
-    ).save()
-    return person
+def identify_form_type_by_route(source, form_id):
+    source_url = source.get("url")
+    if not source_url:
+        logger.log_warning("No source url to identify form by route")
+        return None
+    pathname = source_url.get("pathname")
+    if not pathname:
+        logger.log_warning("No pathname on url to identify form by route")
+        return None
+    # Does the route include distinction between login/signup?
+    form_type = get_form_type(form_id)
+    return form_type
 
 
-def identify_form_type(event):
-    form = event.get("form")
+def identify_form_type_by_scraping_values(anon_fields):
+    for anon_field in anon_fields:
+        form_type = get_form_type(anon_field)
+        if form_type:
+            return form_type
+
+
+def identify_form_type(form):
     form_id = is_valid_uuid(form["formId"])
-
+    form_type = None
     # Check for the form id
     if form_id:
-        # Check for the form id is a UUID
-        form_id_is_uuid = is_valid_uuid(form_id)
-
-        # If form id is not UUID, check id against login/signup hints
-        if not form_id_is_uuid:
-            stripped_form_id = strip_form_field(form_id)
-            is_login_form = check_for_key([stripped_form_id], login_hints)
-            if is_login_form:
-                return EventFormTypeEnum.LOGIN
-
-            is_signup_form = check_for_key([stripped_form_id], sign_up_hints)
-            if is_signup_form:
-                return EventFormTypeEnum.SIGN_UP
-
-        # If not id, what route are we on?
-
-    # Does the route include distinction between login/signup?
-    pass
+        # Try to get type by form id
+        form_type = identify_form_type_by_id(form_id)
+        if not form_type:
+            # If not by route, try scraping th form values for button text
+            form_fields = form["formFields"]
+            anon_fields = form_fields.get("anonymous")
+            if anon_fields:
+                form_type = identify_form_type_by_scraping_values(anon_fields)
+    return form_type
 
 
-def identify_person_on_form_submit(account_id, fingerprint, event):
-    try:
-        form = event.get("form")
-        form_fields = form.get("formFields")
-        form_fields_keys = form_fields.keys()
-        form_field_map = build_form_field_map(form_fields_keys, form_fields)
+def update_person_attributes_on_form_event(account_id, person_id, form_fields):
+    person_attributes = PersonAttribute.query.filter_by(person_id=person_id).all()
+    form_field_attribute_map = build_form_field_map(account_id, form_fields)
+    for person_attribute in person_attributes:
+        form_field_attribute = form_field_attribute_map[person_attribute.attribute_id]
+        form_field_value = form_fields[form_field_attribute["name"]]
+        if form_field_value != person_attribute.value:
+            person_attribute.value = form_field_value
+            person_attribute.save()
+    db.session.commit()
+    return person_attributes
 
-        form_type = identify_form_type(event)
 
-        form_person = None
+def identify_person_on_form_event(account_id, event_form, fingerprint):
+    event_form_fields = event_form.get("formFields")
+    form_person = None
+    if event_form_fields:
+        attribute_map = build_form_field_map(account_id, event_form_fields)
+        form_email = attribute_map.get(AttributeTypeEnum.EMAIL)
 
-        # Try to get email from form field values
-        if (
-            form_field_map["login_key"]
-            or form_field_map["signup_key"]
-            and form_field_map["email"] is None
-        ):
-            form_fields_values = form_fields.values()
-            email_value = list(filter(lambda x: is_valid_email(x)), form_fields_values)
-            if email_value:
-                form_field_map["email"] = email_value[0]
+        if form_email:
+            form_person = Person.query.filter_by(
+                account_id=account_id, email=form_email
+            ).first()
+            # If no person by email, create a new account person
+            if not form_person:
+                form_person = Person(account_id=account_id, email=form_email).save()
+            # Check if fingerprint exists on the person
+            if fingerprint not in form_person.fingerprints:
+                Fingerprint(person_id=form_person.id, value=fingerprint).save()
 
-        # If login form, try to find person by email
-        if form_field_map["login_key"] and form_field_map["email"]:
-            form_person = identify_person_on_login_form(
-                account_id, form_field_map["email"]
-            )
+        if form_person:
+            for attribute_key, attribute in attribute_map.items():
+                person_attribute = PersonAttribute.query.filter_by(
+                    person_id=form_person.id, attribute_id=attribute_key
+                ).save()
+                if not person_attribute:
+                    PersonAttribute(
+                        person_id=form_person.id, attribute_id=attribute_key
+                    ).save()
 
-        # if signup form, create a new person with available form fields
-        if form_field_map["signup_key"] and form_field_map["email"]:
-            if not (form_field_map["first_name"] or form_field_map["last_name"]):
-                name = check_for_key(form_fields_keys, name_hints)
-                if name:
-                    form_field_map["first_name"] = name
-            form_person = identify_person_on_signup_form(account_id, form_field_map)
-
-        # If login/signup are false, look for unnamed fields values for hints
-        if not form_field_map["login_key"] and not form_field_map["signup_key"]:
-            anon_fields = form_fields["anonymous"]
-            for anon_field in anon_fields:
-                anon_form_key_value = strip_form_field(anon_field)
-                for sign_up_hint in sign_up_hints:
-                    is_signup_key = re.search(sign_up_hint, anon_form_key_value)
-                    if is_signup_key:
-                        form_person = identify_person_on_signup_form(
-                            account_id, form_field_map
-                        )
-
-                for login_hint in login_hints:
-                    is_login_form = re.search(login_hint, anon_form_key_value)
-                    if is_login_form:
-                        form_person = identify_person_on_login_form(
-                            account_id, form_field_map["email"]
-                        )
-
-        # Check if person has fingerprints and if this is an existing fingerprint on the person
-        if form_person and form_person.fingerprints:
-            person_fingerprints = [f.value for f in form_person.fingerprints]
-            if fingerprint not in person_fingerprints:
-                Fingerprint(person=form_person, value=fingerprint).save()
-        else:
-            Fingerprint(person=form_person, value=fingerprint).save()
-
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
+                event_form_key = attribute["name"]
+                person_attribute.value = event_form_fields[event_form_key]
+    db.session.commit()
+    return form_person
 
 
 def identify_event_person(account_id: int, event: dict):
     person_id = event.get("personId")
     event_type = event.get("event")
-    fingerprint = event.get("fingerprint")
+    event_fingerprint = event.get("fingerprint")
 
     # Look up person by id
     if person_id:
         person = Person.query.filter_by(id=person_id).first()
         if not person:
             raise Exception(f"No person found with id {person_id}")
-        if fingerprint not in person.fingerprints:
-            Fingerprint(person=person, value=fingerprint).save()
+        # Check if fingerprint exists already on the person, if not create a new one
+        if event_fingerprint not in person.fingerprints:
+            Fingerprint(person=person, value=event_fingerprint).save()
             db.session.commit()
         return person
 
     # Lookup person by fingerprint
     person_by_fingerprint = (
-        Person.query.join(Fingerprint).filter(Fingerprint.value == fingerprint).first()
+        Person.query.join(Fingerprint)
+        .filter(Fingerprint.value == event_fingerprint)
+        .first()
     )
 
-    if person_by_fingerprint and event_type != "formsubmit":
-        return person_by_fingerprint
+    # If person by fingerprint and not form event, nothing to update, return person
+    if person_by_fingerprint:
+        if event_type != EventTypeEnum.FORM_SUBMIT:
+            return person_by_fingerprint
 
-    # Lookup/Create person from form fields
-    elif not person_by_fingerprint and event_type == "formsubmit":
-        person = identify_person_on_form_submit(account_id, fingerprint, event)
-        db.session.commit()
-        return person
+    elif event_type == EventTypeEnum.FORM_SUBMIT.value:
+        event_form = event["form"]
+        # If no person by fingerprint and is form event, parse form for person and person attributes
+        if not person_by_fingerprint:
+            form_person = identify_person_on_form_event(
+                account_id, event["form"], event_fingerprint
+            )
+            return form_person
+        # Update person attributes
+        updated_person = update_person_attributes_on_form_event(
+            account_id, event_form["formFields"], person_by_fingerprint
+        )
+        return updated_person
     else:
         # We have no idea who you are, create a new person and fingerprint
         person = Person(account_id=account_id).save()
         Fingerprint(person=person).save()
-
-    db.session.commit()
-    return person
+        db.session.commit()
+        return person

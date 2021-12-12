@@ -2,7 +2,7 @@ import {formatFieldKey, getDiffFromTimestamp, isValidEmail, uuidv4} from "./util
 
 interface MpDataProps {
   accountHid: string
-  userId?: string | null
+  personId?: string | null
   accountStatus: string
   lastVerified: number,
   attempts: number
@@ -59,13 +59,6 @@ interface ScribeEventType {
   success: () => void
   failure: () => void
 }
-
-
-const LOGIN_HINTS = ["login", "signin",  "enter"]
-const SIGN_UP_HINTS = ["signup", "join", "enroll", "register", "subscribe"]
-const FIRST_NAME_HINTS = ['firstname', 'fname']
-const LAST_NAME_HINTS = ['lastname', 'lname']
-const PHONE_HINTS = ['phone', 'telephone', 'cell', 'mobile']
 
 export default class MagicPixel {
   hostId: string | null
@@ -254,14 +247,14 @@ export default class MagicPixel {
       const event = scribeEvent.value
       const fingerprint = event.fingerprint
 
-      if (this.mpData && !this.mpData?.userId) {
-        this.mpData.userId = fingerprint
+      if (this.mpData && !this.mpData?.personId) {
+        this.mpData.personId = fingerprint
       }
 
       let accountEvent = {
         ...event,
         accountHid: this.hostId,
-        userId: this.mpData?.userId || fingerprint
+        personId: this.mpData?.personId || fingerprint
       }
 
       console.log({ accountEvent })
