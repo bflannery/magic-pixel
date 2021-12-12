@@ -81,8 +81,7 @@ def build_form_field_map(account_id, form_fields):
                         else:
                             form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
                     else:
-                        for anon_value in anon_values:
-                            form_type_field_map[AttributeTypeEnum.TEXT] = anon_value
+                        form_type_field_map[AttributeTypeEnum.TEXT] = anon_values
             else:
                 if not form_type_field_map.get(AttributeTypeEnum.EMAIL):
                     # Search for email key in form fields
@@ -202,20 +201,29 @@ def update_person_attributes_on_form_event(account_id, person_id, form_fields):
     return person_attributes
 
 
-def identify_person_on_form_event(account_id, event_form, fingerprint):
+def identify_new_person_on_form_event(account_id, event_form, fingerprint):
     event_form_fields = event_form.get("formFields")
     form_person = None
     if event_form_fields:
         attribute_map = build_form_field_map(account_id, event_form_fields)
-        form_email = attribute_map.get(AttributeTypeEnum.EMAIL)
+        form_email = None
+        for attribute_key, attribute in attribute_map.items():
+            if attribute["type"] == AttributeTypeEnum.EMAIL:
+                form_email = event_form_fields[attribute["name"]]
+                break
 
         if form_email:
-            form_person = Person.query.filter_by(
-                account_id=account_id, email=form_email
-            ).first()
+            form_person = (
+                Person.query.join(PersonAttribute)
+                .filter(
+                    Person.account_id == account_id, PersonAttribute.value == form_email
+                )
+                .first()
+            )
             # If no person by email, create a new account person
             if not form_person:
-                form_person = Person(account_id=account_id, email=form_email).save()
+                form_person = Person(account_id=account_id).save()
+                db.session.commit()
             # Check if fingerprint exists on the person
             if fingerprint not in form_person.fingerprints:
                 Fingerprint(person_id=form_person.id, value=fingerprint).save()
@@ -224,9 +232,9 @@ def identify_person_on_form_event(account_id, event_form, fingerprint):
             for attribute_key, attribute in attribute_map.items():
                 person_attribute = PersonAttribute.query.filter_by(
                     person_id=form_person.id, attribute_id=attribute_key
-                ).save()
+                ).first()
                 if not person_attribute:
-                    PersonAttribute(
+                    person_attribute = PersonAttribute(
                         person_id=form_person.id, attribute_id=attribute_key
                     ).save()
 
@@ -268,15 +276,16 @@ def identify_event_person(account_id: int, event: dict):
         event_form = event["form"]
         # If no person by fingerprint and is form event, parse form for person and person attributes
         if not person_by_fingerprint:
-            form_person = identify_person_on_form_event(
+            form_person = identify_new_person_on_form_event(
                 account_id, event["form"], event_fingerprint
             )
             return form_person
-        # Update person attributes
-        updated_person = update_person_attributes_on_form_event(
-            account_id, event_form["formFields"], person_by_fingerprint
-        )
-        return updated_person
+        else:
+            # Update person attributes
+            updated_person = update_person_attributes_on_form_event(
+                account_id, event_form["formFields"], person_by_fingerprint
+            )
+            return updated_person
     else:
         # We have no idea who you are, create a new person and fingerprint
         person = Person(account_id=account_id).save()

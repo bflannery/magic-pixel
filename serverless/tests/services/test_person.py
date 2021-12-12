@@ -1,6 +1,6 @@
 import pytest
 from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum
-from magic_pixel.models.person import Person, Fingerprint
+from magic_pixel.models.person import Person, Fingerprint, Attribute, PersonAttribute
 from magic_pixel.services.person import (
     identify_event_person,
     get_form_type,
@@ -61,7 +61,7 @@ def test_identify_form_type_by_form_id(account):
     identify_event_person(account.id, mock_event)
 
 
-def test_identify_person_on_event(account):
+def test_identify_new_person_on_event(account):
     mock_event = MOCK_PAGE_VIEW_EVENT
     mock_event["accountHid"] = account.mp_id
     event_person_fingerprint = mock_event["fingerprint"]
@@ -79,28 +79,55 @@ def test_identify_new_person_on_form_submit_by_form_inputs_ids(account):
     last_name = "McTester"
     email = "testy_mctester@gmail.com"
     fingerprint = mock_event["fingerprint"]
-    form_fields = (
-        {
-            "gzdy-first-name": first_name,
-            "customer[lname]": last_name,
-            "gx7zy-email": email,
-            "anonymous": ["78721", "Sign up"],
-        },
-    )
-    mock_event["form"]["form_fields "] = form_fields
+    first_name_key = "gzdy-first-name"
+    last_name_key = "customer[lname]"
+    email_key = "gx7zy-email"
+    form_fields = {
+        first_name_key: first_name,
+        last_name_key: last_name,
+        email_key: email,
+        "anonymous": ["78721", "Sign up"],
+    }
+    mock_event["form"]["formFields"] = form_fields
     mock_event["accountHid"] = account.mp_id
 
     identify_event_person(account.id, mock_event)
 
-    person = Person.query.filter_by(email=email).first()
+    # Check person exists
+    person = (
+        Person.query.join(PersonAttribute)
+        .filter(Person.account_id == account.id, PersonAttribute.value == email)
+        .first()
+    )
     assert person
-    assert person.first_name == first_name
-    assert person.last_name == last_name
-    assert person.email == email
-    fingerprint = Fingerprint.query.filter_by(
+
+    # Check form attributes exists on the account
+    form_attributes = Attribute.query.filter_by(account_id=account.id).all()
+    form_attributes_keys = [fa.name for fa in form_attributes]
+    assert first_name_key in form_attributes_keys
+    assert last_name_key in form_attributes_keys
+    assert email_key in form_attributes_keys
+
+    # Check person attributes exist and values match
+    person_attributes = PersonAttribute.query.filter_by(person_id=person.id).all()
+    assert next(
+        (pa for pa in person_attributes if pa.value == first_name),
+        None,
+    )
+    assert next(
+        (pa for pa in person_attributes if pa.value == last_name),
+        None,
+    )
+    assert next(
+        (pa for pa in person_attributes if pa.value == email),
+        None,
+    )
+
+    # Check event fingerprint is attached to the person
+    person_fingerprint = Fingerprint.query.filter_by(
         person_id=person.id, value=fingerprint
     ).first()
-    assert person.fingerprints[0].value == fingerprint.value
+    assert person_fingerprint
 
 
 def test_update_person_attributes_on_form_event(account):
