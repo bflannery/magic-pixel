@@ -28,16 +28,55 @@ def test_get_form_type_sign_up():
     assert form_type == EventFormTypeEnum.SIGN_UP
 
 
-def test_build_form_field_map_by_input_name_login(account):
-    first_name = MOCK_FORM_FIELDS["gzdy-fname"]
-    last_name = MOCK_FORM_FIELDS["customer[lname]"]
-    email = MOCK_FORM_FIELDS["gx7zy-email"]
-    # form_fields_keys = MOCK_FORM_FIELDS.keys()
-    form_type = EventFormTypeEnum.LOGIN
-    form_type_field_map = build_form_field_map(account.id, MOCK_FORM_FIELDS, form_type)
-    assert form_type_field_map["email"] == email
-    assert form_type_field_map["first_name"] == first_name
-    assert form_type_field_map["last_name"] == last_name
+def test_build_form_field_map_new_attributes(account):
+    first_name = "Testy"
+    last_name = "McTester"
+    email = "testy_mctester@gmail.com"
+    first_name_key = "gzdy-first-name"
+    last_name_key = "customer[lname]"
+    email_key = "gx7zy-email"
+    form_fields = {
+        first_name_key: first_name,
+        last_name_key: last_name,
+        email_key: email,
+        "anonymous": ["78721", "Sign up"],
+    }
+    build_form_field_map(account.id, form_fields)
+
+    # Check form attributes exists on the account
+    form_attributes = Attribute.query.filter_by(account_id=account.id).all()
+    form_attributes_keys = [fa.name for fa in form_attributes]
+    assert first_name_key in form_attributes_keys
+    assert last_name_key in form_attributes_keys
+    assert email_key in form_attributes_keys
+
+
+def test_build_form_field_map_existing_attributes(db, account):
+    first_name = "Testy"
+    last_name = "McTester"
+    email = "testy_mctester@gmail.com"
+    first_name_key = "gzdy-first-name"
+    last_name_key = "customer[lname]"
+    email_key = "gx7zy-email"
+    form_fields = {
+        first_name_key: first_name,
+        last_name_key: last_name,
+        email_key: email,
+        "anonymous": ["78721", "Sign up"],
+    }
+
+    attribute_1 = AttributeFactory(account=account, name=first_name_key, type=AttributeTypeEnum.FIRST_NAME)
+    attribute_2 = AttributeFactory(account=account, name=last_name_key, type=AttributeTypeEnum.LAST_NAME)
+    attribute_3 = AttributeFactory(account=account, name=email_key, type=AttributeTypeEnum.EMAIL)
+
+    form_field_map = build_form_field_map(account.id, form_fields)
+
+    account_attributes = Attribute.query.filter_by(account_id=account.id).all()
+
+    assert len(account_attributes) == 4
+    assert form_field_map[attribute_1.id]
+    assert form_field_map[attribute_2.id]
+    assert form_field_map[attribute_3.id]
 
 
 def test_identify_form_type_by_form_id(account):

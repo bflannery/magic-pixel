@@ -48,27 +48,43 @@ def build_form_field_map(account_id, form_fields):
         form_type_field_map = {}
         attribute_map = {}
 
-        for form_field_key in form_fields_keys:
-            form_field_value = form_fields[form_field_key]
+        for form_field_key, form_field_value in form_fields.items():
             # Check if field key attribute exists
             account_attribute = Attribute.query.filter_by(
                 account_id=account_id, name=form_field_key
             ).first()
             if account_attribute:
-                form_type_field_map[account_attribute.type]: form_field_key
                 attribute_map[account_attribute.id] = {
                     "type": account_attribute.type,
                     "name": account_attribute.name,
                 }
-
-            if form_field_key == "anonymous":
-                anon_values = (
-                    form_field_value  # Anonymous key can be an array of strings
-                )
-                if len(anon_values):
+            else:
+                if form_field_key == "anonymous":
+                    anon_values = (
+                        form_field_value  # Anonymous key can be an array of strings
+                    )
+                    if len(anon_values):
+                        if not form_type_field_map.get(AttributeTypeEnum.EMAIL):
+                            # Search for email key in form fields
+                            email_key = check_for_key(anon_values, ["email"])
+                            if not email_key:
+                                # Check if field value is an email
+                                email_value = None
+                                for anon_value in anon_values:
+                                    if is_valid_email(anon_value):
+                                        email_value = anon_value
+                                if email_value:
+                                    form_type_field_map[
+                                        AttributeTypeEnum.EMAIL
+                                    ] = email_key
+                            else:
+                                form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
+                    else:
+                        form_type_field_map[AttributeTypeEnum.TEXT] = form_field_key
+                else:
                     if not form_type_field_map.get(AttributeTypeEnum.EMAIL):
                         # Search for email key in form fields
-                        email_key = check_for_key([anon_values], ["email"])
+                        email_key = check_for_key([form_field_key], ["email"])
                         if not email_key:
                             # Check if field value is an email
                             email_value = (
@@ -80,42 +96,29 @@ def build_form_field_map(account_id, form_fields):
                                 form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
                         else:
                             form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
-                    else:
-                        form_type_field_map[AttributeTypeEnum.TEXT] = anon_values
-            else:
-                if not form_type_field_map.get(AttributeTypeEnum.EMAIL):
-                    # Search for email key in form fields
-                    email_key = check_for_key([form_field_key], ["email"])
-                    if not email_key:
-                        # Check if field value is an email
-                        email_value = (
-                            form_field_value
-                            if is_valid_email(form_field_value)
-                            else None
+
+                    if not form_type_field_map.get(AttributeTypeEnum.FIRST_NAME):
+                        first_name_key = check_for_key(
+                            form_fields_keys, FIRST_NAME_HINTS
                         )
-                        if email_value:
-                            form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
-                    else:
-                        form_type_field_map[AttributeTypeEnum.EMAIL] = email_key
+                        if first_name_key:
+                            form_type_field_map[
+                                AttributeTypeEnum.FIRST_NAME
+                            ] = first_name_key
 
-                if not form_type_field_map.get(AttributeTypeEnum.FIRST_NAME):
-                    first_name_key = check_for_key(form_fields_keys, FIRST_NAME_HINTS)
-                    if first_name_key:
-                        form_type_field_map[
-                            AttributeTypeEnum.FIRST_NAME
-                        ] = first_name_key
+                    if not form_type_field_map.get(AttributeTypeEnum.LAST_NAME):
+                        last_name_key = check_for_key(form_fields_keys, LAST_NAME_HINTS)
+                        if last_name_key:
+                            form_type_field_map[
+                                AttributeTypeEnum.LAST_NAME
+                            ] = last_name_key
 
-                if not form_type_field_map.get(AttributeTypeEnum.LAST_NAME):
-                    last_name_key = check_for_key(form_fields_keys, LAST_NAME_HINTS)
-                    if last_name_key:
-                        form_type_field_map[AttributeTypeEnum.LAST_NAME] = last_name_key
-
-                if not form_type_field_map.get(
-                    AttributeTypeEnum.FIRST_NAME
-                ) or form_type_field_map.get(AttributeTypeEnum.LAST_NAME):
-                    name = check_for_key(form_fields_keys, NAME_HINTS)
-                    if name:
-                        form_type_field_map[AttributeTypeEnum.FIRST_NAME] = name
+                    if not form_type_field_map.get(
+                        AttributeTypeEnum.FIRST_NAME
+                    ) or form_type_field_map.get(AttributeTypeEnum.LAST_NAME):
+                        name = check_for_key(form_fields_keys, NAME_HINTS)
+                        if name:
+                            form_type_field_map[AttributeTypeEnum.FIRST_NAME] = name
 
             is_known_type = form_field_key in form_type_field_map.values()
             if not is_known_type:
@@ -138,7 +141,7 @@ def build_form_field_map(account_id, form_fields):
         return attribute_map
     except Exception as e:
         print(e)
-        return e
+        raise e
 
 
 def identify_form_type_by_id(form_id):
