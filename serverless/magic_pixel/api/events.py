@@ -2,7 +2,7 @@ from flask import jsonify
 from flask_cors import cross_origin
 
 from magic_pixel.api import api_routes
-from magic_pixel.services.events import (
+from magic_pixel.services.event import (
     query_events,
     query_event,
     query_events_documents,

@@ -1,7 +1,7 @@
-import json
 from typing import Dict, Optional
 
 from magic_pixel import logger
+from magic_pixel.constants import EventTypeEnum
 from magic_pixel.db import db
 from magic_pixel.models import (
     Event,
@@ -14,23 +14,37 @@ from magic_pixel.models import (
     Account,
 )
 from magic_pixel.lib.aws_sqs import event_queue
-from magic_pixel.services.person import identify_event_person, identify_form_type
+from magic_pixel.services import event_form as event_form_service, person
 from magic_pixel.utility import parse_url
 
 
-def _parse_event(event: dict) -> Optional[Dict]:
-    account_hid = event.get("accountHid")
-    account_id = Account.db_id_from_mp_id(account_hid)
+EVENT_TYPE_MAP = {
+    EventTypeEnum.CLICK.value: EventTypeEnum.CLICK,
+    EventTypeEnum.JUMP.value: EventTypeEnum.JUMP,
+    EventTypeEnum.ENGAGE.value: EventTypeEnum.ENGAGE,
+    EventTypeEnum.RELOAD.value: EventTypeEnum.RELOAD,
+    EventTypeEnum.REDIRECT.value: EventTypeEnum.REDIRECT,
+    EventTypeEnum.FORM_SUBMIT.value: EventTypeEnum.FORM_SUBMIT,
+    EventTypeEnum.PAGE_VIEW.value: EventTypeEnum.PAGE_VIEW,
+}
+
+
+def _parse_event(event: Dict) -> Optional[Dict]:
+    account_mp_id = event.get("accountId")
+    account_id = Account.db_id_from_mp_id(account_mp_id)
+    person_id = event.get("personId")
+    event_type = event.get("event")
+    if event_type not in EVENT_TYPE_MAP:
+        raise Exception("Unknown event type. Event type not in event type map.")
+
     return {
+        "created_at": event.get("timestamp"),
         "account_id": account_id,
+        "person_id": person_id,
         "site_id": event.get("siteId"),
-        "event_type": event.get("event"),
-        "q_id": event.get("qId"),
+        "type": EVENT_TYPE_MAP[event_type],
         "fingerprint": event.get("fingerprint"),
         "session_id": event.get("sessionId"),
-        "visitor_id": event.get("visitorId"),
-        "user_id": event.get("userId"),
-        "event_timestamp": event.get("timestamp"),
     }
 
 
@@ -61,19 +75,6 @@ def _parse_event_document(event_id: str, event_document: dict) -> dict:
         "document_parameters": doc_params,
         "referrer_url": referrer_url,
         "referral_parameters": referrer_params,
-    }
-
-
-def _parse_event_form(event_id: str, event_form: dict) -> dict:
-    event_form_fields = event_form["formFields"]
-    source = event_form.get("source")
-    # Try to find out what time of form this is
-    form_type = identify_form_type(event_form_fields)
-    return {
-        "event_id": event_id,
-        "form_id": event_form.get("formId"),
-        "form_fields": event_form.get("formFields"),
-        "form_type": form_type
     }
 
 
@@ -109,15 +110,12 @@ def _parse_event_target(event_id: str, event_target: dict) -> dict:
 def save_event(account_id: int, person_id: int, event: dict):
     try:
         new_event = Event(
+            created_at=event["created_at"],
             account_id=account_id,
             person_id=person_id,
             site_id=event["site_id"],
-            event_type=event["event_type"],
-            q_id=event["q_id"],
+            type=event["type"],
             session_id=event["session_id"],
-            visitor_id=event["visitor_id"],
-            user_id=event["user_id"],
-            event_timestamp=event["event_timestamp"],
         ).save()
         db.session.commit()
         return new_event
@@ -158,20 +156,6 @@ def save_event_document(event_document: dict) -> bool:
             referral_parameters=event_document["referral_parameters"],
         ).save()
         return document_event
-    except Exception as e:
-        logger.log_exception(e)
-        raise e
-
-
-def save_event_form(event_form: dict) -> bool:
-    logger.log_info(f"save_event_form: {event_form}")
-    try:
-        event_form = EventForm(
-            event_id=event_form["event_id"],
-            form_id=event_form["form_id"],
-            form_fields=event_form["form_fields"],
-        ).save()
-        return event_form
     except Exception as e:
         logger.log_exception(e)
         raise e
@@ -218,79 +202,6 @@ def save_event_target_message(event_target: dict) -> bool:
     except Exception as e:
         logger.log_exception(e)
         raise e
-
-
-def queue_event_ingestion(event: dict) -> bool:
-    return event_queue.send_message(event)
-
-
-def ingest_event_message(event: dict) -> bool:
-    # logger.log_info(f"ingest_event_message: {event}")
-    try:
-        logger.log_info("saving new event...")
-
-        # Parse event
-        parsed_event = _parse_event(event)
-        account_id = parsed_event["account_id"]
-
-        # Identify new/existing person for this event
-        event_person = identify_event_person(account_id, parsed_event)
-
-        if not event_person:
-            raise Exception(f"No person found for event {event.id}")
-
-        # Create new event
-        new_event = save_event(account_id, event_person.id, parsed_event)
-
-        event_browser = event.get("browser")
-        event_screen = event.get("screen")
-
-        # Breakdown event
-        # TODO: We could split these into unique SQS queues at this point to
-        # Reduce load on this single ingestion lambda
-        if event_browser and event_screen:
-            logger.log_info("parsing and saving new event browser...")
-            parsed_browser_event = _parse_event_browser(
-                new_event.id, {**event_browser, **event_screen}
-            )
-            save_event_browser(parsed_browser_event)
-
-        event_document = event.get("document")
-        if event_document:
-            logger.log_info("parsing and saving new event document...")
-            parsed_document_event = _parse_event_document(new_event.id, event_document)
-            save_event_document(parsed_document_event)
-
-        event_form = event.get("form")
-        if event_form:
-            logger.log_info("parsing and saving new event form...")
-            parsed_form_event = _parse_event_form(new_event.id, event_form)
-            save_event_form(parsed_form_event)
-
-        event_locale = event.get("locale")
-        if event_locale:
-            logger.log_info("parsing and saving new event locale...")
-            parsed_locale_event = _parse_event_locale(new_event.id, event_locale)
-            save_event_locale(parsed_locale_event)
-
-        event_source = event.get("source")
-        if event_source:
-            logger.log_info("parsing and saving new event source...")
-            parsed_source_event = _parse_event_source(new_event.id, event_source)
-            save_event_source(parsed_source_event)
-
-        event_target = event.get("target")
-        if event_target:
-            logger.log_info("parsing and saving new event target...")
-            parsed_target_event = _parse_event_target(new_event.id, event_target)
-            save_event_target_message(parsed_target_event)
-        db.session.commit()
-
-        logger.log_info("New event saved")
-        return True
-    except Exception as e:
-        logger.log_exception(e)
-        return False
 
 
 def query_events():
@@ -403,3 +314,81 @@ def query_event_target(event_id):
     except Exception as e:
         logger.log_exception(e)
         raise Exception
+
+
+def queue_event_ingestion(event: dict) -> bool:
+    return event_queue.send_message(event)
+
+
+def ingest_event_details(event, db_event_id):
+    event_browser = event.get("browser")
+    event_screen = event.get("screen")
+
+    # Breakdown event
+    # TODO: We could split these into unique SQS queues at this point to
+    # Reduce load on this single ingestion lambda
+    if event_browser and event_screen:
+        logger.log_info("parsing and saving new event browser...")
+        parsed_browser_event = _parse_event_browser(
+            db_event_id, {**event_browser, **event_screen}
+        )
+        save_event_browser(parsed_browser_event)
+
+    event_document = event.get("document")
+    if event_document:
+        logger.log_info("parsing and saving new event document...")
+        parsed_document_event = _parse_event_document(db_event_id, event_document)
+        save_event_document(parsed_document_event)
+
+    event_locale = event.get("locale")
+    if event_locale:
+        logger.log_info("parsing and saving new event locale...")
+        parsed_locale_event = _parse_event_locale(db_event_id, event_locale)
+        save_event_locale(parsed_locale_event)
+
+    event_source = event.get("source")
+    if event_source:
+        logger.log_info("parsing and saving new event source...")
+        parsed_source_event = _parse_event_source(db_event_id, event_source)
+        save_event_source(parsed_source_event)
+
+    event_target = event.get("target")
+    if event_target:
+        logger.log_info("parsing and saving new event target...")
+        parsed_target_event = _parse_event_target(db_event_id, event_target)
+        save_event_target_message(parsed_target_event)
+    db.session.commit()
+
+
+def ingest_event_message(event) -> bool:
+    print(f"ingest_event_message: {event}")
+    try:
+        # Parse event
+        parsed_event = _parse_event(event)
+        account_id = parsed_event["account_id"]
+        event_fingerprint = parsed_event["fingerprint"]
+        event_person_id = parsed_event["person_id"]
+        # Look up person by id
+
+        event_person = person.identify_person_on_event(
+            account_id, event_fingerprint, event_person_id
+        )
+        if not event_person:
+            raise Exception(f"No person found for event.")
+
+        # Create new event
+        new_event = save_event(account_id, event_person.id, parsed_event)
+        event_form = event.get("form")
+
+        if event_form:
+            event_form_service.ingest_event_form(
+                account_id, event_person.id, new_event.id, event
+            )
+        else:
+            ingest_event_details(event, new_event.id)
+
+        logger.log_info("New event saved")
+        return True
+    except Exception as e:
+        logger.log_exception(e)
+        return False

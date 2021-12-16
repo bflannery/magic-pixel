@@ -1,3 +1,4 @@
+from magic_pixel.constants import EventTypeEnum
 from magic_pixel.models.base import WithSoftDelete, Model
 from magic_pixel.db import db
 
@@ -12,11 +13,6 @@ class Event(WithSoftDelete, Model):
     account = db.relationship("Account", foreign_keys=[account_id], backref="events")
 
     site_id = db.Column(db.Text, nullable=False, index=True)
-    event_type = db.Column(db.Text, nullable=False, index=True)
-    q_id = db.Column(db.Text, nullable=True)
+    type = db.Column(db.Enum(EventTypeEnum), nullable=False)
     session_id = db.Column(db.Text, nullable=True)
-    visitor_id = db.Column(db.Text, nullable=True)
-    user_id = db.Column(db.Text, nullable=True)
-    user_profile = db.Column(db.Text, nullable=True)
-    event_timestamp = db.Column(db.DateTime, nullable=True)
 

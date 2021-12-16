@@ -1,3 +1,4 @@
+from magic_pixel.constants import EventTypeEnum
 
 MOCK_FORM_FIELDS = {
     "gzdy-fname": "Testy",
@@ -12,14 +13,14 @@ MOCK_FORM_UUID = {
 }
 
 MOCK_FORM_SUBMIT_EVENT = {
+    "accountId": None,
+    "personId": None,
     "fingerprint": "5f275ee3f92ca2b90d504fe8d8d7ba4f",
     "sessionId": "35b93ee3-7456-820d-767e-d59e3a629f8d",
-    "visitorId": "1d21f685-51ff-ebe9-e315-6c4f0a3175d7",
-    "userId": "a1a5185f519554c6011ce9c14483965d",
-    "userProfile": None,
     "form": MOCK_FORM_UUID,
     "timestamp": "2021-12-02T01:41:27.171Z",
-    "event": "form_submit",
+    "event": EventTypeEnum.FORM_SUBMIT.value,
+    "siteId": "3aNgZ99g",
     "source": {
         "url": {
             "host": "localhost:8080",

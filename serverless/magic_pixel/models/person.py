@@ -14,9 +14,14 @@ class Person(Model, UserMixin, WithSoftDelete):
 
 class Attribute(Model, WithHardDelete):
     __tablename__ = "attribute"
+
     account_id = db.Column(db.BigInteger, db.ForeignKey("account.id"), index=True)
     account = db.relationship(
         "Account", foreign_keys=[account_id], backref="attributes"
+    )
+    event_form_id = db.Column(db.BigInteger, db.ForeignKey("event_form.id"), index=True)
+    event_form = db.relationship(
+        "EventForm", foreign_keys=[event_form_id], backref="event_forms"
     )
     type = db.Column(db.Enum(AttributeTypeEnum), nullable=False)
     name = db.Column(db.Text, nullable=False)

@@ -5,7 +5,7 @@ from app import app
 from magic_pixel import logger
 from magic_pixel.lib.aws_sqs import RetryException
 from magic_pixel.services.account import verify_account_status
-from magic_pixel.services.events import queue_event_ingestion, ingest_event_message
+from magic_pixel.services.event import queue_event_ingestion, ingest_event_message
 
 
 def parse_event_message(event: str):

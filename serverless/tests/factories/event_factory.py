@@ -9,7 +9,4 @@ class EventFactory(BaseFactory):
         model = Event
 
     site_id = "3aNgZ99g"
-    q_id = "g7BCbR3CVE7egGVZ"
-    fingerprint = "a1a5185f519554c6011ce9c14483965t"
-    visitor_id = "91cbbfee-fe49-c430-51ac-031a323c5b61"
-    event_timestamp = datetime.datetime.utcnow()
+    session_id = "d12aa77d-9320-0c55-c9f7-342febb6f8f0"

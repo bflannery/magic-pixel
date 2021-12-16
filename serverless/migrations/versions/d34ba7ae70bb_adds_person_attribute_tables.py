@@ -43,7 +43,7 @@ def upgrade():
         op.f("ix_person_account_id"), "person", ["account_id"], unique=False
     )
 
-    op.execute("DROP TYPE IF EXISTS attributetype")
+    op.execute("DROP TYPE IF EXISTS attributetypeenum")
     op.create_table(
         "attribute",
         sa.Column("id", sa.BigInteger(), nullable=False),
@@ -88,6 +88,7 @@ def upgrade():
     op.create_index(
         op.f("ix_attribute_account_id"), "attribute", ["account_id"], unique=False
     )
+
     op.create_table(
         "person_attribute",
         sa.Column("id", sa.BigInteger(), nullable=False),
@@ -141,11 +142,13 @@ def downgrade():
     op.drop_table("person_attribute")
 
     op.drop_index(op.f("ix_attribute_account_id"), table_name="attribute")
+    # op.drop_index(op.f("ix_attribute_form_id"), table_name="attribute")
     op.drop_constraint("attribute_account_id_fkey", "attribute")
+    # op.drop_constraint("attribute_form_id_fkey", "attribute")
     op.drop_table("attribute")
 
     op.drop_index(op.f("ix_person_account_id"), table_name="person")
     op.drop_constraint("person_account_id_fkey", "person")
     op.drop_table("person")
 
-    op.execute("DROP TYPE IF EXISTS attributetype")
+    op.execute("DROP TYPE IF EXISTS attributetypeenum")

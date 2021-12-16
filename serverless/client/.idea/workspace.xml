@@ -2,16 +2,9 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="c03202a6-bfa4-469d-baf1-baf9ac7adc7a" name="Default Changelist" comment="">
-      <change afterPath="$PROJECT_DIR$/../migrations/versions/763e460bce3c_adds_fingerprint_table.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/.idea/workspace.xml" beforeDir="false" afterPath="$PROJECT_DIR$/.idea/workspace.xml" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../magic_pixel/models/person.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/models/person.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../magic_pixel/services/events.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/events.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../magic_pixel/services/person.py" beforeDir="false" afterPath="$PROJECT_DIR$/../magic_pixel/services/person.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/6cc01f1409c9_adds_user_table.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../migrations/versions/c90938bbfda7_adds_event_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/c90938bbfda7_adds_event_table.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../migrations/versions/d34ba7ae70bb_adds_person_table.py" beforeDir="false" afterPath="$PROJECT_DIR$/../migrations/versions/d34ba7ae70bb_adds_person_table.py" afterDir="false" />
       <change beforePath="$PROJECT_DIR$/../tests/services/test_events.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/services/test_events.py" afterDir="false" />
-      <change beforePath="$PROJECT_DIR$/../tests/services/test_person.py" beforeDir="false" afterPath="$PROJECT_DIR$/../tests/services/test_person.py" afterDir="false" />
     </list>
     <option name="SHOW_DIALOG" value="false" />
     <option name="HIGHLIGHT_CONFLICTS" value="true" />
@@ -91,6 +84,7 @@
       <workItem from="1636891322273" duration="1447000" />
       <workItem from="1638529069356" duration="592000" />
       <workItem from="1639064519878" duration="741000" />
+      <workItem from="1639520460750" duration="4000" />
     </task>
     <servers />
   </component>
