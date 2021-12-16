@@ -3,12 +3,18 @@ from magic_pixel.db import db
 from magic_pixel.models.person import Person, Fingerprint, Attribute, PersonAttribute
 
 
-#   {
+#   form_type_field_map = {
 #       <AttributeTypeEnum.FIRST_NAME: 'first_name'>: 'gzdy-fname',
 #       <AttributeTypeEnum.LAST_NAME: 'last_name'>: 'customer[lname]',
 #       <AttributeTypeEnum.EMAIL: 'email'>: 'gx7zy-email',
 #       <AttributeTypeEnum.TEXT: 'text'>: 'anonymous'
 #   }
+
+
+def get_person_by_fingerprint(fingerprint):
+    return (
+        Person.query.join(Fingerprint).filter(Fingerprint.value == fingerprint).first()
+    )
 
 
 def save_account_person_attributes(

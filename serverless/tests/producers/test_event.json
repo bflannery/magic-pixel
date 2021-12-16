@@ -1,3 +1,3 @@
 {
-    "body": "{\"event_type\":\"event\",\"data\":{\"site_id\":1,\"event_type\":\"click\",\"fingerprint\":null,\"q_id\":\"null\",\"session_id\":\"null\",\"visitor_id\":\"null\",\"user_id\":\"null\",\"user_profile\":\"null\",\"event_timestamp\":\"null\", \"accountHid\": \"YWNjb3VudDox\"}}"
+    "body": "{\"event_type\":\"event\",\"data\":{\"site_id\":1,\"event_type\":\"click\",\"fingerprint\":\"5f275ee3f92ca2b90d504fe8d8d7ba4f,\"q_id\":\"null\",\"session_id\":\"null\",\"visitor_id\":\"null\",\"user_id\":\"null\",\"user_profile\":\"null\",\"event_timestamp\":\"null\", \"accountId\": \"YWNjb3VudDox\", \"personId\": \"null\"}}"
 }

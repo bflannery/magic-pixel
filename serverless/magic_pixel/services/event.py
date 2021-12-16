@@ -361,7 +361,7 @@ def ingest_event_details(event, db_event_id):
 
 
 def ingest_event_message(event) -> bool:
-    print(f"ingest_event_message: {event}")
+    logger.log_info(f"ingest_event_message: {event}")
     try:
         # Parse event
         parsed_event = _parse_event(event)

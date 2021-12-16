@@ -183,7 +183,7 @@ functions:
     memorySize: 512
     events:
       - http:
-          path: /send-event
+          path: /collection
           method: post
   ingestion:
     handler: lambdas.ingestion

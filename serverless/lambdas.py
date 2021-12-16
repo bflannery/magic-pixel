@@ -6,6 +6,7 @@ from magic_pixel import logger
 from magic_pixel.lib.aws_sqs import RetryException
 from magic_pixel.services.account import verify_account_status
 from magic_pixel.services.event import queue_event_ingestion, ingest_event_message
+from magic_pixel.services.person import get_person_by_fingerprint
 
 
 def parse_event_message(event: str):
@@ -75,7 +76,10 @@ def collection(event, context):
         logger.log_info("Sending event messages to the event queue.")
 
         event_body = json.loads(event["body"])
-        account_mp_id = event_body["accountHid"]
+        account_mp_id = event_body["accountId"]
+        # person_id = event_body["personId"]
+        # fingerprint = event_body["fingerprint"]
+
         if not account_mp_id:
             raise Exception(f"No account exists with hid: {account_mp_id}.")
 
@@ -92,9 +96,8 @@ def collection(event, context):
                 ),
             }
 
-
-        # queue_event_ingestion(event)
-        ingest_event_message(event)
+        queue_event_ingestion(event)
+        # ingest_event_message(event)
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
@@ -129,6 +132,9 @@ def ingestion(event, context):
         message_id = record.get("messageId")
         logger.log_info(f"consuming lambda record message: {message_id}")
         try:
+            print("***** RECORD *****")
+            print(record)
+            print("***** RECORD *****")
             lambda_body_string = record.get("body")
             lambda_message = json.loads(lambda_body_string)
             event_message = json.loads(lambda_message["body"])
