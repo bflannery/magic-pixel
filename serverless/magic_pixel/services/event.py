@@ -366,12 +366,13 @@ def ingest_event_message(event) -> bool:
         # Parse event
         parsed_event = _parse_event(event)
         account_id = parsed_event["account_id"]
+        site_id = parsed_event["site_id"]
         event_fingerprint = parsed_event["fingerprint"]
         event_person_id = parsed_event["person_id"]
         # Look up person by id
 
         event_person = person.identify_person_on_event(
-            account_id, event_fingerprint, event_person_id
+            account_id, site_id, event_fingerprint, event_person_id
         )
         if not event_person:
             raise Exception(f"No person found for event.")

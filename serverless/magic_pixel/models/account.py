@@ -66,6 +66,16 @@ class User(Model, UserMixin, WithSoftDelete):
         return User.query.filter(User.auth0_id == auth0_id).first()
 
 
+class AccountSite(Model, WithHardDelete):
+    __tablename__ = "account_site"
+    account_id = db.Column(db.BigInteger, db.ForeignKey("account.id"), index=True)
+    account = db.relationship(
+        "Account", foreign_keys=[account_id], backref="account_sites"
+    )
+    name = db.Column(db.Text, nullable=False)
+    url = db.Column(db.Text, nullable=False)
+
+
 class Role(Model, WithHardDelete):
     __tablename__ = "role"
     id = db.Column(db.Integer(), primary_key=True)

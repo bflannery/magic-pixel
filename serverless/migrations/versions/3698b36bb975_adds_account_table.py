@@ -41,6 +41,39 @@ def upgrade():
     )
     op.create_index(op.f("ix_account_name"), "account", ["name"], unique=True)
 
+    op.create_table(
+        "account_site",
+        sa.Column("id", sa.BigInteger(), nullable=False),
+        sa.Column(
+            "created_at",
+            sa.DateTime(),
+            server_default=sa.text("(now() at time zone 'utc')"),
+            nullable=True,
+        ),
+        sa.Column(
+            "updated_at",
+            sa.DateTime(),
+            server_default=sa.text("(now() at time zone 'utc')"),
+            nullable=True,
+        ),
+        sa.Column("account_id", sa.BigInteger(), nullable=False),
+        sa.Column("name", sa.Text(), nullable=False),
+        sa.Column("url", sa.Text(), nullable=False),
+
+        sa.PrimaryKeyConstraint("id"),
+        sa.ForeignKeyConstraint(
+            ["account_id"], ["account.id"], name="account_site_account_id_fkey"
+        ),
+    )
+    op.create_index(
+        op.f("ix_account_site_account_id"), "account_site", ["account_id"], unique=False
+    )
+
 
 def downgrade():
+    op.drop_index(op.f("ix_account_site_account_id"), table_name="account_site")
+    op.drop_constraint("account_site_account_id_fkey", "account_site")
+    op.drop_table("account_site")
+
+    op.drop_index(op.f("ix_account_name"), table_name="account")
     op.drop_table("account")

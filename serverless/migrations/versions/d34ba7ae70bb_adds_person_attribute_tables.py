@@ -142,9 +142,7 @@ def downgrade():
     op.drop_table("person_attribute")
 
     op.drop_index(op.f("ix_attribute_account_id"), table_name="attribute")
-    # op.drop_index(op.f("ix_attribute_form_id"), table_name="attribute")
     op.drop_constraint("attribute_account_id_fkey", "attribute")
-    # op.drop_constraint("attribute_form_id_fkey", "attribute")
     op.drop_table("attribute")
 
     op.drop_index(op.f("ix_person_account_id"), table_name="person")
