@@ -18,6 +18,7 @@ from tests.factories import (
     UserFactory,
     AccountFactory,
 )
+from tests.factories.account_site_factory import AccountSiteFactory
 from tests.factories.role_factory import RoleFactory
 
 
@@ -71,7 +72,9 @@ def test_client(app):
 
 @pytest.fixture
 def account():
-    return AccountFactory(is_active=True)
+    account = AccountFactory(is_active=True)
+    AccountSiteFactory(account_id=account.id)
+    return account
 
 
 @pytest.fixture
@@ -85,7 +88,7 @@ def roles():
 @pytest.fixture
 def pageview_event():
     event = EventFactory(
-        site_id="random_site_id", event_type="pageview", event_timestamp=datetime.now()
+        account_site_id="random_site_id", event_type="pageview", event_timestamp=datetime.now()
     )
     EventBrowserFactory(event=event)
     EventDocumentFactory(event=event)

@@ -1,16 +1,18 @@
-import { getHostId } from './utils'
+import {getHostId, getSiteId} from './utils'
 import MagicPixel  from "./magicPixel";
 
 const script = document.currentScript
 
 async function init() {
   const hostId = getHostId(script)
-  if (!hostId) {
+  const siteId = getSiteId(script)
+  console.log({ hostId, siteId})
+  if (!hostId || !siteId) {
     console.error('MP: Error verifying account. No host id provided')
     return false
   }
 
-  const MP = new MagicPixel(hostId)
+  const MP = new MagicPixel(hostId, siteId)
   window.MP = MP
 
   const accountIsActive = await MP.authenticateAccount()

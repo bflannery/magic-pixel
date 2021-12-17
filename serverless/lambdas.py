@@ -4,13 +4,10 @@ import json
 from app import app
 from magic_pixel import logger
 from magic_pixel.lib.aws_sqs import RetryException
+from magic_pixel.models import Account
 from magic_pixel.services.account import verify_account_status
 from magic_pixel.services.event import queue_event_ingestion, ingest_event_message
-from magic_pixel.services.person import get_person_by_fingerprint
-
-
-def parse_event_message(event: str):
-    return
+from magic_pixel.services.person import identify_person
 
 
 def serverless_function(func):
@@ -38,7 +35,13 @@ def authentication(event, context):
             raise Exception("Event has no hid.")
         logger.log_info(f"Authentication Account HID: {hid}")
 
+        account = Account.get_by_mp_id(hid)
+        if not account:
+            raise Exception(f"No account exists with hid: {hid}.")
+        logger.log_info(f"Authentication Account: {account}")
+
         account_status = verify_account_status(hid)
+
         if account_status != "active":
             return {
                 "statusCode": 403,
@@ -50,10 +53,21 @@ def authentication(event, context):
                     }
                 ),
             }
+
+        person_id = parsed_body.get("personId")
+        fingerprint = parsed_body.get("fingerprint")
+        person = identify_person(account.id, fingerprint, person_id)
+
+        if not person:
+            raise Exception(f"Could not find or create person with {fingerprint} and {person_id}")
+
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
-            "body": json.dumps({"status": "active"}),
+            "body": json.dumps({
+                "personId": person.mp_id,
+                "accountStatus": "active"
+            }),
         }
 
     except Exception as e:
@@ -76,12 +90,16 @@ def collection(event, context):
         logger.log_info("Sending event messages to the event queue.")
 
         event_body = json.loads(event["body"])
-        account_mp_id = event_body["accountId"]
         # person_id = event_body["personId"]
         # fingerprint = event_body["fingerprint"]
 
+        account_mp_id = event_body["accountId"]
         if not account_mp_id:
             raise Exception(f"No account exists with hid: {account_mp_id}.")
+
+        account_site_id = event_body["siteId"]
+        if not account_site_id:
+            raise Exception(f"No account site exists with hid: {account_site_id}.")
 
         account_status = verify_account_status(account_mp_id)
         if account_status != "active":
@@ -132,9 +150,6 @@ def ingestion(event, context):
         message_id = record.get("messageId")
         logger.log_info(f"consuming lambda record message: {message_id}")
         try:
-            print("***** RECORD *****")
-            print(record)
-            print("***** RECORD *****")
             lambda_body_string = record.get("body")
             lambda_message = json.loads(lambda_body_string)
             event_message = json.loads(lambda_message["body"])

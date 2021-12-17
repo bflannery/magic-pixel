@@ -14,9 +14,10 @@ from magic_pixel.models import (
     Account,
 )
 from magic_pixel.lib.aws_sqs import event_queue
-from magic_pixel.services import event_form as event_form_service, person
+from magic_pixel.services import event_form as event_form_service
+from .person import identify_person
 from magic_pixel.utility import parse_url
-
+from ..models.account import AccountSite
 
 EVENT_TYPE_MAP = {
     EventTypeEnum.CLICK.value: EventTypeEnum.CLICK,
@@ -30,8 +31,16 @@ EVENT_TYPE_MAP = {
 
 
 def _parse_event(event: Dict) -> Optional[Dict]:
-    account_mp_id = event.get("accountId")
+    account_mp_id = event["accountId"]
+    if not account_mp_id:
+        raise Exception(f"No account exists with hid: {account_mp_id}.")
+
+    account_site_id = event["siteId"]
+    if not account_site_id:
+        raise Exception(f"No account site exists with hid: {account_site_id}.")
+
     account_id = Account.db_id_from_mp_id(account_mp_id)
+    account_site_id = AccountSite.db_id_from_mp_id(account_site_id)
     person_id = event.get("personId")
     event_type = event.get("event")
     if event_type not in EVENT_TYPE_MAP:
@@ -40,8 +49,8 @@ def _parse_event(event: Dict) -> Optional[Dict]:
     return {
         "created_at": event.get("timestamp"),
         "account_id": account_id,
+        "account_site_id": account_site_id,
         "person_id": person_id,
-        "site_id": event.get("siteId"),
         "type": EVENT_TYPE_MAP[event_type],
         "fingerprint": event.get("fingerprint"),
         "session_id": event.get("sessionId"),
@@ -112,8 +121,8 @@ def save_event(account_id: int, person_id: int, event: dict):
         new_event = Event(
             created_at=event["created_at"],
             account_id=account_id,
+            account_site_id=event["account_site_id"],
             person_id=person_id,
-            site_id=event["site_id"],
             type=event["type"],
             session_id=event["session_id"],
         ).save()
@@ -366,13 +375,13 @@ def ingest_event_message(event) -> bool:
         # Parse event
         parsed_event = _parse_event(event)
         account_id = parsed_event["account_id"]
-        site_id = parsed_event["site_id"]
+
         event_fingerprint = parsed_event["fingerprint"]
         event_person_id = parsed_event["person_id"]
         # Look up person by id
 
-        event_person = person.identify_person_on_event(
-            account_id, site_id, event_fingerprint, event_person_id
+        event_person = identify_person(
+            account_id, event_fingerprint, event_person_id
         )
         if not event_person:
             raise Exception(f"No person found for event.")

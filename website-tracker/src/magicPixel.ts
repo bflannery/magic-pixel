@@ -62,13 +62,15 @@ interface ScribeEventType {
 
 export default class MagicPixel {
   hostId: string | null
+  siteId: string | null
   apiDomain: string
   mpData: MpDataProps | null
   sessionData: string | null
 
 
-  constructor(hostId: string | null) {
+  constructor(hostId: string | null, siteId: string | null) {
     this.hostId = hostId
+    this.siteId = siteId
     this.apiDomain = 'http://localhost:5000/dev'
     this.mpData = null
     this.sessionData = null
@@ -145,92 +147,6 @@ export default class MagicPixel {
     this._removeSessionMpData()
   }
 
-  //
-  // parseForm(form: ScribeFormType): FormFieldMapType  {
-  //   const formFields = form.formFields
-  //   const formFieldsKeys = Object.keys(formFields)
-  //
-  //   let isLoginForm = false
-  //   let isSignupForm = false
-  //
-  //   const formFieldMap: FormFieldMapType = {
-  //     email: null,
-  //     firstName: null,
-  //     lastName: null,
-  //   }
-  //
-  //  formFieldsKeys.forEach(formFieldKey => {
-  //    const formKey = formatFieldKey(formFieldKey)
-  //
-  //    // Check for signup hints
-  //    SIGN_UP_HINTS.forEach((signupHint =>{
-  //      const isSignUpKey = formKey.includes(signupHint)
-  //      if (isSignUpKey) {
-  //        isSignupForm = true
-  //      }
-  //    }))
-  //
-  //    // Check for login hints
-  //    LOGIN_HINTS.forEach((loginHint =>{
-  //      const isLoginKey = formKey.includes(loginHint)
-  //      if (isLoginKey) {
-  //        isLoginForm = true
-  //      }
-  //    }))
-  //
-  //    // Check for first name hints
-  //    FIRST_NAME_HINTS.forEach((firstNameHint =>{
-  //      const isFirstNameKey = formKey.includes(firstNameHint)
-  //      if (isFirstNameKey) {
-  //        formFieldMap.firstName = formFields[formKey]
-  //      }
-  //    }))
-  //
-  //    // Check for last name hints
-  //    LAST_NAME_HINTS.forEach((lastNameHint =>{
-  //      const isLastNameKey = formKey.includes(lastNameHint)
-  //      if (isLastNameKey) {
-  //        formFieldMap.lastName = formFields[formKey]
-  //      }
-  //    }))
-  //
-  //    // Check for email
-  //    const isEmailKey = formKey.includes("email")
-  //    if (isEmailKey) {
-  //      formFieldMap.email = formFields[formKey]
-  //    }
-  //
-  //    // If login/signup are false, look for unnamed fields for hints:
-  //    if (!isLoginForm && !isSignupForm) {
-  //      const anonFormKeyValue = formatFieldKey(formFields[formKey])
-  //      // Check for signup hints
-  //      SIGN_UP_HINTS.forEach((signupHint =>{
-  //        const isSignUpKey = anonFormKeyValue.includes(signupHint)
-  //        if (isSignUpKey) {
-  //          isSignupForm = true
-  //        }
-  //      }))
-  //
-  //      // Check for login hints
-  //      LOGIN_HINTS.forEach((loginHint =>{
-  //        const isLoginKey = anonFormKeyValue.includes(loginHint)
-  //        if (isLoginKey) {
-  //          isLoginForm = true
-  //        }
-  //      }))
-  //    }
-  //
-  //    if ((isLoginForm || isSignupForm) && !formFieldMap.email) {
-  //      const formFieldsValues = Object.values(formFields)
-  //      const emailValue = formFieldsValues.find(value => isValidEmail(value))
-  //      if (emailValue) {
-  //        formFieldMap.email = formFields[formKey]
-  //      }
-  //    }
-  //  })
-  //   return formFieldMap
-  // }
-
   /**
    * @function: trackEvent
    * @description: The trackEvent function will make an api call to send a scribe event
@@ -238,33 +154,30 @@ export default class MagicPixel {
    */
   async trackEvent(scribeEvent: ScribeEventType): Promise<boolean> {
     try {
-      console.log({ scribeEvent, This: this })
+      // console.log({ scribeEvent, This: this })
 
       if (this.mpData?.accountStatus !== 'active') {
         return false
       }
 
       const event = scribeEvent.value
-      const fingerprint = event.fingerprint
-
-      if (this.mpData && !this.mpData?.personId) {
-        this.mpData.personId = fingerprint
-      }
 
       let accountEvent = {
         ...event,
-        accountHid: this.hostId,
-        personId: this.mpData?.personId || fingerprint
+        accountId: this.hostId,
+        siteId: this.siteId,
+        personId: this.mpData?.personId
       }
 
       console.log({ accountEvent })
       const body = JSON.stringify(accountEvent)
-      // const response = await this._apiRequest('POST', `${this.apiDomain}/send-event`, body)
-      // if (response.status === '403') {
-      //   console.warn("MP: Unauthorized")
-      //   // TODO: Invalidate local storage data
-      //   return false
-      // }
+      const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, body)
+      if (response.status === '403') {
+        console.warn("MP: Unauthorized")
+        // TODO: Invalidate local storage data
+        return false
+      }
+      console.log('Sent')
       return true
     } catch (e) {
       console.error('MP: Error sending scribe event to MP server.')

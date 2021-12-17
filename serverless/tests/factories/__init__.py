@@ -1,6 +1,7 @@
 import factory
 
 from .account_factory import AccountFactory
+from .account_site_factory import AccountSiteFactory
 from .event_factory import EventFactory
 from .event_document_factory import EventDocumentFactory
 from .event_locale_factory import EventLocaleFactory

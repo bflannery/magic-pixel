@@ -15,7 +15,6 @@ class Event(WithSoftDelete, Model):
     account_site_id = db.Column(db.BigInteger, db.ForeignKey("account_site.id"), index=True)
     account_site = db.relationship("AccountSite", foreign_keys=[account_site_id], backref="events")
 
-    site_id = db.Column(db.Text, nullable=False, index=True)
     session_id = db.Column(db.Text, nullable=True)
     type = db.Column(db.Enum(EventTypeEnum), nullable=False)
 

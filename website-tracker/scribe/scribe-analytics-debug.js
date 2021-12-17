@@ -763,13 +763,15 @@
               if (child.type !== 'password') {
                 // Make sure it's not a radio or it's a checked radio:
                 if (child.type !== 'radio' || child.checked) {
-                  if (!child.labels || child.labels.length === 0) {
-                    setField(child.name, child.value);
-                  } else {
-                    const inputLabel = child.labels[0]
-                    setField(inputLabel.innerText, child.value)
+                  let childKey = ''
+                  if (child.name) {
+                    childKey = child.name
+                  } else if (child.labels && child.labels.length > 0) {
+                    childKey = child.labels.join('')
+                  } else if (child.id) {
+                    childKey = child.id
                   }
-
+                  setField(childKey, child.value);
                 }
               }
             }
@@ -780,8 +782,7 @@
             setField(child.name, option.value);
           }
         }
-
-        return acc;
+        return { formFields: acc };
       };
 
       DomUtil.monitorElements = function(tagName, onnew, refresh) {
@@ -1307,6 +1308,8 @@
               e.form = target.form;
               if (e.form.id) {
                 e.form.formId = e.form.id
+              } else if (e.form.name) {
+                e.form.formId = e.form.name
               }
               handle(e);
             }

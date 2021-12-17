@@ -58,7 +58,7 @@ def save_account_person_attributes(
         raise e
 
 
-def identify_person_on_event(account_id, site_id, event_fingerprint, person_id=None):
+def identify_person(account_id, event_fingerprint, person_id=None):
     # Look up person by id
     if person_id:
         person = Person.get_by_mp_id(person_id)
@@ -72,29 +72,29 @@ def identify_person_on_event(account_id, site_id, event_fingerprint, person_id=N
             Fingerprint(person=person, value=event_fingerprint).save()
             db.session.commit()
         return person
+
     # Lookup person by fingerprint
-    form_person = (
+    event_person = (
         Person.query.join(Fingerprint, Fingerprint.person_id == Person.id)
         .join(Account, Account.id == Person.account_id)
         .filter(
             Fingerprint.value == event_fingerprint,
             Account.id == account_id,
-            AccountSite.id == site_id,
         )
         .first()
     )
 
-    if not form_person:
+    if not event_person:
         # We have no idea who you are, create a new person and fingerprint
-        form_person = Person(account_id=account_id).save()
-        Fingerprint(person=form_person, value=event_fingerprint).save()
+        event_person = Person(account_id=account_id).save()
+        Fingerprint(person=event_person, value=event_fingerprint).save()
     else:
         person_fingerprints = (
-            [fp.value for fp in form_person.fingerprints]
-            if form_person.fingerprints
+            [fp.value for fp in event_person.fingerprints]
+            if event_person.fingerprints
             else None
         )
         if person_fingerprints and event_fingerprint not in person_fingerprints:
-            Fingerprint(person_id=form_person.id, value=event_fingerprint).save()
+            Fingerprint(person_id=event_person.id, value=event_fingerprint).save()
     db.session.commit()
-    return form_person
+    return event_person

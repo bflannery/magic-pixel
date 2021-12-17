@@ -19,6 +19,23 @@ export function getHostId(script: HTMLOrSVGScriptElement | null): string | null 
   return url.searchParams.get('hid')
 }
 
+export function getSiteId(script: HTMLOrSVGScriptElement | null): string | null {
+  if (window.MP_SID) {
+    return window.MP_SID
+  }
+  if (!script) {
+    console.error('MP: script requires being loaded from mp source')
+    return null
+  }
+  if (!scriptIsHTML(script)) {
+    console.error('MP: mp does not support SVG scripts.')
+    return null
+  }
+
+  const url = new URL(script.src)
+  return url.searchParams.get('sid')
+}
+
 
 export function getDiffFromTimestamp(time1: number, time2: number, scope: 'days' | 'hours' | 'mins'): number {
   const timeDiff = time1 - time2;
