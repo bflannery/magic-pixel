@@ -1516,12 +1516,12 @@
           console.log('Scribe: Track Submission')
           Events.onsubmit(function(e) {
             if (e.form) {
-              if (!e.form.formId) {
-                e.form.formId = Util.genGuid();
+              if (!e.form.id) {
+                e.form.id = Util.genGuid();
               }
 
               self.trackLater('form_submit', {
-                form: Util.merge({formId: e.form.formId}, DomUtil.getFormData(e.form))
+                form: Util.merge({formId: e.form.id}, DomUtil.getFormData(e.form))
               });
             }
           });

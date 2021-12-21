@@ -7,9 +7,21 @@ from .base import Model, WithSoftDelete, WithHardDelete
 
 class Person(Model, UserMixin, WithSoftDelete):
     __tablename__ = "person"
+    __table_args__ = (
+        db.UniqueConstraint(
+            "account_id",
+            "email",
+            "username",
+            name="uc_account_id_email_username",
+        ),
+    )
 
     account_id = db.Column(db.BigInteger, db.ForeignKey("account.id"), index=True)
     account = db.relationship("Account", foreign_keys=[account_id], backref="persons")
+    email = db.Column(db.Text, nullable=True, index=True)
+    username = db.Column(db.Text, nullable=True, index=True)
+    first_name = db.Column(db.Text, nullable=True)
+    last_name = db.Column(db.Text, nullable=True)
 
 
 class Attribute(Model, WithHardDelete):
@@ -21,7 +33,7 @@ class Attribute(Model, WithHardDelete):
     )
     event_form_id = db.Column(db.BigInteger, db.ForeignKey("event_form.id"), index=True)
     event_form = db.relationship(
-        "EventForm", foreign_keys=[event_form_id], backref="event_forms"
+        "EventForm", foreign_keys=[event_form_id], backref="attributes"
     )
     type = db.Column(db.Enum(AttributeTypeEnum), nullable=False)
     name = db.Column(db.Text, nullable=False)

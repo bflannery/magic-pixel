@@ -1,14 +1,12 @@
+from magic_pixel import logger
 from magic_pixel.constants import AttributeTypeEnum
 from magic_pixel.db import db
 from magic_pixel.models import Account
-from magic_pixel.models.account import AccountSite
 from magic_pixel.models.person import Person, Fingerprint, Attribute, PersonAttribute
 
 
-def get_person_by_fingerprint(fingerprint):
-    return (
-        Person.query.join(Fingerprint).filter(Fingerprint.value == fingerprint).first()
-    )
+def get_person_by_email(account_id, email):
+    return Person.query.filter_by(account_id=account_id, email=email).first()
 
 
 def save_account_person_attributes(
@@ -22,31 +20,28 @@ def save_account_person_attributes(
     #   }
     try:
         for form_field_key, form_field_value in form_type_field_map.items():
+            person_attribute_value = form_fields[form_field_value]
+            # If form has email, and not the same as current, save it to the person
+            if form_field_key == AttributeTypeEnum.EMAIL:
+                if person.email != person_attribute_value:
+                    person.email = person_attribute_value
+                    person.save()
+
             # Check if field key attribute exists
             account_attribute = Attribute.query.filter(
                 Attribute.account_id == account_id,
                 Attribute.event_form_id == event_form_id,
                 Attribute.type != AttributeTypeEnum.TEXT,
+                Attribute.type == form_field_key,
             ).first()
 
-            if form_field_key == AttributeTypeEnum.TEXT or not account_attribute:
+            if not account_attribute or form_field_key == AttributeTypeEnum.TEXT:
                 account_attribute = Attribute(
                     account_id=account_id,
                     event_form_id=event_form_id,
                     type=form_field_key,
                     name=form_field_value,
                 ).save()
-
-            # person_email_attribute = PersonAttribute.query.filter(PersonAttribute.value ==)
-            form_email = form_fields[form_field_value]
-
-            person_by_email = Person.query.join(PersonAttribute).filter(
-                Person.account_id == account_id,
-                PersonAttribute.attribute_id == account_attribute.id,
-                PersonAttribute.email == form_email,
-            )
-
-            person_attribute_value = form_fields[form_field_value]
             PersonAttribute(
                 person_id=person.id,
                 attribute=account_attribute,

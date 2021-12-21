@@ -14,7 +14,6 @@ async function init() {
 
   const MP = new MagicPixel(hostId, siteId)
   window.MP = MP
-
   const accountIsActive = await MP.authenticateAccount()
 
   if (accountIsActive) {

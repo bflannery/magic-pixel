@@ -34,14 +34,20 @@ def upgrade():
         ),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("account_id", sa.BigInteger(), nullable=False),
+        sa.Column("email", sa.Text(), nullable=True),
+        sa.Column("username", sa.Text(), nullable=True),
+        sa.Column("first_name", sa.Text(), nullable=True),
+        sa.Column("last_name", sa.Text(), nullable=True),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["account_id"], ["account.id"], name="person_account_id_fkey"
         ),
+        sa.UniqueConstraint("account_id", "email", "username", name="uc_account_id_email_username"),
     )
     op.create_index(
         op.f("ix_person_account_id"), "person", ["account_id"], unique=False
     )
+    op.create_index(op.f('ix_person_email'), 'person', ['email'], unique=True)
 
     op.execute("DROP TYPE IF EXISTS attributetypeenum")
     op.create_table(
@@ -146,6 +152,8 @@ def downgrade():
     op.drop_table("attribute")
 
     op.drop_index(op.f("ix_person_account_id"), table_name="person")
+    op.drop_index(op.f("ix_person_email"), table_name="person")
+    op.drop_constraint("uc_account_id_email_username", "person", type_="unique")
     op.drop_constraint("person_account_id_fkey", "person")
     op.drop_table("person")
 

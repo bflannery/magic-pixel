@@ -14,10 +14,12 @@ from magic_pixel.models import (
     Account,
 )
 from magic_pixel.lib.aws_sqs import event_queue
-from magic_pixel.services import event_form as event_form_service
-from .person import identify_person
+from magic_pixel.services import (
+    event_form as event_form_service,
+    person as person_service,
+)
 from magic_pixel.utility import parse_url
-from ..models.account import AccountSite
+from magic_pixel.models.account import AccountSite
 
 EVENT_TYPE_MAP = {
     EventTypeEnum.CLICK.value: EventTypeEnum.CLICK,
@@ -35,7 +37,7 @@ def _parse_event(event: Dict) -> Optional[Dict]:
     if not account_mp_id:
         raise Exception(f"No account exists with hid: {account_mp_id}.")
 
-    account_site_id = event["siteId"]
+    account_site_id = event["accountSiteId"]
     if not account_site_id:
         raise Exception(f"No account site exists with hid: {account_site_id}.")
 
@@ -116,13 +118,13 @@ def _parse_event_target(event_id: str, event_target: dict) -> dict:
     }
 
 
-def save_event(account_id: int, person_id: int, event: dict):
+def save_event(account_id: int, fingerprint_id: int, event: dict):
     try:
         new_event = Event(
             created_at=event["created_at"],
             account_id=account_id,
             account_site_id=event["account_site_id"],
-            person_id=person_id,
+            fingerprint_id=fingerprint_id,
             type=event["type"],
             session_id=event["session_id"],
         ).save()
@@ -378,23 +380,31 @@ def ingest_event_message(event) -> bool:
 
         event_fingerprint = parsed_event["fingerprint"]
         event_person_id = parsed_event["person_id"]
-        # Look up person by id
 
-        event_person = identify_person(
+        event_person = person_service.identify_person(
             account_id, event_fingerprint, event_person_id
         )
-        if not event_person:
-            raise Exception(f"No person found for event.")
+        event_person_fingerprint = next(
+            (epf for epf in event_person.fingerprints if event_person.fingerprints),
+            None,
+        )
 
-        # Create new event
-        new_event = save_event(account_id, event_person.id, parsed_event)
         event_form = event.get("form")
-
         if event_form:
-            event_form_service.ingest_event_form(
-                account_id, event_person.id, new_event.id, event
+            event_form_service.ingest_form_event(
+                account_id,
+                parsed_event,
+                event_person,
+                event_person_fingerprint,
+                event_form,
             )
+
         else:
+            if not event_person:
+                raise Exception(f"No person found for event.")
+
+            # Create new event
+            new_event = save_event(account_id, event_person_fingerprint.id, parsed_event)
             ingest_event_details(event, new_event.id)
 
         logger.log_info("New event saved")
@@ -402,3 +412,38 @@ def ingest_event_message(event) -> bool:
     except Exception as e:
         logger.log_exception(e)
         return False
+
+
+# def ingest_event_message_og(event) -> bool:
+#     logger.log_info(f"ingest_event_message: {event}")
+#     try:
+#         # Parse event
+#         parsed_event = _parse_event(event)
+#         account_id = parsed_event["account_id"]
+#
+#         event_fingerprint = parsed_event["fingerprint"]
+#         event_person_id = parsed_event["person_id"]
+#         # Look up person by id
+#
+#         event_person = person_service.identify_person(
+#             account_id, event_fingerprint, event_person_id
+#         )
+#         if not event_person:
+#             raise Exception(f"No person found for event.")
+#
+#         # Create new event
+#         new_event = save_event(account_id, event_person.id, parsed_event)
+#         event_form = event.get("form")
+#
+#         if event_form:
+#             event_form_service.ingest_event_form(
+#                 account_id, event_person.id, new_event.id, event
+#             )
+#         else:
+#             ingest_event_details(event, new_event.id)
+#
+#         logger.log_info("New event saved")
+#         return True
+#     except Exception as e:
+#         logger.log_exception(e)
+#         return False

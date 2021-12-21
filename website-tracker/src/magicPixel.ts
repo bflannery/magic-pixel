@@ -1,22 +1,27 @@
-import {formatFieldKey, getDiffFromTimestamp, isValidEmail, uuidv4} from "./utils";
+import {getDiffFromTimestamp, uuidv4} from "./utils";
+import FingerprintJS from '@fingerprintjs/fingerprintjs'
 
-interface MpDataProps {
-  accountHid: string
-  personId?: string | null
-  accountStatus: string
-  lastVerified: number,
-  attempts: number
+
+interface ScribeFormType {
+  formId: string
+  formFields: Record<string, string>
 }
 
-
+interface MpDataProps {
+  accountId: string | null
+  accountSiteId: string | null
+  personId: string | null
+  accountStatus: string
+  lastVerified: number | null,
+  fingerprint: string | null,
+  sessionId: string | null,
+}
 
 export interface MagicPixelType {
-  hostId: string | null
   apiDomain: string
-  mpData: MpDataProps | null
-  sessionData: string | null
+  mpData: MpDataProps
   authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
-  authenticateHostId: () => Promise<boolean>
+  authenticateAccountId: () => Promise<boolean>
   clearStorage: () => void
   getLocalStorageData: () => MpDataProps | null
   getSessionStorageData: () => string | null
@@ -28,12 +33,6 @@ export interface MagicPixelType {
 interface ScribeFormType {
   formId: string
   formFields: Record<string, string>
-}
-
-interface FormFieldMapType {
-  email: string | null
-  lastName: string | null
-  firstName: string | null
 }
 
 interface ScribeEventType {
@@ -60,20 +59,36 @@ interface ScribeEventType {
   failure: () => void
 }
 
+const defaultMpData = {
+  sessionId: null,
+  accountId: null,
+  accountSiteId: null,
+  accountStatus: 'inactive',
+  personId: null,
+  fingerprint: null,
+  lastVerified: null
+}
+
+// Initialize an agent at application startup.
+const fpPromise = FingerprintJS.load()
+
+
 export default class MagicPixel {
-  hostId: string | null
-  siteId: string | null
   apiDomain: string
-  mpData: MpDataProps | null
-  sessionData: string | null
+  mpData: MpDataProps
 
 
-  constructor(hostId: string | null, siteId: string | null) {
-    this.hostId = hostId
-    this.siteId = siteId
+  constructor(accountId: string | null, accountSiteId: string | null) {
     this.apiDomain = 'http://localhost:5000/dev'
-    this.mpData = null
-    this.sessionData = null
+    this.mpData = {
+      accountId: accountId,
+      accountSiteId: accountSiteId,
+      accountStatus: 'inactive',
+      personId: null,
+      fingerprint: null,
+      lastVerified: null,
+      sessionId: null
+    }
   }
 
   async _apiRequest(method: string, endpoint: string, body: BodyInit) {
@@ -93,23 +108,29 @@ export default class MagicPixel {
   }
 
   _removeMpData(): void {
-    this.mpData = null
+    this.mpData = defaultMpData
     localStorage.removeItem('mp')
   }
 
   _removeSessionMpData(): void {
-    this.sessionData = null
+    this.mpData.sessionId = null
     sessionStorage.removeItem('mp_sid')
   }
 
-  _setMpData(data: MpDataProps | null): boolean {
+  _setMpData(data: MpDataProps): boolean {
     this.mpData = data
     return this.mpData === data
   }
 
   _setSessionMpData(data: string | null): boolean {
-    this.sessionData = data
-    return this.sessionData === data
+    this.mpData.sessionId = data
+    return this.mpData.sessionId === data
+  }
+
+  async _fingerprint() {
+    const fp = await fpPromise
+    const result = await fp.get()
+    return result.visitorId
   }
 
   getLocalStorageData() {
@@ -154,9 +175,13 @@ export default class MagicPixel {
    */
   async trackEvent(scribeEvent: ScribeEventType): Promise<boolean> {
     try {
-      // console.log({ scribeEvent, This: this })
+      if (!this.mpData?.accountId || !this.mpData?.accountSiteId) {
+        console.warn("MP: Error: Missing ids, cannot track event")
+        return false
+      }
 
       if (this.mpData?.accountStatus !== 'active') {
+        console.warn("MP: Error: Account is not active, cannot track event")
         return false
       }
 
@@ -164,9 +189,10 @@ export default class MagicPixel {
 
       let accountEvent = {
         ...event,
-        accountId: this.hostId,
-        siteId: this.siteId,
-        personId: this.mpData?.personId
+        accountId: this.mpData?.accountId,
+        accountSiteId: this.mpData?.accountSiteId,
+        personId: this.mpData?.personId,
+        fingerprint: this.mpData?.fingerprint
       }
 
       console.log({ accountEvent })
@@ -187,31 +213,43 @@ export default class MagicPixel {
   }
 
   /**
-   * @function: authenticateHostId
-   * @description: The authenticateHostId function will make an api call to verify the account
+   * @function: authenticateAccountId
+   * @description: The authenticateAccountId function will make an api call to verify the account
    * status based on the host id provided in script. With response data,
    * the function will update the MP class object data and local/session storage
    */
-  async authenticateHostId(): Promise<boolean> {
-    if (this.hostId) {
+  async authenticateAccountId(): Promise<boolean> {
+    console.log({ mpData: this.mpData})
+    if (!this.mpData.fingerprint) {
+      this.mpData.fingerprint = await this._fingerprint()
+    }
+    if (this.mpData.accountId && this.mpData.accountSiteId) {
       try {
         const jsonBody = JSON.stringify({
-          hid: this.hostId
+          accountId: this.mpData.accountId,
+          accountSiteId: this.mpData.accountSiteId,
+          personId: this.mpData.personId,
+          fingerprint: this.mpData.fingerprint
         })
+
         const accountData = await this._apiRequest(
           'POST',
           `${this.apiDomain}/authentication`, jsonBody
         )
 
         const localStorageData = {
-          accountHid: this.hostId,
-          accountStatus: accountData.status,
+          ...this.mpData,
+          accountId: this.mpData.accountId,
+          accountSiteId: this.mpData.accountSiteId,
+          personId: accountData.personId,
+          accountStatus: accountData.accountStatus,
           lastVerified: Date.now(),
-          attempts: this.mpData?.attempts ? this.mpData?.attempts + 1 : 1,
         }
+
           const sessionId = JSON.stringify(uuidv4())
           this.setLocalStorageData(localStorageData)
           this.setSessionStorageData(sessionId)
+
           return localStorageData.accountStatus === 'active'
       } catch (e) {
         console.error('MP: Error verifying account.')
@@ -236,13 +274,14 @@ export default class MagicPixel {
     }
 
     // If account ids don't match, re-authenticate and update any stale data
-    if (this.mpData.accountHid !== this.hostId) {
-      return await this.authenticateHostId()
+    if (this.mpData.accountId !== this.mpData.accountId) {
+      return await this.authenticateAccountId()
     }
 
     const { lastVerified, accountStatus } = this.mpData
     const now = new Date().getTime()
-    const lastVerifiedHours = getDiffFromTimestamp(now, lastVerified, 'hours')
+    const lastVerifiedTimeStamp = lastVerified || new Date().getTime()
+    const lastVerifiedHours = getDiffFromTimestamp(now, lastVerifiedTimeStamp, 'hours')
 
     // If account is inactive, kill it for 24 hours before trying to re-authenticate again
     // TODO: Add logic for delinquent once Stripe implemented
@@ -250,7 +289,7 @@ export default class MagicPixel {
       if (lastVerifiedHours < 1) {
         return false
       } else {
-        return await this.authenticateHostId()
+        return await this.authenticateAccountId()
       }
     }
 
@@ -259,8 +298,8 @@ export default class MagicPixel {
     // If account is active but hasn't been verified for over an hour, re-authenticate again
     if (accountStatus === 'active') {
       if (lastVerifiedHours >= 1) {
-        console.debug(`MP: Re-authenticating host id ${this.hostId}`)
-        return await this.authenticateHostId()
+        console.debug(`MP: Re-authenticating account id ${this.mpData.accountId}`)
+        return await this.authenticateAccountId()
       } else {
         return true
       }
@@ -277,11 +316,11 @@ export default class MagicPixel {
     const mpLocalStorageData = this.getLocalStorageData()
     const mpSessionID = this.getSessionStorageData()
     if (!mpLocalStorageData || !mpSessionID) {
-      console.debug(`MP: Invalid browser data. Authenticating host id ${this.hostId}`)
+      console.debug(`MP: Invalid browser data. Authenticating account id ${this.mpData.accountId}`)
       // Call verification service to check account status and other data
-      return await this.authenticateHostId()
+      return await this.authenticateAccountId()
     } else {
-      console.debug(`MP: Authenticating host storage data for host id ${this.hostId}`)
+      console.debug(`MP: Authenticating host storage data for account id ${this.mpData.accountId}`)
       return await this.authenticateHostData()
     }
   }
