@@ -35,8 +35,10 @@ def upgrade():
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("account_id", sa.BigInteger(), nullable=False),
         sa.Column("account_site_id", sa.BigInteger(), nullable=False),
-        sa.Column("fingerprint_id", sa.BigInteger(), nullable=False),
-        sa.Column("session_id", sa.Text(), nullable=True),
+        sa.Column("visitor_id", sa.Text(), nullable=False),
+        sa.Column("person_id", sa.BigInteger(), nullable=True),
+        sa.Column("session_id", sa.Text(), nullable=False),
+        sa.Column("fingerprint", sa.Text(), nullable=False),
         sa.Column(
             "type",
             sa.Enum(
@@ -59,21 +61,24 @@ def upgrade():
             ["account_site_id"], ["account_site.id"], name="event_account_site_id_fkey"
         ),
         sa.ForeignKeyConstraint(
-            ["fingerprint_id"], ["fingerprint.id"], name="event_fingerprint_id_fkey"
+            ["person_id"], ["person.id"], name="event_person_id_fkey"
         ),
     )
     op.create_index(op.f('ix_event_account_id'), 'event', ['account_id'], unique=False)
     op.create_index(op.f("ix_event_account_site_id"), "event", ["account_site_id"], unique=False)
-    op.create_index(op.f('ix_event_fingerprint_id'), 'event', ['fingerprint_id'], unique=False)
+    op.create_index(op.f('ix_event_visitor_id'), 'event', ['visitor_id'], unique=False)
+    op.create_index(op.f('ix_event_fingerprint'), 'event', ['fingerprint'], unique=False)
+
 
 def downgrade():
-    op.drop_index(op.f("ix_event_account_id"), table_name="event")
-    op.drop_index(op.f("ix_event_fingerprint_id"), table_name="event")
+    op.drop_index(op.f("ix_event_fingerprint"), table_name="event")
+    op.drop_index(op.f("ix_event_visitor_id"), table_name="event")
     op.drop_index(op.f("ix_event_account_site_id"), table_name="event")
+    op.drop_index(op.f("ix_event_account_id"), table_name="event")
 
-    op.drop_constraint("event_account_id_fkey", "event")
-    op.drop_constraint("event_fingerprint_id_fkey", "event")
+    op.drop_constraint("event_person_id_fkey", "event")
     op.drop_constraint("event_account_site_id_fkey", "event")
+    op.drop_constraint("event_account_id_fkey", "event")
 
     op.drop_table("event")
     op.execute("DROP TYPE IF EXISTS eventtypeenum")

@@ -10,23 +10,21 @@ interface ScribeFormType {
 interface MpDataProps {
   accountId: string | null
   accountSiteId: string | null
-  personId: string | null
   accountStatus: string
   lastVerified: number | null,
-  fingerprint: string | null,
-  sessionId: string | null,
 }
 
 export interface MagicPixelType {
   apiDomain: string
+  fingerprint: string | null
   mpData: MpDataProps
   authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
   authenticateAccountId: () => Promise<boolean>
   clearStorage: () => void
   getLocalStorageData: () => MpDataProps | null
-  getSessionStorageData: () => string | null
+  // getSessionStorageData: () => string | null
   setLocalStorageData: (data: MpDataProps) => void
-  setSessionStorageData: (sid: string) => void
+  // setSessionStorageData: (sid: string) => void
   trackEvent: (scribeEvent: any) => void
 }
 
@@ -60,12 +58,9 @@ interface ScribeEventType {
 }
 
 const defaultMpData = {
-  sessionId: null,
   accountId: null,
   accountSiteId: null,
   accountStatus: 'inactive',
-  personId: null,
-  fingerprint: null,
   lastVerified: null
 }
 
@@ -75,19 +70,18 @@ const fpPromise = FingerprintJS.load()
 
 export default class MagicPixel {
   apiDomain: string
+  fingerprint: string | null
   mpData: MpDataProps
 
 
   constructor(accountId: string | null, accountSiteId: string | null) {
     this.apiDomain = 'http://localhost:5000/dev'
+    this.fingerprint = null
     this.mpData = {
       accountId: accountId,
       accountSiteId: accountSiteId,
       accountStatus: 'inactive',
-      personId: null,
-      fingerprint: null,
       lastVerified: null,
-      sessionId: null
     }
   }
 
@@ -112,20 +106,20 @@ export default class MagicPixel {
     localStorage.removeItem('mp')
   }
 
-  _removeSessionMpData(): void {
-    this.mpData.sessionId = null
-    sessionStorage.removeItem('mp_sid')
-  }
+  // _removeSessionMpData(): void {
+  //   this.mpData.sessionId = null
+  //   sessionStorage.removeItem('mp_sid')
+  // }
 
   _setMpData(data: MpDataProps): boolean {
     this.mpData = data
     return this.mpData === data
   }
 
-  _setSessionMpData(data: string | null): boolean {
-    this.mpData.sessionId = data
-    return this.mpData.sessionId === data
-  }
+  // _setSessionMpData(data: string | null): boolean {
+  //   this.mpData.sessionId = data
+  //   return this.mpData.sessionId === data
+  // }
 
   async _fingerprint() {
     const fp = await fpPromise
@@ -143,29 +137,29 @@ export default class MagicPixel {
    return mpLocalStorageData
   }
 
-  getSessionStorageData() {
-    const sid = sessionStorage.getItem('mp_sid')
-    if (sid) {
-      const parsedSessionData = JSON.parse(sid)
-      this._setSessionMpData(parsedSessionData)
-      return parsedSessionData
-    }
-    return sid
-  }
+  // getSessionStorageData() {
+  //   const sid = sessionStorage.getItem('mp_sid')
+  //   if (sid) {
+  //     const parsedSessionData = JSON.parse(sid)
+  //     this._setSessionMpData(parsedSessionData)
+  //     return parsedSessionData
+  //   }
+  //   return sid
+  // }
 
   setLocalStorageData(data: MpDataProps): void {
     this._setMpData(data)
     localStorage.setItem('mp', JSON.stringify(data))
   }
 
-  setSessionStorageData(sid: string): void {
-    this._setSessionMpData(sid)
-    sessionStorage.setItem('mp_sid', sid)
-  }
+  // setSessionStorageData(sid: string): void {
+  //   this._setSessionMpData(sid)
+  //   sessionStorage.setItem('mp_sid', sid)
+  // }
 
   clearStorage(): void {
     this._removeMpData()
-    this._removeSessionMpData()
+    // this._removeSessionMpData()
   }
 
   /**
@@ -191,8 +185,7 @@ export default class MagicPixel {
         ...event,
         accountId: this.mpData?.accountId,
         accountSiteId: this.mpData?.accountSiteId,
-        personId: this.mpData?.personId,
-        fingerprint: this.mpData?.fingerprint
+        fingerprint: this.fingerprint
       }
 
       console.log({ accountEvent })
@@ -220,16 +213,15 @@ export default class MagicPixel {
    */
   async authenticateAccountId(): Promise<boolean> {
     console.log({ mpData: this.mpData})
-    if (!this.mpData.fingerprint) {
-      this.mpData.fingerprint = await this._fingerprint()
+
+    if (!this.fingerprint) {
+      this.fingerprint = await this._fingerprint()
     }
     if (this.mpData.accountId && this.mpData.accountSiteId) {
       try {
         const jsonBody = JSON.stringify({
           accountId: this.mpData.accountId,
           accountSiteId: this.mpData.accountSiteId,
-          personId: this.mpData.personId,
-          fingerprint: this.mpData.fingerprint
         })
 
         const accountData = await this._apiRequest(
@@ -241,14 +233,12 @@ export default class MagicPixel {
           ...this.mpData,
           accountId: this.mpData.accountId,
           accountSiteId: this.mpData.accountSiteId,
-          personId: accountData.personId,
           accountStatus: accountData.accountStatus,
           lastVerified: Date.now(),
         }
 
-          const sessionId = JSON.stringify(uuidv4())
           this.setLocalStorageData(localStorageData)
-          this.setSessionStorageData(sessionId)
+          // this.setSessionStorageData(sessionId)
 
           return localStorageData.accountStatus === 'active'
       } catch (e) {
@@ -301,6 +291,9 @@ export default class MagicPixel {
         console.debug(`MP: Re-authenticating account id ${this.mpData.accountId}`)
         return await this.authenticateAccountId()
       } else {
+        if (!this.fingerprint) {
+          this.fingerprint = await this._fingerprint()
+        }
         return true
       }
     }
@@ -314,8 +307,8 @@ export default class MagicPixel {
    */
   async authenticateAccount(): Promise<boolean> {
     const mpLocalStorageData = this.getLocalStorageData()
-    const mpSessionID = this.getSessionStorageData()
-    if (!mpLocalStorageData || !mpSessionID) {
+    // const mpSessionID = this.getSessionStorageData()
+    if (!mpLocalStorageData) {
       console.debug(`MP: Invalid browser data. Authenticating account id ${this.mpData.accountId}`)
       // Call verification service to check account status and other data
       return await this.authenticateAccountId()

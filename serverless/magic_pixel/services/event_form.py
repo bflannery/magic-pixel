@@ -4,7 +4,7 @@ from magic_pixel import logger
 from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum
 from magic_pixel.db import db
 from magic_pixel.models import EventForm
-from magic_pixel.models.person import Fingerprint
+from magic_pixel.models.person import Fingerprint, Person, Alias
 from magic_pixel.services import person as person_service, event as event_service
 from magic_pixel.utility import is_valid_email, is_valid_uuid
 
@@ -208,56 +208,112 @@ def ingest_event_form(parsed_event_form):
 
 
 def ingest_form_event(
-    account_id, parsed_event, event_person, event_person_fingerprint, event_form
+    account_id, parsed_event, event_form
 ):
     parsed_event_form = parse_event_form(event_form)
     event_forms_fields = parsed_event_form["form_fields"]
-    form_fields_map = build_form_field_map(event_forms_fields)
+    form_id = parsed_event_form["form_id"]
+    visitor_id = parsed_event["visitor_id"]
+    event_person = Person.query.join(Alias).filter(Alias.visitor_id == visitor_id).first()
 
-    # Check if form has an email field to try and identify person
-    email_form_key = form_fields_map.get(AttributeTypeEnum.EMAIL)
-    if email_form_key:
-        # Check for person by email
-        form_email_value = event_forms_fields[email_form_key]
-        event_person_email = event_person.email
-        person_by_email = person_service.get_person_by_email(
-            account_id, form_email_value
-        )
-        if person_by_email and person_by_email != event_person:
-            # If not email or emails are the same, use person by email to save event
-            if not event_person_email:
-                event_person = person_by_email
+    if not event_person:
+        form_fields_map = build_form_field_map(event_forms_fields)
 
-                # Get person by emails fingerprints
-                person_by_email_fingerprints = (
-                    [p.value for p in person_by_email.fingerprints]
-                    if person_by_email.fingerprints
-                    else None
-                )
+        # Check if form has an email field to try and identify person
+        email_form_key = form_fields_map.get(AttributeTypeEnum.EMAIL)
+        if email_form_key:
+            # Check for person by email
+            form_email_value = event_forms_fields[email_form_key]
+            event_person_email = event_person.email
+            person_by_email = person_service.get_person_by_email(
+                account_id, form_email_value
+            )
+            if person_by_email and person_by_email != event_person:
+                # If not email or emails are the same, use person by email to save event
+                if not event_person_email:
+                    event_person = person_by_email
 
-                # Check if person by email has the event fingerprint, add it if not
-                if event_person_fingerprint.value not in person_by_email_fingerprints:
-                    Fingerprint(
-                        person=person_by_email, value=event_person_fingerprint.value
-                    ).save()
-                    db.session.commit()
+                    # Get person by emails fingerprints
+                    person_by_email_fingerprints = (
+                        [p.value for p in person_by_email.fingerprints]
+                        if person_by_email.fingerprints
+                        else None
+                    )
+
+                    # Check if person by email has the event fingerprint, add it if not
+                    if event_person_fingerprint.value not in person_by_email_fingerprints:
+                        Fingerprint(
+                            person=person_by_email, value=event_person_fingerprint.value
+                        ).save()
+                        db.session.commit()
 
     # Create new event
     new_event = event_service.save_event(
-        account_id, event_person_fingerprint.id, parsed_event
+        account_id, parsed_event, event_person.id
     )
 
     # Get Existing or Create new EventForm
-    event_form = EventForm.query.filter_by(form_id=parsed_event_form["form_id"]).first()
+    event_form = EventForm.query.filter_by(form_id=form_id).first()
     if not event_form:
         # Create new one
-        event_form = save_event_form(new_event.id, parsed_event_form)
+        save_event_form(new_event.id, parsed_event_form)
 
-    # Save person and person attributes
-    person_service.save_account_person_attributes(
-        account_id,
-        event_person,
-        event_form.id,
-        event_forms_fields,
-        form_fields_map,
-    )
+    return event_person
+
+
+
+
+# def ingest_form_event_og(
+#     account_id, parsed_event, event_person, event_person_fingerprint, event_form
+# ):
+#     parsed_event_form = parse_event_form(event_form)
+#     event_forms_fields = parsed_event_form["form_fields"]
+#     form_fields_map = build_form_field_map(event_forms_fields)
+#
+#     # Check if form has an email field to try and identify person
+#     email_form_key = form_fields_map.get(AttributeTypeEnum.EMAIL)
+#     if email_form_key:
+#         # Check for person by email
+#         form_email_value = event_forms_fields[email_form_key]
+#         event_person_email = event_person.email
+#         person_by_email = person_service.get_person_by_email(
+#             account_id, form_email_value
+#         )
+#         if person_by_email and person_by_email != event_person:
+#             # If not email or emails are the same, use person by email to save event
+#             if not event_person_email:
+#                 event_person = person_by_email
+#
+#                 # Get person by emails fingerprints
+#                 person_by_email_fingerprints = (
+#                     [p.value for p in person_by_email.fingerprints]
+#                     if person_by_email.fingerprints
+#                     else None
+#                 )
+#
+#                 # Check if person by email has the event fingerprint, add it if not
+#                 if event_person_fingerprint.value not in person_by_email_fingerprints:
+#                     Fingerprint(
+#                         person=person_by_email, value=event_person_fingerprint.value
+#                     ).save()
+#                     db.session.commit()
+#
+#     # Create new event
+#     new_event = event_service.save_event(
+#         account_id, event_person_fingerprint.id, parsed_event
+#     )
+#
+#     # Get Existing or Create new EventForm
+#     event_form = EventForm.query.filter_by(form_id=parsed_event_form["form_id"]).first()
+#     if not event_form:
+#         # Create new one
+#         event_form = save_event_form(new_event.id, parsed_event_form)
+#
+#     # Save person and person attributes
+#     person_service.save_account_person_attributes(
+#         account_id,
+#         event_person,
+#         event_form.id,
+#         event_forms_fields,
+#         form_fields_map,
+#     )

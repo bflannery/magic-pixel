@@ -9,13 +9,6 @@ class Event(WithSoftDelete, Model):
     account_id = db.Column(db.BigInteger, db.ForeignKey("account.id"), index=True)
     account = db.relationship("Account", foreign_keys=[account_id], backref="events")
 
-    fingerprint_id = db.Column(
-        db.BigInteger, db.ForeignKey("fingerprint.id"), index=True
-    )
-    fingerprint = db.relationship(
-        "Fingerprint", foreign_keys=[fingerprint_id], backref="events"
-    )
-
     account_site_id = db.Column(
         db.BigInteger, db.ForeignKey("account_site.id"), index=True
     )
@@ -23,5 +16,15 @@ class Event(WithSoftDelete, Model):
         "AccountSite", foreign_keys=[account_site_id], backref="events"
     )
 
-    session_id = db.Column(db.Text, nullable=True)
+    visitor_id = db.Column(db.Text, nullable=False)
+
+    person_id = db.Column(
+        db.BigInteger, db.ForeignKey("person.id"), index=True, nullable=True
+    )
+
+    person = db.relationship(
+        "Person", foreign_keys=[person_id], backref="persons"
+    )
+    session_id = db.Column(db.Text, nullable=False)
+    fingerprint = db.Column(db.Text, nullable=False, index=True)
     type = db.Column(db.Enum(EventTypeEnum), nullable=False)

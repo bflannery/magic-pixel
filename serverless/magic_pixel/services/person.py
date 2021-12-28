@@ -53,21 +53,23 @@ def save_account_person_attributes(
         raise e
 
 
-def identify_person(account_id, event_fingerprint, person_id=None):
-    # Look up person by id
-    if person_id:
-        person = Person.get_by_mp_id(person_id)
-        if not person:
-            raise Exception(f"No person found with id {person_id}")
-        # Check if fingerprint exists already on the person, if not create a new one
-        person_fingerprints = (
-            [p.value for p in person.fingerprints] if person.fingerprints else None
-        )
-        if event_fingerprint not in person_fingerprints:
-            Fingerprint(person=person, value=event_fingerprint).save()
-            db.session.commit()
-        return person
+def identify_person(account_id, distinct_user_id, event_fingerprint):
+    confidence = 0
 
+    # Lookup person by user_id
+    event_person = Person.query.filter_by(distinct_id=distinct_user_id).first()
+
+    if not event_person:
+        # We have no idea who you are, create a new person and fingerprint
+        event_person = Person(account_id=account_id).save()
+        confidence = 100
+
+    # TODO: Add Confidence Score Logic with fingerprint
+
+    return (event_person, confidence)
+
+
+def identify_person_og(account_id, event_fingerprint):
     # Lookup person by fingerprint
     event_person = (
         Person.query.join(Fingerprint, Fingerprint.person_id == Person.id)

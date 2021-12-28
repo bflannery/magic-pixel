@@ -11,9 +11,10 @@ from magic_pixel.models import (
     EventLocale,
     EventSource,
     EventTarget,
-    Account,
+    Account, Person,
 )
 from magic_pixel.lib.aws_sqs import event_queue
+from magic_pixel.models.person import Alias
 from magic_pixel.services import (
     event_form as event_form_service,
     person as person_service,
@@ -43,7 +44,6 @@ def _parse_event(event: Dict) -> Optional[Dict]:
 
     account_id = Account.db_id_from_mp_id(account_mp_id)
     account_site_id = AccountSite.db_id_from_mp_id(account_site_id)
-    person_id = event.get("personId")
     event_type = event.get("event")
     if event_type not in EVENT_TYPE_MAP:
         raise Exception("Unknown event type. Event type not in event type map.")
@@ -52,10 +52,10 @@ def _parse_event(event: Dict) -> Optional[Dict]:
         "created_at": event.get("timestamp"),
         "account_id": account_id,
         "account_site_id": account_site_id,
-        "person_id": person_id,
-        "type": EVENT_TYPE_MAP[event_type],
-        "fingerprint": event.get("fingerprint"),
+        "visitor_id": event.get("visitorId"),
         "session_id": event.get("sessionId"),
+        "fingerprint": event.get("fingerprint"),
+        "type": EVENT_TYPE_MAP[event_type],
     }
 
 
@@ -118,15 +118,17 @@ def _parse_event_target(event_id: str, event_target: dict) -> dict:
     }
 
 
-def save_event(account_id: int, fingerprint_id: int, event: dict):
+def save_event(account_id: int, event: dict, person_id=None):
     try:
         new_event = Event(
             created_at=event["created_at"],
             account_id=account_id,
             account_site_id=event["account_site_id"],
-            fingerprint_id=fingerprint_id,
-            type=event["type"],
+            visitor_id=event["visitor_id"],
+            person_id=person_id,
             session_id=event["session_id"],
+            fingerprint=event["fingerprint"],
+            type=event["type"],
         ).save()
         db.session.commit()
         return new_event
@@ -215,118 +217,6 @@ def save_event_target_message(event_target: dict) -> bool:
         raise e
 
 
-def query_events():
-    try:
-        return Event.query.all()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_event(event_id):
-    try:
-        return Event.query.filter_by(event_id).first()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_events_browsers():
-    try:
-        return EventBrowser.query.all()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_event_browser(event_id):
-    try:
-        return EventBrowser.query.filter_by(event_id).first()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_events_documents():
-    try:
-        return EventDocument.query.all()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_event_document(event_id):
-    try:
-        return EventDocument.query.filter_by(event_id).first()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_events_forms():
-    try:
-        return EventForm.query.all()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_event_form(event_id):
-    try:
-        return EventForm.query.filter_by(event_id).first()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_events_locales():
-    try:
-        return EventLocale.query.all()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_event_locale(event_id):
-    try:
-        return EventLocale.query.filter_by(event_id).first()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_events_sources():
-    try:
-        return EventSource.query.all()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_event_source(event_id):
-    try:
-        return EventSource.query.filter_by(event_id).first()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_events_targets():
-    try:
-        return EventTarget.query.all()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
-def query_event_target(event_id):
-    try:
-        return EventTarget.query.filter_by(event_id).first()
-    except Exception as e:
-        logger.log_exception(e)
-        raise Exception
-
-
 def queue_event_ingestion(event: dict) -> bool:
     return event_queue.send_message(event)
 
@@ -378,33 +268,19 @@ def ingest_event_message(event) -> bool:
         parsed_event = _parse_event(event)
         account_id = parsed_event["account_id"]
 
-        event_fingerprint = parsed_event["fingerprint"]
-        event_person_id = parsed_event["person_id"]
-
-        event_person = person_service.identify_person(
-            account_id, event_fingerprint, event_person_id
-        )
-        event_person_fingerprint = next(
-            (epf for epf in event_person.fingerprints if event_person.fingerprints),
-            None,
-        )
-
         event_form = event.get("form")
         if event_form:
             event_form_service.ingest_form_event(
                 account_id,
                 parsed_event,
-                event_person,
-                event_person_fingerprint,
                 event_form,
             )
-
         else:
-            if not event_person:
-                raise Exception(f"No person found for event.")
+            visitor_id = parsed_event["visitor_id"]
+            event_person = Person.query.join(Alias).filter(Alias.visitor_id == visitor_id).first()
 
             # Create new event
-            new_event = save_event(account_id, event_person_fingerprint.id, parsed_event)
+            new_event = save_event(account_id, parsed_event, event_person)
             ingest_event_details(event, new_event.id)
 
         logger.log_info("New event saved")
@@ -421,25 +297,34 @@ def ingest_event_message(event) -> bool:
 #         parsed_event = _parse_event(event)
 #         account_id = parsed_event["account_id"]
 #
+#         user_id = parsed_event["fingerprint"]
 #         event_fingerprint = parsed_event["fingerprint"]
-#         event_person_id = parsed_event["person_id"]
-#         # Look up person by id
 #
 #         event_person = person_service.identify_person(
-#             account_id, event_fingerprint, event_person_id
+#             account_id, user_id, event_fingerprint
 #         )
-#         if not event_person:
-#             raise Exception(f"No person found for event.")
 #
-#         # Create new event
-#         new_event = save_event(account_id, event_person.id, parsed_event)
+#         event_person_fingerprint = next(
+#             (epf for epf in event_person.fingerprints if event_person.fingerprints),
+#             None,
+#         )
+#
 #         event_form = event.get("form")
-#
 #         if event_form:
-#             event_form_service.ingest_event_form(
-#                 account_id, event_person.id, new_event.id, event
+#             event_form_service.ingest_form_event(
+#                 account_id,
+#                 parsed_event,
+#                 event_person,
+#                 event_person_fingerprint,
+#                 event_form,
 #             )
+#
 #         else:
+#             if not event_person:
+#                 raise Exception(f"No person found for event.")
+#
+#             # Create new event
+#             new_event = save_event(account_id, event_person_fingerprint.id, parsed_event)
 #             ingest_event_details(event, new_event.id)
 #
 #         logger.log_info("New event saved")

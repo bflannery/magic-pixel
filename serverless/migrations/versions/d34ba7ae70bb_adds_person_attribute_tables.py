@@ -34,10 +34,16 @@ def upgrade():
         ),
         sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("account_id", sa.BigInteger(), nullable=False),
+        sa.Column("distinct_id", sa.Text(), nullable=False),
         sa.Column("email", sa.Text(), nullable=True),
         sa.Column("username", sa.Text(), nullable=True),
         sa.Column("first_name", sa.Text(), nullable=True),
         sa.Column("last_name", sa.Text(), nullable=True),
+        sa.Column(
+            "attributes",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=True,
+        ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
             ["account_id"], ["account.id"], name="person_account_id_fkey"
@@ -48,6 +54,7 @@ def upgrade():
         op.f("ix_person_account_id"), "person", ["account_id"], unique=False
     )
     op.create_index(op.f('ix_person_email'), 'person', ['email'], unique=True)
+    op.create_index(op.f('ix_person_distinct_id'), 'person', ['distinct_id'], unique=True)
 
     op.execute("DROP TYPE IF EXISTS attributetypeenum")
     op.create_table(
