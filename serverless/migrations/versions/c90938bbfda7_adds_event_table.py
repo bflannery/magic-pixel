@@ -1,7 +1,7 @@
 """adds event table
 
 Revision ID: c90938bbfda7
-Revises: 763e460bce3c
+Revises: a016a16f2341
 Create Date: 2021-09-22 22:44:23.847065
 
 """
@@ -11,7 +11,7 @@ from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "c90938bbfda7"
-down_revision = "763e460bce3c"
+down_revision = "a016a16f2341"
 branch_labels = None
 depends_on = None
 

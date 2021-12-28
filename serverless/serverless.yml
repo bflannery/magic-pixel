@@ -177,6 +177,14 @@ functions:
       - http:
           path: /authentication
           method: post
+  identify:
+    handler: lambdas.identify
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /identify
+          method: post
   collection:
     handler: lambdas.collection
     timeout: 30

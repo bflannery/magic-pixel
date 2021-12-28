@@ -54,26 +54,8 @@ def upgrade():
         op.f("ix_event_form_event_id"), "event_form", ["event_id"], unique=False
     )
 
-    op.add_column(
-        "attribute", sa.Column("event_form_id", sa.BigInteger(), nullable=False)
-    )
-    op.create_index(
-        op.f("ix_attribute_event_form_id"), "attribute", ["event_form_id"], unique=False
-    )
-    op.create_foreign_key(
-        "attribute_event_form_id_fkey",
-        "attribute",
-        "event_form",
-        ["event_form_id"],
-        ["id"],
-    )
-
 
 def downgrade():
-    op.drop_constraint("attribute_event_form_id_fkey", "attribute")
-    op.drop_index(op.f("ix_attribute_event_form_id"), table_name="attribute")
-    op.drop_column("attribute", "event_form_id")
-
     op.drop_constraint("event_form_event_id_fkey", "event_form")
     op.drop_index(op.f("ix_event_form_event_id"), table_name="event_form")
     op.drop_table("event_form")

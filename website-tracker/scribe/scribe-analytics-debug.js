@@ -1050,21 +1050,10 @@
       };
 
       Env.getLocaleData = function() {
-        // "Mon Apr 15 2013 12:21:35 GMT-0600 (MDT)"
-        //
-        var results = new RegExp('([A-Z]+-[0-9]+) \\(([A-Z]+)\\)').exec((new Date()).toString());
-
-        var gmtOffset, timezone;
-
-        if (results && results.length >= 3) {
-          gmtOffset = results[1];
-          timezone  = results[2];
-        }
-
+        var timezone = Intl.DateTimeFormat().resolvedOptions().timeZone;
         return ({
-          language: navigator.systemLanguage || navigator.userLanguage || navigator.language,
+          language: navigator.language,
           timezoneOffset: (new Date()).getTimezoneOffset(),
-          gmtOffset: gmtOffset,
           timezone:  timezone
         });
       };
@@ -1405,7 +1394,8 @@
         }
 
         // Track page view
-        if(this.options.trackPageView) {
+        if(this.options.trackPageViews) {
+          console.log('Scribe: Track Page Views')
           Events.onready(function() {
             // Track page view, but only after the DOM has loaded:
             self.pageview();
@@ -1725,6 +1715,7 @@
        *
        */
       Scribe.prototype.pageview = function(url, success, failure) {
+        console.log('Tracking pageview')
         url = url || document.location;
 
         this.track('page_view', Util.merge(Env.getPageloadData(), {url: Util.parseUrl(url + '')}), success, failure);

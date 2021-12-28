@@ -7,4 +7,4 @@ from .event_form import EventForm
 from .event_locale import EventLocale
 from .event_source import EventSource
 from .event_target import EventTarget
-from .person import Person, PersonAttribute, Attribute
+from .person import Person

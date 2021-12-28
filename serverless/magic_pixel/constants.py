@@ -31,13 +31,13 @@ class DateRangeFilterUnits(enum.Enum):
 
 
 class EventTypeEnum(enum.Enum):
-    PAGE_VIEW = 'page_view'
-    RELOAD = 'reload'
-    REDIRECT = 'redirect'
-    CLICK = 'click'
-    FORM_SUBMIT = 'form_submit'
-    JUMP = 'jump'
-    ENGAGE = 'engage'
+    PAGE_VIEW = "page_view"
+    RELOAD = "reload"
+    REDIRECT = "redirect"
+    CLICK = "click"
+    FORM_SUBMIT = "form_submit"
+    JUMP = "jump"
+    ENGAGE = "engage"
 
 
 class EventFormTypeEnum(enum.Enum):

@@ -11,20 +11,22 @@ interface MpDataProps {
   accountId: string | null
   accountSiteId: string | null
   accountStatus: string
-  lastVerified: number | null,
+  lastVerified: number | null
+  distinctUserId: string | null
+  visitorId: string | null
 }
 
 export interface MagicPixelType {
   apiDomain: string
   fingerprint: string | null
-  mpData: MpDataProps
+  context: MpDataProps
+  init: (accountId: string | null, accountSiteId: string | null) => Promise<void>
+  identify: (distinctUserId: string) => Promise<boolean>
   authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
   authenticateAccountId: () => Promise<boolean>
   clearStorage: () => void
   getLocalStorageData: () => MpDataProps | null
-  // getSessionStorageData: () => string | null
   setLocalStorageData: (data: MpDataProps) => void
-  // setSessionStorageData: (sid: string) => void
   trackEvent: (scribeEvent: any) => void
 }
 
@@ -61,7 +63,9 @@ const defaultMpData = {
   accountId: null,
   accountSiteId: null,
   accountStatus: 'inactive',
-  lastVerified: null
+  lastVerified: null,
+  distinctUserId: null,
+  visitorId: null
 }
 
 // Initialize an agent at application startup.
@@ -71,18 +75,29 @@ const fpPromise = FingerprintJS.load()
 export default class MagicPixel {
   apiDomain: string
   fingerprint: string | null
-  mpData: MpDataProps
+  sessionId: string | null
+  context: MpDataProps
 
 
-  constructor(accountId: string | null, accountSiteId: string | null) {
+  constructor() {
     this.apiDomain = 'http://localhost:5000/dev'
     this.fingerprint = null
-    this.mpData = {
-      accountId: accountId,
-      accountSiteId: accountSiteId,
+    this.sessionId = null
+    this.context = {
+      accountId: null,
+      accountSiteId: null,
       accountStatus: 'inactive',
       lastVerified: null,
+      distinctUserId: null,
+      visitorId: null
     }
+  }
+
+  async init(accountId: string | null, accountSiteId: string | null) {
+    this.context.accountId = accountId
+    this.context.accountSiteId = accountSiteId
+    this.context.visitorId = uuidv4()
+    this.sessionId = uuidv4()
   }
 
   async _apiRequest(method: string, endpoint: string, body: BodyInit) {
@@ -102,28 +117,20 @@ export default class MagicPixel {
   }
 
   _removeMpData(): void {
-    this.mpData = defaultMpData
+    this.context = defaultMpData
     localStorage.removeItem('mp')
   }
 
-  // _removeSessionMpData(): void {
-  //   this.mpData.sessionId = null
-  //   sessionStorage.removeItem('mp_sid')
-  // }
-
   _setMpData(data: MpDataProps): boolean {
-    this.mpData = data
-    return this.mpData === data
+    this.context = data
+    return this.context === data
   }
 
-  // _setSessionMpData(data: string | null): boolean {
-  //   this.mpData.sessionId = data
-  //   return this.mpData.sessionId === data
-  // }
 
   async _fingerprint() {
     const fp = await fpPromise
     const result = await fp.get()
+    // const fingerprintTimezone = result.components.timezone.value
     return result.visitorId
   }
 
@@ -137,29 +144,36 @@ export default class MagicPixel {
    return mpLocalStorageData
   }
 
-  // getSessionStorageData() {
-  //   const sid = sessionStorage.getItem('mp_sid')
-  //   if (sid) {
-  //     const parsedSessionData = JSON.parse(sid)
-  //     this._setSessionMpData(parsedSessionData)
-  //     return parsedSessionData
-  //   }
-  //   return sid
-  // }
-
   setLocalStorageData(data: MpDataProps): void {
     this._setMpData(data)
     localStorage.setItem('mp', JSON.stringify(data))
   }
 
-  // setSessionStorageData(sid: string): void {
-  //   this._setSessionMpData(sid)
-  //   sessionStorage.setItem('mp_sid', sid)
-  // }
-
   clearStorage(): void {
     this._removeMpData()
-    // this._removeSessionMpData()
+  }
+
+  /**
+   * @function: identify
+   * @description: The identify function will make an api call to server to create a new person with
+   * current visitor UUID. On success, the function will set the MP context distinct user id and update
+   * local storage. All future requests will use the new distinct user id to identify events
+   */
+  async identify(distinctUserId: string): Promise<boolean> {
+    try {
+      const body = {
+        accountId: this.context.accountId,
+        distinctUserId,
+        visitorId: this.context.visitorId,
+      }
+      await this._apiRequest('POST', `${this.apiDomain}/identify`, JSON.stringify(body))
+      this.context.distinctUserId = distinctUserId
+      this.setLocalStorageData(this.context)
+      return true
+    } catch (e) {
+      console.error('MP: Error trying to identify user.')
+      return false
+    }
   }
 
   /**
@@ -169,12 +183,12 @@ export default class MagicPixel {
    */
   async trackEvent(scribeEvent: ScribeEventType): Promise<boolean> {
     try {
-      if (!this.mpData?.accountId || !this.mpData?.accountSiteId) {
+      if (!this.context?.accountId || !this.context?.accountSiteId) {
         console.warn("MP: Error: Missing ids, cannot track event")
         return false
       }
 
-      if (this.mpData?.accountStatus !== 'active') {
+      if (this.context?.accountStatus !== 'active') {
         console.warn("MP: Error: Account is not active, cannot track event")
         return false
       }
@@ -183,9 +197,11 @@ export default class MagicPixel {
 
       let accountEvent = {
         ...event,
-        accountId: this.mpData?.accountId,
-        accountSiteId: this.mpData?.accountSiteId,
-        fingerprint: this.fingerprint
+        accountId: this.context?.accountId,
+        accountSiteId: this.context?.accountSiteId,
+        fingerprint: this.fingerprint,
+        visitorId: this.context?.visitorId,
+        sessionId: this.sessionId
       }
 
       console.log({ accountEvent })
@@ -212,16 +228,16 @@ export default class MagicPixel {
    * the function will update the MP class object data and local/session storage
    */
   async authenticateAccountId(): Promise<boolean> {
-    console.log({ mpData: this.mpData})
+    console.log({ mpData: this.context})
 
     if (!this.fingerprint) {
       this.fingerprint = await this._fingerprint()
     }
-    if (this.mpData.accountId && this.mpData.accountSiteId) {
+    if (this.context.accountId && this.context.accountSiteId) {
       try {
         const jsonBody = JSON.stringify({
-          accountId: this.mpData.accountId,
-          accountSiteId: this.mpData.accountSiteId,
+          accountId: this.context.accountId,
+          accountSiteId: this.context.accountSiteId,
         })
 
         const accountData = await this._apiRequest(
@@ -230,9 +246,9 @@ export default class MagicPixel {
         )
 
         const localStorageData = {
-          ...this.mpData,
-          accountId: this.mpData.accountId,
-          accountSiteId: this.mpData.accountSiteId,
+          ...this.context,
+          accountId: this.context.accountId,
+          accountSiteId: this.context.accountSiteId,
           accountStatus: accountData.accountStatus,
           lastVerified: Date.now(),
         }
@@ -259,16 +275,19 @@ export default class MagicPixel {
 
   async authenticateHostData(): Promise<boolean> {
     // If no mpData kill it
-    if (!this.mpData) {
+    if (!this.context) {
       return false
     }
 
     // If account ids don't match, re-authenticate and update any stale data
-    if (this.mpData.accountId !== this.mpData.accountId) {
+    if (this.context.accountId !== this.context.accountId) {
       return await this.authenticateAccountId()
     }
 
-    const { lastVerified, accountStatus } = this.mpData
+    // If current location is different from stored fingerprint, get new fingerprint
+
+
+    const { lastVerified, accountStatus } = this.context
     const now = new Date().getTime()
     const lastVerifiedTimeStamp = lastVerified || new Date().getTime()
     const lastVerifiedHours = getDiffFromTimestamp(now, lastVerifiedTimeStamp, 'hours')
@@ -288,7 +307,7 @@ export default class MagicPixel {
     // If account is active but hasn't been verified for over an hour, re-authenticate again
     if (accountStatus === 'active') {
       if (lastVerifiedHours >= 1) {
-        console.debug(`MP: Re-authenticating account id ${this.mpData.accountId}`)
+        console.debug(`MP: Re-authenticating account id ${this.context.accountId}`)
         return await this.authenticateAccountId()
       } else {
         if (!this.fingerprint) {
@@ -309,11 +328,11 @@ export default class MagicPixel {
     const mpLocalStorageData = this.getLocalStorageData()
     // const mpSessionID = this.getSessionStorageData()
     if (!mpLocalStorageData) {
-      console.debug(`MP: Invalid browser data. Authenticating account id ${this.mpData.accountId}`)
+      console.debug(`MP: Invalid browser data. Authenticating account id ${this.context.accountId}`)
       // Call verification service to check account status and other data
       return await this.authenticateAccountId()
     } else {
-      console.debug(`MP: Authenticating host storage data for account id ${this.mpData.accountId}`)
+      console.debug(`MP: Authenticating host storage data for account id ${this.context.accountId}`)
       return await this.authenticateHostData()
     }
   }

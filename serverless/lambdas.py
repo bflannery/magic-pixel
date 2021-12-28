@@ -4,11 +4,13 @@ import json
 from app import app
 from magic_pixel import logger
 from magic_pixel.lib.aws_sqs import RetryException
+from magic_pixel.models import Account
 from magic_pixel.services.account import (
     verify_account_status,
     validate_event_params_and_get_account,
 )
 from magic_pixel.services.event import queue_event_ingestion, ingest_event_message
+from magic_pixel.services.person import identify_person
 
 
 def serverless_function(func):
@@ -149,6 +151,44 @@ def ingestion(event, context):
                 {
                     "status": "success",
                     "description": f"Messages successfully consumed from event queue.",
+                }
+            ),
+        }
+
+
+@serverless_function
+def identify(event, context):
+    logger.log_info(f"Identify Event: {event}")
+    try:
+        body = event.get("body")
+        if not body:
+            raise Exception("Event has no body object.")
+        parsed_body = json.loads(body)
+        logger.log_info(f"Identify Body: {parsed_body}")
+
+        account_mp_id = parsed_body.get("accountId")
+        distinct_user_id = parsed_body.get("distinctUserId")
+        visitor_id = parsed_body.get("visitorId")
+
+        account_id = Account.db_id_from_mp_id(account_mp_id)
+
+        identify_person(account_id, distinct_user_id, visitor_id)
+
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"status": "success"}),
+        }
+
+    except Exception as e:
+        logger.log_exception(e)
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(
+                {
+                    "status": "error",
+                    "description": "Internal server error.",
                 }
             ),
         }

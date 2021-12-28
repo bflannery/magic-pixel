@@ -7,17 +7,16 @@ from magic_pixel.models import (
     Event,
     EventBrowser,
     EventDocument,
-    EventForm,
     EventLocale,
     EventSource,
     EventTarget,
-    Account, Person,
+    Account,
+    Person,
 )
 from magic_pixel.lib.aws_sqs import event_queue
 from magic_pixel.models.person import Alias
 from magic_pixel.services import (
     event_form as event_form_service,
-    person as person_service,
 )
 from magic_pixel.utility import parse_url
 from magic_pixel.models.account import AccountSite
@@ -268,8 +267,9 @@ def ingest_event_message(event) -> bool:
         parsed_event = _parse_event(event)
         account_id = parsed_event["account_id"]
 
-        event_form = event.get("form")
-        if event_form:
+        event_type = event.get("event")
+        if event_type == "form_submit":
+            event_form = event.get("form")
             event_form_service.ingest_form_event(
                 account_id,
                 parsed_event,
@@ -277,10 +277,15 @@ def ingest_event_message(event) -> bool:
             )
         else:
             visitor_id = parsed_event["visitor_id"]
-            event_person = Person.query.join(Alias).filter(Alias.visitor_id == visitor_id).first()
+            event_person = (
+                Person.query.join(Alias)
+                .filter(Alias.original_distinct_id == visitor_id)
+                .first()
+            )
 
+            event_person_id = event_person.id if event_person else None
             # Create new event
-            new_event = save_event(account_id, parsed_event, event_person)
+            new_event = save_event(account_id, parsed_event, event_person_id)
             ingest_event_details(event, new_event.id)
 
         logger.log_info("New event saved")

@@ -1,5 +1,5 @@
 import {getHostId, getSiteId} from './utils'
-import MagicPixel  from "./magicPixel";
+import MagicPixel  from "./magicPixel"
 
 const script = document.currentScript
 
@@ -12,7 +12,10 @@ async function init() {
     return false
   }
 
-  const MP = new MagicPixel(hostId, siteId)
+  const MP = new MagicPixel
+
+  await MP.init(hostId, siteId)
+  console.log({ MP })
   window.MP = MP
   const accountIsActive = await MP.authenticateAccount()
 

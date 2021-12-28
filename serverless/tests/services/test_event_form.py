@@ -1,6 +1,6 @@
 import pytest
 from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum, EventTypeEnum
-from magic_pixel.models import Person, EventForm, Attribute, PersonAttribute
+from magic_pixel.models import Person, EventForm
 from magic_pixel.services.event_form import (
     get_form_type,
     build_form_field_map,
@@ -39,8 +39,6 @@ def test_build_form_field_map(account):
         anon_key: anon_values,
     }
     form_field_map = build_form_field_map(form_fields)
-    assert form_field_map[AttributeTypeEnum.LAST_NAME] == last_name_key
-    assert form_field_map[AttributeTypeEnum.FIRST_NAME] == first_name_key
     assert form_field_map[AttributeTypeEnum.EMAIL] == email_key
 
 
@@ -56,11 +54,3 @@ def test_ingest_event_form(account):
     ingest_event_form(account.id, event_person.id, db_event.id, mock_form_event)
     event_form = EventForm.query.filter_by(form_id=mock_form_uuid).first()
     assert event_form
-    form_attributes = Attribute.query.filter_by(event_form_id=event_form.id).all()
-    assert form_attributes
-    for form_attribute in form_attributes:
-        person_attribute = PersonAttribute.query.filter_by(
-            attribute_id=form_attribute.id
-        ).first()
-        assert person_attribute
-        assert person_attribute.person_id == event_person.id
