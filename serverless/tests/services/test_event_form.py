@@ -1,5 +1,5 @@
 import pytest
-from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum, EventTypeEnum
+from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum
 from magic_pixel.models import Person, EventForm
 from magic_pixel.services.event_form import (
     get_form_type,
@@ -49,7 +49,7 @@ def test_ingest_event_form(account):
     mock_form_event["personId"] = event_person.mp_id
     mock_form_uuid = mock_form_event["form"]["formId"]
     db_event = EventFactory(
-        account=account, person=event_person, type=EventTypeEnum.FORM_SUBMIT
+        account=account, person=event_person, type='form_submit'
     )
     ingest_event_form(account.id, event_person.id, db_event.id, mock_form_event)
     event_form = EventForm.query.filter_by(form_id=mock_form_uuid).first()

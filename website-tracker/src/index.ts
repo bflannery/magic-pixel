@@ -1,4 +1,4 @@
-import {getHostId, getSiteId} from './utils'
+import {createDOMMap, getHostId, getSiteId} from './utils'
 import MagicPixel  from "./magicPixel"
 
 const script = document.currentScript
@@ -15,9 +15,12 @@ async function init() {
   const MP = new MagicPixel
 
   await MP.init(hostId, siteId)
-  console.log({ MP })
+  
   window.MP = MP
   const accountIsActive = await MP.authenticateAccount()
+
+  const domMap = createDOMMap(document.body, false);
+  console.log(domMap);
 
   if (accountIsActive) {
     console.debug('MP: Account is active.')

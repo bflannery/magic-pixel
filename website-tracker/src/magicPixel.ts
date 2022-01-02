@@ -22,12 +22,15 @@ export interface MagicPixelType {
   context: MpDataProps
   init: (accountId: string | null, accountSiteId: string | null) => Promise<void>
   identify: (distinctUserId: string) => Promise<boolean>
+  track: (eventType: string, properties: object | null) => Promise<boolean>
   authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
   authenticateAccountId: () => Promise<boolean>
   clearStorage: () => void
   getLocalStorageData: () => MpDataProps | null
+  getSessionStorageData: () => string | null
   setLocalStorageData: (data: MpDataProps) => void
-  trackEvent: (scribeEvent: any) => void
+  setSessionStorageData: (sid: string) => void
+  trackScribeEvent: (scribeEvent: any) => void
 }
 
 interface ScribeFormType {
@@ -100,14 +103,25 @@ export default class MagicPixel {
     this.sessionId = uuidv4()
   }
 
-  async _apiRequest(method: string, endpoint: string, body: BodyInit) {
+  async _apiRequest(method: string, endpoint: string, body: object) {
     try {
+      if (!this.context?.accountId || !this.context?.accountSiteId) {
+        console.warn("MP: Error: Missing ids, cannot track event")
+        return false
+      }
+
+      if (this.context?.accountStatus !== 'active') {
+        console.warn("MP: Error: Account is not active, cannot track event")
+        return false
+      }
+
+      const jsonBody = JSON.stringify(body)
       const response = await fetch(endpoint, {
         method: method,
         headers: {
           'Content-Type': 'application/json',
         },
-        body: body
+        body: jsonBody
       })
       return response.json()
     } catch (e) {
@@ -121,11 +135,20 @@ export default class MagicPixel {
     localStorage.removeItem('mp')
   }
 
+  _removeSessionMpData(): void {
+    this.sessionId = null
+    sessionStorage.removeItem('mp_sid')
+  }
+
   _setMpData(data: MpDataProps): boolean {
     this.context = data
     return this.context === data
   }
 
+  _setSessionMpData(data: string | null): boolean {
+    this.sessionId = data
+    return this.sessionId === data
+  }
 
   async _fingerprint() {
     const fp = await fpPromise
@@ -144,20 +167,37 @@ export default class MagicPixel {
    return mpLocalStorageData
   }
 
+  getSessionStorageData() {
+    const sid = sessionStorage.getItem('mp_sid')
+    if (sid) {
+      const parsedSessionData = JSON.parse(sid)
+      this._setSessionMpData(parsedSessionData)
+      return parsedSessionData
+    }
+    return sid
+  }
+
   setLocalStorageData(data: MpDataProps): void {
     this._setMpData(data)
     localStorage.setItem('mp', JSON.stringify(data))
   }
 
+  setSessionStorageData(sid: string): void {
+    this._setSessionMpData(sid)
+    sessionStorage.setItem('mp_sid', sid)
+  }
+
   clearStorage(): void {
     this._removeMpData()
+    this._removeSessionMpData()
   }
 
   /**
    * @function: identify
-   * @description: The identify function will make an api call to server to create a new person with
-   * current visitor UUID. On success, the function will set the MP context distinct user id and update
-   * local storage. All future requests will use the new distinct user id to identify events
+   * @param {String} [distinctUserId] A string that uniquely identifies a visitor.
+   * @description: Identify a visitor with a unique ID to track their events and create a person.
+   * By default, unique visitors are tracked using a UUID generated the first time they visit the site.
+   * Should be called when you know the identity of the current visitor (i.e login or signup).
    */
   async identify(distinctUserId: string): Promise<boolean> {
     try {
@@ -166,7 +206,7 @@ export default class MagicPixel {
         distinctUserId,
         visitorId: this.context.visitorId,
       }
-      await this._apiRequest('POST', `${this.apiDomain}/identify`, JSON.stringify(body))
+      await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
       this.context.distinctUserId = distinctUserId
       this.setLocalStorageData(this.context)
       return true
@@ -177,22 +217,40 @@ export default class MagicPixel {
   }
 
   /**
-   * @function: trackEvent
-   * @description: The trackEvent function will make an api call to send a scribe event
-   * to an event queue if MP object is in a valid state
+   * @function: track
+   * @param {String} [eventType] A string that identifies an event. Ex. "Sign Up"
+   * @param {Object} [properties] A set of properties to include with the event you're sending.
+   * These describe the details about the visitor and/or event.
+   * @description: track an visitor and/or event details
    */
-  async trackEvent(scribeEvent: ScribeEventType): Promise<boolean> {
+  async track(eventType: string, properties: object | null): Promise<boolean> {
     try {
-      if (!this.context?.accountId || !this.context?.accountSiteId) {
-        console.warn("MP: Error: Missing ids, cannot track event")
-        return false
+      const customEvent = {
+        accountId: this.context?.accountId,
+        accountSiteId: this.context?.accountSiteId,
+        fingerprint: this.fingerprint,
+        visitorId: this.context?.visitorId,
+        sessionId: this.sessionId,
+        type: eventType,
+        properties,
+        timestamp: new Date().toISOString()
       }
+      const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, customEvent)
+      return true
+    } catch (e) {
+      console.error('MP: Error trying to track event.')
+      return false
+    }
+  }
 
-      if (this.context?.accountStatus !== 'active') {
-        console.warn("MP: Error: Account is not active, cannot track event")
-        return false
-      }
+  /**
+   * @function: trackScribeEvent
+   * @param {Object} [scribeEvent] A scribe event object
+   * @description: internal method to track an visitor and/or event details via scribe
+   */
 
+  async trackScribeEvent(scribeEvent: ScribeEventType): Promise<boolean> {
+    try {
       const event = scribeEvent.value
 
       let accountEvent = {
@@ -205,8 +263,7 @@ export default class MagicPixel {
       }
 
       console.log({ accountEvent })
-      const body = JSON.stringify(accountEvent)
-      const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, body)
+      const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, accountEvent)
       if (response.status === '403') {
         console.warn("MP: Unauthorized")
         // TODO: Invalidate local storage data
@@ -223,9 +280,8 @@ export default class MagicPixel {
 
   /**
    * @function: authenticateAccountId
-   * @description: The authenticateAccountId function will make an api call to verify the account
-   * status based on the host id provided in script. With response data,
-   * the function will update the MP class object data and local/session storage
+   * @description: Will call api to verify the account status based on the host id provided in script.
+   * Will update the MP class object data and local/session storage on successful response.
    */
   async authenticateAccountId(): Promise<boolean> {
     console.log({ mpData: this.context})
@@ -235,28 +291,30 @@ export default class MagicPixel {
     }
     if (this.context.accountId && this.context.accountSiteId) {
       try {
-        const jsonBody = JSON.stringify({
+        const authBody = {
           accountId: this.context.accountId,
           accountSiteId: this.context.accountSiteId,
-        })
+        }
 
-        const accountData = await this._apiRequest(
+        const response = await this._apiRequest(
           'POST',
-          `${this.apiDomain}/authentication`, jsonBody
+          `${this.apiDomain}/authentication`, authBody
         )
 
-        const localStorageData = {
+        const storageContext = {
           ...this.context,
           accountId: this.context.accountId,
           accountSiteId: this.context.accountSiteId,
-          accountStatus: accountData.accountStatus,
+          accountStatus: response.accountStatus,
           lastVerified: Date.now(),
         }
 
-          this.setLocalStorageData(localStorageData)
-          // this.setSessionStorageData(sessionId)
+        const sessionId = JSON.stringify(uuidv4())
+        this.setLocalStorageData(storageContext)
+        this.setSessionStorageData(sessionId)
+        this.sessionId = sessionId
 
-          return localStorageData.accountStatus === 'active'
+        return storageContext.accountStatus === 'active'
       } catch (e) {
         console.error('MP: Error verifying account.')
         return false
@@ -267,8 +325,8 @@ export default class MagicPixel {
 
   /**
    * @function: authenticateHostData
-   * @description: Used to verify local storage and MP class object data.
-   * The function will check local storage for MP data, and determine if the account
+   * @description: Verify local storage and MP class object data.
+   * Will check local storage for MP data, and determine if the account
    * is valid through a series of checks on the MP class object around the
    * account id, status, and the last time it was verified
    */
@@ -326,7 +384,6 @@ export default class MagicPixel {
    */
   async authenticateAccount(): Promise<boolean> {
     const mpLocalStorageData = this.getLocalStorageData()
-    // const mpSessionID = this.getSessionStorageData()
     if (!mpLocalStorageData) {
       console.debug(`MP: Invalid browser data. Authenticating account id ${this.context.accountId}`)
       // Call verification service to check account status and other data

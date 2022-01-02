@@ -30,16 +30,6 @@ class DateRangeFilterUnits(enum.Enum):
     YEARS = "YEARS"
 
 
-class EventTypeEnum(enum.Enum):
-    PAGE_VIEW = "page_view"
-    RELOAD = "reload"
-    REDIRECT = "redirect"
-    CLICK = "click"
-    FORM_SUBMIT = "form_submit"
-    JUMP = "jump"
-    ENGAGE = "engage"
-
-
 class EventFormTypeEnum(enum.Enum):
     SIGN_UP = "sign_up"
     LOGIN = "login"

@@ -813,7 +813,7 @@
       };
 
       DomUtil.getDataset = function(node) {
-        if (typeof node.dataset !== 'undefined') {
+        if (node.dataset && typeof node.dataset !== 'undefined' && Object.keys(node).length > 0) {
           return Util.toObject(node.dataset);
         } else if (node.attributes) {
           var dataset = {};
@@ -821,16 +821,16 @@
           var attrs = node.attributes;
 
           for (var i = 0; i < attrs.length; i++) {
-            var name = attrs[i].name;
-            var value = attrs[i].value;
 
-            if (name.indexOf('data-') === 0) {
-              name = name.substr('data-'.length);
+            var attrItem = attrs.item(i)
+            var name = attrItem.name;
+            var value = attrItem.value;
 
-              dataset[name] = value;
-            }
+            dataset[`data-${name}`] = {
+              name: name,
+              value: value
+            };
           }
-
           return dataset;
         } else return {};
       };
@@ -839,7 +839,7 @@
       DomUtil.genCssSelector = function(node) {
         var sel = '';
 
-        while (node != document.body) {
+        while (node !== document.body) {
           var id = node.id;
           var classes = typeof node.className === 'string' ?
             node.className.trim().split(/\s+/).join(".") : '';
@@ -875,6 +875,7 @@
       };
 
       DomUtil.getNodeDescriptor = function(node) {
+        console.log({ nodeDescriptorNode: node })
         return {
           id:         node.id,
           selector:   DomUtil.genCssSelector(node),
@@ -1395,7 +1396,6 @@
 
         // Track page view
         if(this.options.trackPageViews) {
-          console.log('Scribe: Track Page Views')
           Events.onready(function() {
             // Track page view, but only after the DOM has loaded:
             self.pageview();
@@ -1404,12 +1404,10 @@
 
         // Track clicks
         if(this.options.trackClicks) {
-          console.log('Scribe: Track Click')
           Events.onready(function() {
             // Track all clicks to the document:
             Events.onevent(document.body, 'click', true, function(e) {
               var ancestors = DomUtil.getAncestors(e.target);
-
               // Do not track clicks on links, these are tracked separately!
               if (!ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';})) {
                 self.track('click', {
@@ -1422,7 +1420,6 @@
 
         // Track hash changes:
         if(this.options.trackHashChanges) {
-          console.log('Scribe: Hash Change')
           Events.onhashchange(function(e) {
             trackJump(e.hash);
           });
@@ -1441,7 +1438,6 @@
 
         // Track all clicks on links:
         if(this.options.trackLinkClicks) {
-          console.log('Scribe: Link Click')
           var that = this;
           DomUtil.monitorElements('a', function(el) {
             Events.onevent(el, 'click', true, function(e) {
@@ -1493,7 +1489,6 @@
 
         // Track JavaScript-based redirects, which can occur without warning:
         if(this.options.trackRedirects) {
-          console.log('Scribe: Track Redirects')
           Events.onexit(function(e) {
             if (self.javascriptRedirect) {
               self.trackLater('redirect');
@@ -1503,7 +1498,6 @@
 
         // Track form submissions:
         if(this.options.trackSubmissions) {
-          console.log('Scribe: Track Submission')
           Events.onsubmit(function(e) {
             if (e.form) {
               if (!e.form.id) {
@@ -1715,7 +1709,6 @@
        *
        */
       Scribe.prototype.pageview = function(url, success, failure) {
-        console.log('Tracking pageview')
         url = url || document.location;
 
         this.track('page_view', Util.merge(Env.getPageloadData(), {url: Util.parseUrl(url + '')}), success, failure);
@@ -1737,7 +1730,7 @@ var ScribeEventPublicTracker = function(config) {
 
 
 ScribeEventPublicTracker.prototype.tracker = function(info) {
-    MP.trackEvent(info)
+    MP.trackScribeEvent(info)
 };
 
 // Initialize the tracker
@@ -1745,7 +1738,7 @@ console.debug('Scribe: Initializing Scribe')
 
 var MP = window.MP
 
-console.log({ MP })
+// console.log({ MP })
 
 if (MP) {
   var scribe = new Scribe({

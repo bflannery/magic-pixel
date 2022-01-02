@@ -1,7 +1,6 @@
 from typing import Dict, Optional
 
 from magic_pixel import logger
-from magic_pixel.constants import EventTypeEnum
 from magic_pixel.db import db
 from magic_pixel.models import (
     Event,
@@ -21,16 +20,6 @@ from magic_pixel.services import (
 from magic_pixel.utility import parse_url
 from magic_pixel.models.account import AccountSite
 
-EVENT_TYPE_MAP = {
-    EventTypeEnum.CLICK.value: EventTypeEnum.CLICK,
-    EventTypeEnum.JUMP.value: EventTypeEnum.JUMP,
-    EventTypeEnum.ENGAGE.value: EventTypeEnum.ENGAGE,
-    EventTypeEnum.RELOAD.value: EventTypeEnum.RELOAD,
-    EventTypeEnum.REDIRECT.value: EventTypeEnum.REDIRECT,
-    EventTypeEnum.FORM_SUBMIT.value: EventTypeEnum.FORM_SUBMIT,
-    EventTypeEnum.PAGE_VIEW.value: EventTypeEnum.PAGE_VIEW,
-}
-
 
 def _parse_event(event: Dict) -> Optional[Dict]:
     account_mp_id = event["accountId"]
@@ -43,10 +32,6 @@ def _parse_event(event: Dict) -> Optional[Dict]:
 
     account_id = Account.db_id_from_mp_id(account_mp_id)
     account_site_id = AccountSite.db_id_from_mp_id(account_site_id)
-    event_type = event.get("event")
-    if event_type not in EVENT_TYPE_MAP:
-        raise Exception("Unknown event type. Event type not in event type map.")
-
     return {
         "created_at": event.get("timestamp"),
         "account_id": account_id,
@@ -54,7 +39,7 @@ def _parse_event(event: Dict) -> Optional[Dict]:
         "visitor_id": event.get("visitorId"),
         "session_id": event.get("sessionId"),
         "fingerprint": event.get("fingerprint"),
-        "type": EVENT_TYPE_MAP[event_type],
+        "type": event.get("event_type"),
     }
 
 
@@ -220,6 +205,18 @@ def queue_event_ingestion(event: dict) -> bool:
     return event_queue.send_message(event)
 
 
+def backup_event(event):
+    pass
+
+
+# Example: put_object(
+#       c.EXPORT_S3_BUCKET,
+#       key_prefix + "rewards.csv",
+#       obj_str=rio.getvalue(),
+#       content_type="text/csv",
+#     )
+
+
 def ingest_event_details(event, db_event_id):
     event_browser = event.get("browser")
     event_screen = event.get("screen")
@@ -293,47 +290,3 @@ def ingest_event_message(event) -> bool:
     except Exception as e:
         logger.log_exception(e)
         return False
-
-
-# def ingest_event_message_og(event) -> bool:
-#     logger.log_info(f"ingest_event_message: {event}")
-#     try:
-#         # Parse event
-#         parsed_event = _parse_event(event)
-#         account_id = parsed_event["account_id"]
-#
-#         user_id = parsed_event["fingerprint"]
-#         event_fingerprint = parsed_event["fingerprint"]
-#
-#         event_person = person_service.identify_person(
-#             account_id, user_id, event_fingerprint
-#         )
-#
-#         event_person_fingerprint = next(
-#             (epf for epf in event_person.fingerprints if event_person.fingerprints),
-#             None,
-#         )
-#
-#         event_form = event.get("form")
-#         if event_form:
-#             event_form_service.ingest_form_event(
-#                 account_id,
-#                 parsed_event,
-#                 event_person,
-#                 event_person_fingerprint,
-#                 event_form,
-#             )
-#
-#         else:
-#             if not event_person:
-#                 raise Exception(f"No person found for event.")
-#
-#             # Create new event
-#             new_event = save_event(account_id, event_person_fingerprint.id, parsed_event)
-#             ingest_event_details(event, new_event.id)
-#
-#         logger.log_info("New event saved")
-#         return True
-#     except Exception as e:
-#         logger.log_exception(e)
-#         return False

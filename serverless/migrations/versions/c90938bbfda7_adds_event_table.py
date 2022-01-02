@@ -38,20 +38,12 @@ def upgrade():
         sa.Column("visitor_id", sa.Text(), nullable=False),
         sa.Column("person_id", sa.BigInteger(), nullable=True),
         sa.Column("session_id", sa.Text(), nullable=False),
-        sa.Column("fingerprint", sa.Text(), nullable=False),
+        sa.Column("fingerprint", sa.Text(), nullable=True),
+        sa.Column("type", sa.Text(), nullable=False),
         sa.Column(
-            "type",
-            sa.Enum(
-                "PAGE_VIEW",
-                "RELOAD",
-                "REDIRECT",
-                "CLICK",
-                "FORM_SUBMIT",
-                "JUMP",
-                "ENGAGE",
-                name="eventtypeenum",
-            ),
-            nullable=False,
+            "properties",
+            postgresql.JSONB(astext_type=sa.Text()),
+            nullable=True,
         ),
         sa.PrimaryKeyConstraint("id"),
         sa.ForeignKeyConstraint(
@@ -81,4 +73,3 @@ def downgrade():
     op.drop_constraint("event_account_id_fkey", "event")
 
     op.drop_table("event")
-    op.execute("DROP TYPE IF EXISTS eventtypeenum")
