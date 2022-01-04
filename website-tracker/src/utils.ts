@@ -71,6 +71,21 @@ export function isValidEmail(email: string) {
   return email.match(emailRegex)
 }
 
+interface toObjectInterface {
+  [key: string]: any
+}
+
+export const toObject  = (olike: toObjectInterface) => {
+  const o: toObjectInterface = {}
+  let key
+
+  for (key in olike) {
+    o[key] = olike[key]
+  }
+
+  return o
+}
+
 
 interface attributeType {
   name: string,

@@ -982,6 +982,7 @@
         return diff;
       };
 
+      // ArrayUtil.exists(ancestors, function(e) { return e.tagName === 'A';
       ArrayUtil.exists = function(array, f) {
         for (var i = 0; i < array.length; i++) {
           if (f(array[i])) return true;
@@ -1147,6 +1148,7 @@
         };
 
         var f = fixup(f_);
+
 
         if (el.addEventListener) {
           el.addEventListener(type, f, capture);
@@ -1745,13 +1747,13 @@ if (MP) {
     tracker:          new ScribeEventPublicTracker({
       mpAccountHid: MP.tracker,
     }),
-    trackPageViews:   true,
-    trackClicks:      true,
-    trackHashChanges: true,
+    trackPageViews:   false,
+    trackClicks:      false,
+    trackHashChanges: false,
     trackEngagement:  false,
-    trackLinkClicks:  true,
-    trackRedirects:   true,
-    trackSubmissions: true,
+    trackLinkClicks:  false,
+    trackRedirects:   false,
+    trackSubmissions: false,
     console: false
   });
 

@@ -1,5 +1,7 @@
-import {getDiffFromTimestamp, uuidv4} from "./utils";
+import {getDiffFromTimestamp, uuidv4} from "./utils"
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
+import {getAncestors, getNodeDescriptor} from "./dom";
+import Events from "./events";
 
 
 interface ScribeFormType {
@@ -74,7 +76,6 @@ const defaultMpData = {
 // Initialize an agent at application startup.
 const fpPromise = FingerprintJS.load()
 
-
 export default class MagicPixel {
   apiDomain: string
   fingerprint: string | null
@@ -101,6 +102,36 @@ export default class MagicPixel {
     this.context.accountSiteId = accountSiteId
     this.context.visitorId = uuidv4()
     this.sessionId = uuidv4()
+
+
+    const events = new Events()
+
+    console.log({ events })
+
+    // Track Clicks
+    events.onReady(() => {
+      console.log('Events ready.')
+      // Track all clicks to the document:
+      events.onEvent(document.body, 'click', true, (e: Event) => {
+        console.log('On Event.')
+        const ancestors = getAncestors(e.target)
+
+        // Do not track clicks on links, these are tracked separately!
+        let isChildLink = false
+        for (let i = 0; i < ancestors.length; i++) {
+          const element = ancestors[i]
+          if (element.tagName == 'A') {
+            isChildLink = true
+          }
+        }
+
+        if (!isChildLink) {
+          this.track('click', {
+            target: getNodeDescriptor(e.target)
+          })
+        }
+      })
+    })
   }
 
   async _apiRequest(method: string, endpoint: string, body: object) {
@@ -110,10 +141,10 @@ export default class MagicPixel {
         return false
       }
 
-      if (this.context?.accountStatus !== 'active') {
-        console.warn("MP: Error: Account is not active, cannot track event")
-        return false
-      }
+      // if (this.context?.accountStatus !== 'active') {
+      //   console.warn("MP: Error: Account is not active, cannot track event")
+      //   return false
+      // }
 
       const jsonBody = JSON.stringify(body)
       const response = await fetch(endpoint, {
@@ -218,12 +249,13 @@ export default class MagicPixel {
 
   /**
    * @function: track
-   * @param {String} [eventType] A string that identifies an event. Ex. "Sign Up"
+   * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
    * @param {Object} [properties] A set of properties to include with the event you're sending.
    * These describe the details about the visitor and/or event.
    * @description: track an visitor and/or event details
    */
-  async track(eventType: string, properties: object | null): Promise<boolean> {
+  async track(eventName: string, properties: object | null): Promise<boolean> {
+    console.log('Tracking Event: ', { eventName, properties })
     try {
       const customEvent = {
         accountId: this.context?.accountId,
@@ -231,17 +263,46 @@ export default class MagicPixel {
         fingerprint: this.fingerprint,
         visitorId: this.context?.visitorId,
         sessionId: this.sessionId,
-        type: eventType,
+        type: eventName,
         properties,
         timestamp: new Date().toISOString()
       }
-      const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, customEvent)
+      console.log('Customer Tracking Event: ', { customEvent })
+      // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, customEvent)
       return true
     } catch (e) {
       console.error('MP: Error trying to track event.')
       return false
     }
   }
+
+  /**
+   * @function: trackEvent
+   * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
+   * @param {Object} [properties] A set of properties to include with the event you're sending.
+   * These describe the details about the visitor and/or event.
+   * @description: track an visitor and/or event details
+   */
+  async trackEvent(eventName: string, properties: object | null): Promise<boolean> {
+    try {
+      const eventProps = {
+        accountId: this.context?.accountId,
+        accountSiteId: this.context?.accountSiteId,
+        fingerprint: this.fingerprint,
+        visitorId: this.context?.visitorId,
+        sessionId: this.sessionId,
+        type: eventName,
+        properties,
+        timestamp: new Date().toISOString()
+      }
+      // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, eventProps)
+      return true
+    } catch (e) {
+      console.error('MP: Error trying to track event.')
+      return false
+    }
+  }
+
 
   /**
    * @function: trackScribeEvent
