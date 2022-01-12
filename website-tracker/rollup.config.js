@@ -4,7 +4,6 @@ import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import postcss from 'rollup-plugin-postcss-modules'
 import inject from '@rollup/plugin-inject'
-import { terser } from 'rollup-plugin-terser'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 
 const env = process.env.NODE_ENV || 'local'
@@ -14,6 +13,7 @@ const config = {
   output: {
     dir: './build',
     format: 'iife',
+    sourceMap: true,
   },
   plugins: [
     inject({
@@ -28,7 +28,7 @@ const config = {
     nodeResolve(), // node like env
     commonjs(),
     sizeSnapshot(), // print bundle sizes
-    terser(), // minified
+    // terser(), // minified
   ],
 }
 export default config

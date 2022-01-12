@@ -1,76 +1,17 @@
-import {getDiffFromTimestamp, uuidv4} from "./utils"
+import { getDiffFromTimestamp, isChildLink, isSamePage, parseLocation, parseUrl, uuidv4 } from './utils'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
-import {getAncestors, getNodeDescriptor} from "./dom";
-import Events from "./events";
+import * as Dom from './dom'
+import { getFormData } from './dom'
+import { EventProps, MpDataProps, MPEventType, MPGenericEvent, ScribeEventType } from './types'
 
-
-interface ScribeFormType {
-  formId: string
-  formFields: Record<string, string>
-}
-
-interface MpDataProps {
-  accountId: string | null
-  accountSiteId: string | null
-  accountStatus: string
-  lastVerified: number | null
-  distinctUserId: string | null
-  visitorId: string | null
-}
-
-export interface MagicPixelType {
-  apiDomain: string
-  fingerprint: string | null
-  context: MpDataProps
-  init: (accountId: string | null, accountSiteId: string | null) => Promise<void>
-  identify: (distinctUserId: string) => Promise<boolean>
-  track: (eventType: string, properties: object | null) => Promise<boolean>
-  authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
-  authenticateAccountId: () => Promise<boolean>
-  clearStorage: () => void
-  getLocalStorageData: () => MpDataProps | null
-  getSessionStorageData: () => string | null
-  setLocalStorageData: (data: MpDataProps) => void
-  setSessionStorageData: (sid: string) => void
-  trackScribeEvent: (scribeEvent: any) => void
-}
-
-interface ScribeFormType {
-  formId: string
-  formFields: Record<string, string>
-}
-
-interface ScribeEventType {
-  path: string
-  value: {
-    fingerprint : string
-    sessionId : string
-    visitorId : string
-    userProfile? : string | null
-    form?: ScribeFormType | null
-    event: string
-    timestamp: string
-    source?: {
-      url?: {
-        host?: string
-        hostname?: string
-        pathname?: string
-        protocol?: string
-      }
-    }
-  }
-  op: string,
-  success: () => void
-  failure: () => void
-}
-
-const defaultMpData = {
-  accountId: null,
-  accountSiteId: null,
-  accountStatus: 'inactive',
-  lastVerified: null,
-  distinctUserId: null,
-  visitorId: null
+const defaultURLProps = {
+  href: null,
+  hash: null,
+  host: null,
+  hostname: null,
+  pathname: null,
+  protocol: null,
+  query: {},
 }
 
 // Initialize an agent at application startup.
@@ -81,70 +22,127 @@ export default class MagicPixel {
   fingerprint: string | null
   sessionId: string | null
   context: MpDataProps
+  javascriptRedirect: boolean
+  oldHash: string | null
+  queue: MPEventType[]
+  handlers: Function[]
 
-
-  constructor() {
+  constructor(accountId: string | null, accountSiteId: string | null) {
     this.apiDomain = 'http://localhost:5000/dev'
     this.fingerprint = null
     this.sessionId = null
     this.context = {
-      accountId: null,
-      accountSiteId: null,
+      accountId: accountId,
+      accountSiteId: accountSiteId,
       accountStatus: 'inactive',
       lastVerified: null,
       distinctUserId: null,
-      visitorId: null
+      visitorId: null,
+    }
+    this.javascriptRedirect = true
+    this.oldHash = document.location.hash
+    this.queue = []
+    this.handlers = []
+  }
+
+  async init(): Promise<void> {
+    console.debug('MP: Initializing Magic Pixel')
+    console.log({ MP: this })
+
+    const mpContext = this._getStorageContext()
+    const sessionId = this._getStorageSessionId()
+    this.context.visitorId = mpContext?.visitorId || uuidv4()
+    this.context.distinctUserId = mpContext?.distinctUserId || null
+    this.context.lastVerified = mpContext?.lastVerified || null
+    this.sessionId = sessionId || uuidv4()
+
+    // Save context and session to browser storage
+    this._setStorageContext(this.context)
+    this._setStorageSessionId(this.sessionId)
+
+    // Init Trackers
+    this._initTrackers()
+
+    // Load Queue from storage
+    this._loadQueue()
+
+    // Track pending events in the events Queue
+    if (this.queue.length > 0) {
+      this.trackQueueEvents(this.queue)
     }
   }
 
-  async init(accountId: string | null, accountSiteId: string | null) {
-    this.context.accountId = accountId
-    this.context.accountSiteId = accountSiteId
-    this.context.visitorId = uuidv4()
-    this.sessionId = uuidv4()
+  // Context
+  _getStorageContext(): MpDataProps | null {
+    const mpStorageContext = localStorage.getItem('mp')
+    if (!mpStorageContext) {
+      return null
+    }
+    return JSON.parse(mpStorageContext)
+  }
 
+  _setStorageContext(data: MpDataProps): void {
+    localStorage.setItem('mp', JSON.stringify(data))
+  }
 
-    const events = new Events()
+  _removeStorageContext(): void {
+    localStorage.removeItem('mp')
+  }
 
-    console.log({ events })
+  // Session
+  _getStorageSessionId(): string | null {
+    return sessionStorage.getItem('mp_sid')
+  }
 
-    // Track Clicks
-    events.onReady(() => {
-      console.log('Events ready.')
-      // Track all clicks to the document:
-      events.onEvent(document.body, 'click', true, (e: Event) => {
-        console.log('On Event.')
-        const ancestors = getAncestors(e.target)
+  _setStorageSessionId(sid: string): void {
+    sessionStorage.setItem('mp_sid', sid)
+  }
 
-        // Do not track clicks on links, these are tracked separately!
-        let isChildLink = false
-        for (let i = 0; i < ancestors.length; i++) {
-          const element = ancestors[i]
-          if (element.tagName == 'A') {
-            isChildLink = true
-          }
-        }
+  _removeStorageSessionId(): void {
+    sessionStorage.removeItem('mp_sid')
+  }
 
-        if (!isChildLink) {
-          this.track('click', {
-            target: getNodeDescriptor(e.target)
-          })
-        }
-      })
-    })
+  _getStorageQueue(): MPEventType[] {
+    const mpEventsQueue = localStorage.getItem('mp_events_queue')
+    return mpEventsQueue ? JSON.parse(mpEventsQueue) : []
+  }
+
+  _loadQueue(): void {
+    this.queue = this._getStorageQueue()
+  }
+
+  _addToQueue(event: MPEventType): void {
+    this.queue = [...this.queue, event]
+  }
+
+  _saveQueue(): void {
+    localStorage.setItem('mp_events_queue', JSON.stringify(this.queue))
+  }
+
+  _clearQueue(): void {
+    this.queue = []
+  }
+
+  _dispatch(): void {
+    const args = Array.prototype.slice.call(arguments, 0)
+
+    console.log({ dispatchArgs: args, handlers: this.handlers })
+    for (let i = 0; i < this.handlers.length; i++) {
+      try {
+        this.handlers[i].apply(null, args)
+      } catch (e) {
+        console.error(e)
+      }
+    }
+    console.log({ handlers: this.handlers })
   }
 
   async _apiRequest(method: string, endpoint: string, body: object) {
     try {
       if (!this.context?.accountId || !this.context?.accountSiteId) {
-        console.warn("MP: Error: Missing ids, cannot track event")
+        console.warn('MP: Error: Missing ids, cannot track event')
         return false
       }
-
-      // if (this.context?.accountStatus !== 'active') {
-      //   console.warn("MP: Error: Account is not active, cannot track event")
-      //   return false
-      // }
 
       const jsonBody = JSON.stringify(body)
       const response = await fetch(endpoint, {
@@ -152,7 +150,7 @@ export default class MagicPixel {
         headers: {
           'Content-Type': 'application/json',
         },
-        body: jsonBody
+        body: jsonBody,
       })
       return response.json()
     } catch (e) {
@@ -161,26 +159,7 @@ export default class MagicPixel {
     }
   }
 
-  _removeMpData(): void {
-    this.context = defaultMpData
-    localStorage.removeItem('mp')
-  }
-
-  _removeSessionMpData(): void {
-    this.sessionId = null
-    sessionStorage.removeItem('mp_sid')
-  }
-
-  _setMpData(data: MpDataProps): boolean {
-    this.context = data
-    return this.context === data
-  }
-
-  _setSessionMpData(data: string | null): boolean {
-    this.sessionId = data
-    return this.sessionId === data
-  }
-
+  // Fingerprint
   async _fingerprint() {
     const fp = await fpPromise
     const result = await fp.get()
@@ -188,39 +167,104 @@ export default class MagicPixel {
     return result.visitorId
   }
 
-  getLocalStorageData() {
-    const mpLocalStorageData = localStorage.getItem('mp')
-    if (mpLocalStorageData) {
-      const parsedData = JSON.parse(mpLocalStorageData)
-      this._setMpData(parsedData)
-      return parsedData
-    }
-   return mpLocalStorageData
+  _initTrackers(): void {
+    this._trackClicks()
+    this._trackLinkClicks()
+    this._trackFormSubmits()
   }
 
-  getSessionStorageData() {
-    const sid = sessionStorage.getItem('mp_sid')
-    if (sid) {
-      const parsedSessionData = JSON.parse(sid)
-      this._setSessionMpData(parsedSessionData)
-      return parsedSessionData
-    }
-    return sid
+  // Track all clicks to the document
+  _trackClicks(): void {
+    Dom.onReady(() =>
+      Dom.onEvent(document.body, 'click', true, async (e: Event) => {
+        const ancestors = Dom.getAncestors(e.target)
+        if (!isChildLink(ancestors)) {
+          await this.track('click', {
+            target: Dom.getNodeDescriptor(e.target),
+          })
+        }
+      }),
+    )
   }
 
-  setLocalStorageData(data: MpDataProps): void {
-    this._setMpData(data)
-    localStorage.setItem('mp', JSON.stringify(data))
+  // Track all link clicks on the document
+  _trackLinkClicks(): void {
+    Dom.monitorElements('a', (el: HTMLLinkElement) =>
+      Dom.onEvent(el, 'click', true, async (e: MouseEvent) => {
+        //return if this click it created with createEvent and not by a real click
+        if (!e.isTrusted) {
+          return
+        }
+
+        const target = e.target
+
+        // TODO: Make sure the link is actually to a page.
+        // It's a click, not a Javascript redirect:
+        this.javascriptRedirect = false
+
+        setTimeout(() => {
+          this.javascriptRedirect = true
+        }, 500)
+
+        const parsedUrl = parseUrl(el.href)
+        const value = {
+          target: {
+            url: parsedUrl,
+            ...Dom.getNodeDescriptor(target),
+          },
+        }
+
+        if (isSamePage(parsedUrl.href, document.location.href)) {
+          console.log('User is jumping around the same page')
+          // User is jumping around the same page. Track here in case the
+          // client prevents the default action and the hash doesn't change
+          // (otherwise it would be tracked by onhashchange):
+          this.oldHash = null
+
+          // trackJump(document.location.hash);
+        } else if (parsedUrl.hostname === document.location.hostname) {
+          // We are linking to a page on the same site. There's no need to send
+          // the event now, we can safely send it later:
+          console.log('We are linking to a page on the same site.')
+          await this.trackLater('click', value)
+        } else {
+          e.preventDefault()
+          console.log('We are linking to a page that is not on this site.')
+          // We are linking to a page that is not on this site. So we first
+          // wait to send the event before simulating a different click
+          // on the link. This ensures we don't lose the event if the user
+          // does not return to this site ever again.
+          await this.track('click', value, () => {
+            // It's a click, not a Javascript redirect:
+            this.javascriptRedirect = false
+
+            if (target) {
+              // Simulate a click to the original element if we were waiting on the tracker:
+              Dom.simulateMouseEvent(target, 'click')
+            }
+          })
+        }
+      }),
+    )
   }
 
-  setSessionStorageData(sid: string): void {
-    this._setSessionMpData(sid)
-    sessionStorage.setItem('mp_sid', sid)
-  }
+  // Track all form submissions
+  _trackFormSubmits(): void {
+    Dom.onSubmit(async (e: MPGenericEvent) => {
+      if (e.form) {
+        if (!e.form.id) {
+          e.form.id = uuidv4()
+        }
 
-  clearStorage(): void {
-    this._removeMpData()
-    this._removeSessionMpData()
+        debugger
+        await this.trackLater('form_submit', {
+          form: {
+            ...getFormData(e.form),
+            formId: e.form.id,
+          },
+        })
+      }
+    })
   }
 
   /**
@@ -239,7 +283,7 @@ export default class MagicPixel {
       }
       await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
       this.context.distinctUserId = distinctUserId
-      this.setLocalStorageData(this.context)
+      this._setStorageContext(this.context)
       return true
     } catch (e) {
       console.error('MP: Error trying to identify user.')
@@ -247,27 +291,39 @@ export default class MagicPixel {
     }
   }
 
+  createEvent(eventType: string, properties: EventProps): MPEventType {
+    console.log({ eventType, properties })
+    return {
+      eventType,
+      timestamp: new Date().toISOString(),
+      source: {
+        url: parseLocation(document.location),
+      },
+      target: {
+        url: defaultURLProps,
+      },
+      ...properties,
+    }
+  }
+
   /**
    * @function: track
    * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
+   * @param {Function} [callback] A string that identifies an event. Ex. "Sign Up"
    * @param {Object} [properties] A set of properties to include with the event you're sending.
    * These describe the details about the visitor and/or event.
    * @description: track an visitor and/or event details
    */
-  async track(eventName: string, properties: object | null): Promise<boolean> {
+  async track(eventName: string, properties: object, callback?: Function): Promise<boolean> {
     console.log('Tracking Event: ', { eventName, properties })
     try {
-      const customEvent = {
-        accountId: this.context?.accountId,
-        accountSiteId: this.context?.accountSiteId,
-        fingerprint: this.fingerprint,
-        visitorId: this.context?.visitorId,
-        sessionId: this.sessionId,
-        type: eventName,
-        properties,
-        timestamp: new Date().toISOString()
+      const eventProps = {
+        ...this.context,
+        ...properties,
       }
-      console.log('Customer Tracking Event: ', { customEvent })
+      const mpEvent = this.createEvent(eventName, eventProps)
+
+      console.log('Customer Tracking Event: ', { mpEvent })
       // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, customEvent)
       return true
     } catch (e) {
@@ -276,26 +332,15 @@ export default class MagicPixel {
     }
   }
 
-  /**
-   * @function: trackEvent
-   * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
-   * @param {Object} [properties] A set of properties to include with the event you're sending.
-   * These describe the details about the visitor and/or event.
-   * @description: track an visitor and/or event details
-   */
-  async trackEvent(eventName: string, properties: object | null): Promise<boolean> {
+  async trackLater(eventName: string, properties: object | null): Promise<boolean> {
     try {
       const eventProps = {
-        accountId: this.context?.accountId,
-        accountSiteId: this.context?.accountSiteId,
-        fingerprint: this.fingerprint,
-        visitorId: this.context?.visitorId,
-        sessionId: this.sessionId,
-        type: eventName,
-        properties,
-        timestamp: new Date().toISOString()
+        ...this.context,
+        ...properties,
       }
-      // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, eventProps)
+      const mpEvent = this.createEvent(eventName, eventProps)
+      this._addToQueue(mpEvent)
+      this._saveQueue()
       return true
     } catch (e) {
       console.error('MP: Error trying to track event.')
@@ -303,6 +348,53 @@ export default class MagicPixel {
     }
   }
 
+  /**
+   * @function: trackQueueEvents
+   * @param {MPEventType[]} [events] A string that identifies an event. Ex. "Sign Up"
+   * @description: track an visitor and/or event details
+   */
+  trackQueueEvents(events: MPEventType[]): boolean {
+    console.log('Track Queue Event')
+    try {
+      events.forEach(async (event: MPEventType) => {
+        console.log({ event })
+        const eventType = event.eventType
+        // Specially modify redirect, formSubmit events to save the new URL,
+        // because the URL is not known at the time of the event:
+        if (['redirect', 'formSubmit'].includes(eventType)) {
+          event.target = {
+            ...event.target,
+            url: parseLocation(document.location),
+          }
+        }
+
+        // If source and target urls are the same, change redirect events
+        // to reload events:
+        if (eventType === 'redirect') {
+          try {
+            // See if it's a redirect (= different url) or reload (= same url):
+            const sourceUrl = event.source.url.href
+            const targetUrl = event.target.url.href
+
+            if (sourceUrl === targetUrl) {
+              // It's a reload:
+              event.eventType = 'reload'
+            }
+          } catch (e) {
+            console.error(e)
+          }
+        }
+        console.log({ eventType, event })
+        // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, event)
+      })
+      // this._clearQueue()
+      // this._saveQueue()
+      return true
+    } catch (e) {
+      console.error('MP: Error trying to track event.')
+      return false
+    }
+  }
 
   /**
    * @function: trackScribeEvent
@@ -320,16 +412,16 @@ export default class MagicPixel {
         accountSiteId: this.context?.accountSiteId,
         fingerprint: this.fingerprint,
         visitorId: this.context?.visitorId,
-        sessionId: this.sessionId
+        sessionId: this.sessionId,
       }
 
       console.log({ accountEvent })
-      const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, accountEvent)
-      if (response.status === '403') {
-        console.warn("MP: Unauthorized")
-        // TODO: Invalidate local storage data
-        return false
-      }
+      // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, accountEvent)
+      // if (response.status === '403') {
+      //   console.warn("MP: Unauthorized")
+      //   // TODO: Invalidate local storage data
+      //   return false
+      // }
       console.log('Sent')
       return true
     } catch (e) {
@@ -345,8 +437,6 @@ export default class MagicPixel {
    * Will update the MP class object data and local/session storage on successful response.
    */
   async authenticateAccountId(): Promise<boolean> {
-    console.log({ mpData: this.context})
-
     if (!this.fingerprint) {
       this.fingerprint = await this._fingerprint()
     }
@@ -357,12 +447,9 @@ export default class MagicPixel {
           accountSiteId: this.context.accountSiteId,
         }
 
-        const response = await this._apiRequest(
-          'POST',
-          `${this.apiDomain}/authentication`, authBody
-        )
+        const response = await this._apiRequest('POST', `${this.apiDomain}/authentication`, authBody)
 
-        const storageContext = {
+        const mpContext = {
           ...this.context,
           accountId: this.context.accountId,
           accountSiteId: this.context.accountSiteId,
@@ -370,12 +457,12 @@ export default class MagicPixel {
           lastVerified: Date.now(),
         }
 
-        const sessionId = JSON.stringify(uuidv4())
-        this.setLocalStorageData(storageContext)
-        this.setSessionStorageData(sessionId)
-        this.sessionId = sessionId
-
-        return storageContext.accountStatus === 'active'
+        if (mpContext.accountStatus === 'active') {
+          this.context = mpContext
+          this._setStorageContext(mpContext)
+          return true
+        }
+        return false
       } catch (e) {
         console.error('MP: Error verifying account.')
         return false
@@ -392,50 +479,61 @@ export default class MagicPixel {
    * account id, status, and the last time it was verified
    */
 
-  async authenticateHostData(): Promise<boolean> {
-    // If no mpData kill it
-    if (!this.context) {
+  async authenticateHostData(mpStorageContext: MpDataProps): Promise<boolean> {
+    try {
+      // If no mpData kill it
+      if (!this.context) {
+        return false
+      }
+
+      // If account ids don't match, re-authenticate and update any stale data
+      if (this.context.accountId !== mpStorageContext.accountId) {
+        return await this.authenticateAccountId()
+      }
+
+      // If account site ids don't match, re-authenticate and update any stale data
+      if (this.context.accountSiteId !== mpStorageContext.accountSiteId) {
+        return await this.authenticateAccountId()
+      }
+
+      const { lastVerified, accountStatus } = mpStorageContext
+      const now = new Date().getTime()
+      const lastVerifiedTimeStamp = lastVerified || new Date().getTime()
+      const lastVerifiedHours = getDiffFromTimestamp(now, lastVerifiedTimeStamp, 'hours')
+
+      // If account is inactive, kill it for 24 hours before trying to re-authenticate again
+      // TODO: Add logic for delinquent once Stripe implemented
+      if (accountStatus === 'inactive' || accountStatus === 'delinquent') {
+        if (lastVerifiedHours < 1) {
+          return false
+        } else {
+          return await this.authenticateAccountId()
+        }
+      }
+
+      // TODO: DO we want to add a way to prevent and future calls for an account?
+
+      // If account is active but hasn't been verified for over an hour, re-authenticate again
+      if (accountStatus === 'active') {
+        if (lastVerifiedHours >= 1) {
+          console.debug(`MP: Re-authenticating account id ${this.context.accountId}`)
+          return await this.authenticateAccountId()
+        } else {
+          if (!this.fingerprint) {
+            this.fingerprint = await this._fingerprint()
+          }
+          this.context = {
+            ...this.context,
+            ...mpStorageContext,
+          }
+          return true
+        }
+      }
+      return false
+    } catch (e) {
+      console.error(e)
       return false
     }
-
-    // If account ids don't match, re-authenticate and update any stale data
-    if (this.context.accountId !== this.context.accountId) {
-      return await this.authenticateAccountId()
-    }
-
-    // If current location is different from stored fingerprint, get new fingerprint
-
-
-    const { lastVerified, accountStatus } = this.context
-    const now = new Date().getTime()
-    const lastVerifiedTimeStamp = lastVerified || new Date().getTime()
-    const lastVerifiedHours = getDiffFromTimestamp(now, lastVerifiedTimeStamp, 'hours')
-
-    // If account is inactive, kill it for 24 hours before trying to re-authenticate again
-    // TODO: Add logic for delinquent once Stripe implemented
-    if (accountStatus === 'inactive' || accountStatus === 'delinquent') {
-      if (lastVerifiedHours < 1) {
-        return false
-      } else {
-        return await this.authenticateAccountId()
-      }
-    }
-
-    // TODO: DO we want to add a way to prevent and future calls for an account?
-
-    // If account is active but hasn't been verified for over an hour, re-authenticate again
-    if (accountStatus === 'active') {
-      if (lastVerifiedHours >= 1) {
-        console.debug(`MP: Re-authenticating account id ${this.context.accountId}`)
-        return await this.authenticateAccountId()
-      } else {
-        if (!this.fingerprint) {
-          this.fingerprint = await this._fingerprint()
-        }
-        return true
-      }
-    }
-    return false
   }
 
   /**
@@ -444,14 +542,15 @@ export default class MagicPixel {
    * based on either host id provided in script or existing local and session storage data
    */
   async authenticateAccount(): Promise<boolean> {
-    const mpLocalStorageData = this.getLocalStorageData()
-    if (!mpLocalStorageData) {
+    const mpStorageContext = this._getStorageContext()
+
+    if (!mpStorageContext) {
       console.debug(`MP: Invalid browser data. Authenticating account id ${this.context.accountId}`)
       // Call verification service to check account status and other data
       return await this.authenticateAccountId()
     } else {
       console.debug(`MP: Authenticating host storage data for account id ${this.context.accountId}`)
-      return await this.authenticateHostData()
+      return await this.authenticateHostData(mpStorageContext)
     }
   }
 }
