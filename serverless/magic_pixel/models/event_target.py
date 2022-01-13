@@ -1,8 +1,8 @@
-from magic_pixel.models.base import WithSoftDelete, Model
+from magic_pixel.models.base import Model
 from magic_pixel.db import db
 
 
-class EventTarget(WithSoftDelete, Model):
+class EventTarget(Model):
     __tablename__ = "event_target"
 
     event_id = db.Column(

@@ -33,18 +33,15 @@ def upgrade():
             server_default=sa.text("(now() at time zone 'utc')"),
             nullable=True,
         ),
-        sa.Column("person_id", sa.BigInteger(), nullable=False),
-        sa.Column("original_distinct_id", sa.Text(), nullable=False),
+        sa.Column("named_alias", sa.Text(), nullable=False),
+        sa.Column("user_id", sa.Text(), nullable=False),
         sa.PrimaryKeyConstraint("id"),
-        sa.ForeignKeyConstraint(
-            ["person_id"], ["person.id"], name="alias_person_id_fkey"
-        ),
     )
-
-    op.create_index(op.f("ix_alias_person_id"), "alias", ["person_id"], unique=False)
+    op.create_index(op.f('ix_alias_named_alias'), 'alias', ['named_alias'], unique=False)
+    op.create_index(op.f('ix_alias_usr_id'), 'alias', ['user_id'], unique=False)
 
 
 def downgrade():
-    op.drop_index(op.f("ix_alias_person_id"), table_name="alias")
-    op.drop_constraint("alias_person_id_fkey", "alias")
+    op.drop_index(op.f('ix_alias_usr_id'), table_name='alias')
+    op.drop_index(op.f('ix_alias_named_alias'), table_name='alias')
     op.drop_table("alias")

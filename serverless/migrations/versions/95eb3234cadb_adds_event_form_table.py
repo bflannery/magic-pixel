@@ -32,7 +32,6 @@ def upgrade():
             server_default=sa.text("(now() at time zone 'utc')"),
             nullable=True,
         ),
-        sa.Column("deleted_at", sa.DateTime(), nullable=True),
         sa.Column("event_id", sa.BigInteger(), nullable=False),
         sa.Column("form_id", sa.Text(), nullable=False),
         sa.Column(

@@ -1,6 +1,6 @@
 """adds roles and user_roles tables
 Revision ID: 7b861936755a
-Revises: d714436f6d3b
+Revises: 6cc01f1409c9
 Create Date: 2021-10-17 05:46:58.755599
 
 """

@@ -1,8 +1,8 @@
-from magic_pixel.models.base import WithSoftDelete, Model
+from magic_pixel.models.base import Model
 from magic_pixel.db import db
 
 
-class EventBrowser(WithSoftDelete, Model):
+class EventBrowser(Model):
     __tablename__ = "event_browser"
 
     event_id = db.Column(

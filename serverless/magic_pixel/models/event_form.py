@@ -1,10 +1,10 @@
 from magic_pixel.constants import EventFormTypeEnum
-from magic_pixel.models.base import WithSoftDelete, Model
+from magic_pixel.models.base import Model
 from magic_pixel.db import db
 from sqlalchemy.dialects.postgresql.json import JSONB
 
 
-class EventForm(WithSoftDelete, Model):
+class EventForm(Model):
     __tablename__ = "event_form"
 
     event_id = db.Column(
