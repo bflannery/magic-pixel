@@ -314,6 +314,6 @@ export const createDOMMap = function (element: Element, isSVG: boolean): unknown
   const bodyMap = createElementMap(body, false)
   const linksMap = createDomLinkMap()
   const formsMap = createDomFormMap()
-  // console.log({ formsMap })
+  console.log({ formsMap })
   return {}
 }

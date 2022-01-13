@@ -61,15 +61,15 @@ export default class MagicPixel {
     this._setStorageSessionId(this.sessionId)
 
     // Init Trackers
-    this._initTrackers()
+    // this._initTrackers()
 
-    // Load Queue from storage
-    this._loadQueue()
-
-    // Track pending events in the events Queue
-    if (this.queue.length > 0) {
-      this.trackQueueEvents(this.queue)
-    }
+    // // Load Queue from storage
+    // this._loadQueue()
+    //
+    // // Track pending events in the events Queue
+    // if (this.queue.length > 0) {
+    //   this.trackQueueEvents(this.queue)
+    // }
   }
 
   // Context
@@ -256,7 +256,6 @@ export default class MagicPixel {
           e.form.id = uuidv4()
         }
 
-        debugger
         await this.trackLater('form_submit', {
           form: {
             ...getFormData(e.form),
@@ -265,6 +264,21 @@ export default class MagicPixel {
         })
       }
     })
+  }
+
+  _createEvent(eventType: string, properties: EventProps): MPEventType {
+    console.log({ eventType, properties })
+    return {
+      eventType,
+      timestamp: new Date().toISOString(),
+      source: {
+        url: parseLocation(document.location),
+      },
+      target: {
+        url: defaultURLProps,
+      },
+      ...properties,
+    }
   }
 
   /**
@@ -278,7 +292,7 @@ export default class MagicPixel {
     try {
       const body = {
         accountId: this.context.accountId,
-        distinctUserId,
+        namedAlias: distinctUserId,
         visitorId: this.context.visitorId,
       }
       await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
@@ -288,21 +302,6 @@ export default class MagicPixel {
     } catch (e) {
       console.error('MP: Error trying to identify user.')
       return false
-    }
-  }
-
-  createEvent(eventType: string, properties: EventProps): MPEventType {
-    console.log({ eventType, properties })
-    return {
-      eventType,
-      timestamp: new Date().toISOString(),
-      source: {
-        url: parseLocation(document.location),
-      },
-      target: {
-        url: defaultURLProps,
-      },
-      ...properties,
     }
   }
 
@@ -321,10 +320,10 @@ export default class MagicPixel {
         ...this.context,
         ...properties,
       }
-      const mpEvent = this.createEvent(eventName, eventProps)
+      const mpEvent = this._createEvent(eventName, eventProps)
 
       console.log('Customer Tracking Event: ', { mpEvent })
-      // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, customEvent)
+      await this._apiRequest('POST', `${this.apiDomain}/collection`, mpEvent)
       return true
     } catch (e) {
       console.error('MP: Error trying to track event.')
@@ -332,13 +331,54 @@ export default class MagicPixel {
     }
   }
 
+  /**
+   * @function: trackScribeEvent
+   * @param {ScribeEventType} [scribeEvent] A scribe event object
+   * @description: internal method to track an visitor and/or event details via scribe
+   */
+
+  async trackScribeEvent(scribeEvent: ScribeEventType): Promise<boolean> {
+    try {
+      const event = scribeEvent.value
+
+      let accountEvent = {
+        ...event,
+        type: event.event,
+        accountId: this.context?.accountId,
+        accountSiteId: this.context?.accountSiteId,
+        fingerprint: this.fingerprint,
+        visitorId: this.context?.visitorId,
+        sessionId: this.sessionId,
+      }
+
+      console.log({ scribeAccountEvent: accountEvent })
+      const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, accountEvent)
+      if (response.status === '403') {
+        console.warn("MP: Unauthorized")
+        // TODO: Invalidate local storage data
+        return false
+      }
+      return true
+    } catch (e) {
+      console.error('MP: Error sending scribe event to MP server.')
+      // TODO: Retry or invalidate local storage data
+      return false
+    }
+  }
+
+  /**
+   * @function: trackLater
+   * @param {String} eventName A string that identifies an event. Ex. "Sign Up"
+   * @param {Object | null} properties A key/pair object of custom event properties
+   * @description: track an visitor and/or event details at a later time
+   */
   async trackLater(eventName: string, properties: object | null): Promise<boolean> {
     try {
       const eventProps = {
         ...this.context,
         ...properties,
       }
-      const mpEvent = this.createEvent(eventName, eventProps)
+      const mpEvent = this._createEvent(eventName, eventProps)
       this._addToQueue(mpEvent)
       this._saveQueue()
       return true
@@ -392,41 +432,6 @@ export default class MagicPixel {
       return true
     } catch (e) {
       console.error('MP: Error trying to track event.')
-      return false
-    }
-  }
-
-  /**
-   * @function: trackScribeEvent
-   * @param {Object} [scribeEvent] A scribe event object
-   * @description: internal method to track an visitor and/or event details via scribe
-   */
-
-  async trackScribeEvent(scribeEvent: ScribeEventType): Promise<boolean> {
-    try {
-      const event = scribeEvent.value
-
-      let accountEvent = {
-        ...event,
-        accountId: this.context?.accountId,
-        accountSiteId: this.context?.accountSiteId,
-        fingerprint: this.fingerprint,
-        visitorId: this.context?.visitorId,
-        sessionId: this.sessionId,
-      }
-
-      console.log({ accountEvent })
-      // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, accountEvent)
-      // if (response.status === '403') {
-      //   console.warn("MP: Unauthorized")
-      //   // TODO: Invalidate local storage data
-      //   return false
-      // }
-      console.log('Sent')
-      return true
-    } catch (e) {
-      console.error('MP: Error sending scribe event to MP server.')
-      // TODO: Retry or invalidate local storage data
       return false
     }
   }

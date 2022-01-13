@@ -20,7 +20,7 @@ async function init() {
   const accountIsActive = await MP.authenticateAccount()
 
   const domMap = createDOMMap(document.body, false)
-  // console.log(domMap);
+  console.log(domMap);
 
   if (accountIsActive) {
     console.debug('MP: Account is active.')

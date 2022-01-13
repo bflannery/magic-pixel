@@ -1635,14 +1635,9 @@
 
         var f = fixup(f_)
 
-        console.log({ onEventEl: el })
-
         if (el.addEventListener) {
-          console.log({ type, f, capture })
           el.addEventListener(type, f, capture)
-          console.log({ el })
         } else if (el.attachEvent) {
-          console.log('No Event listener')
           el.attachEvent('on' + type, f)
         }
       }
@@ -1769,13 +1764,13 @@
 
         Events.onready(function () {
           Events.onevent(document.body, 'submit', true, function (e) {
-            console.log('On Submit Event')
+            // console.log('On Submit Event')
             handle(e)
           })
 
           // Intercept enter keypresses which will submit the form in most browsers.
           Events.onevent(document.body, 'keypress', false, function (e) {
-            console.log('On KeyPress Event')
+            // console.log('On KeyPress Event')
             if (e.keyCode == 13) {
               var target = e.target
               var form = target.form
@@ -1789,7 +1784,7 @@
 
           // Intercept clicks on any buttons:
           Events.onevent(document.body, 'click', false, function (e) {
-            console.log('On Click Event:', { e, typeofE: typeof e })
+            // console.log('On Click Event:', { e, typeofE: typeof e })
             var target = e.target
             var targetType = (target.type || '').toLowerCase()
 
@@ -1947,7 +1942,7 @@
 
         // Track all clicks on links:
         if (this.options.trackLinkClicks) {
-          console.log('Track Links')
+          // console.log('Track Links')
           var that = this
           DomUtil.monitorElements('a', function (el) {
             Events.onevent(el, 'click', true, function (e) {
@@ -2011,7 +2006,7 @@
 
         // Track form submissions:
         if (this.options.trackSubmissions) {
-          console.log('Track Submissions')
+          // console.log('Track Submissions')
           Events.onsubmit(function (e) {
             if (e.form) {
               if (!e.form.id) {
@@ -2272,11 +2267,11 @@ if (MP) {
     tracker: new ScribeEventPublicTracker({
       mpAccountHid: MP.accountId,
     }),
-    trackPageViews: false,
+    trackPageViews: true,
     trackClicks: true,
-    trackHashChanges: false,
-    trackEngagement: false,
-    trackLinkClicks: false,
+    trackHashChanges: true,
+    trackEngagement: true,
+    trackLinkClicks: true,
     trackRedirects: false,
     trackSubmissions: true,
     console: false,

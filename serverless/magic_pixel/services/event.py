@@ -10,7 +10,7 @@ from magic_pixel.models import (
     EventSource,
     EventTarget,
     Account,
-    Person,
+    Person, EventForm,
 )
 from magic_pixel.lib.aws_sqs import event_queue
 from magic_pixel.models.person import Alias
@@ -39,7 +39,8 @@ def _parse_event(event: Dict) -> Optional[Dict]:
         "visitor_id": event.get("visitorId"),
         "session_id": event.get("sessionId"),
         "fingerprint": event.get("fingerprint"),
-        "type": event.get("event_type"),
+        "distinct_user_id": event.get("distinctUserId"),
+        "type": event.get("type"),
     }
 
 
@@ -102,6 +103,14 @@ def _parse_event_target(event_id: str, event_target: dict) -> dict:
     }
 
 
+def _parse_event_form(event_id: str, event_form: dict) -> dict:
+    return {
+        "event_id": event_id,
+        "form_id": event_form.get("formId"),
+        "form_fields": event_form.get("formFields"),
+    }
+
+
 def save_event(account_id: int, event: dict, person_id=None):
     try:
         new_event = Event(
@@ -109,7 +118,6 @@ def save_event(account_id: int, event: dict, person_id=None):
             account_id=account_id,
             account_site_id=event["account_site_id"],
             visitor_id=event["visitor_id"],
-            person_id=person_id,
             session_id=event["session_id"],
             fingerprint=event["fingerprint"],
             type=event["type"],
@@ -201,6 +209,23 @@ def save_event_target_message(event_target: dict) -> bool:
         raise e
 
 
+def save_event_form_message(event_id, event_form):
+    logger.log_info(f"save_event_form: {event_form}")
+    try:
+        event_form = EventForm(
+            event_id=event_form["event_id"],
+            form_id=event_form["form_id"],
+            form_type=event_form["form_type"],
+            form_fields=event_form["form_fields"],
+        ).save()
+        db.session.commit()
+        return event_form
+    except Exception as e:
+        logger.log_exception(e)
+        raise e
+
+
+
 def queue_event_ingestion(event: dict) -> bool:
     return event_queue.send_message(event)
 
@@ -256,6 +281,12 @@ def ingest_event_details(event, db_event_id):
         save_event_target_message(parsed_target_event)
     db.session.commit()
 
+    event_form = event.get("form")
+    if event_form:
+        logger.log_info("parsing and saving new event form...")
+        parsed_locale_event = _parse_event_form(db_event_id, event_form)
+        save_event_locale(parsed_locale_event)
+
 
 def ingest_event_message(event) -> bool:
     logger.log_info(f"ingest_event_message: {event}")
@@ -263,27 +294,9 @@ def ingest_event_message(event) -> bool:
         # Parse event
         parsed_event = _parse_event(event)
         account_id = parsed_event["account_id"]
-
-        event_type = event.get("event")
-        if event_type == "form_submit":
-            event_form = event.get("form")
-            event_form_service.ingest_form_event(
-                account_id,
-                parsed_event,
-                event_form,
-            )
-        else:
-            visitor_id = parsed_event["visitor_id"]
-            event_person = (
-                Person.query.join(Alias)
-                .filter(Alias.original_distinct_id == visitor_id)
-                .first()
-            )
-
-            event_person_id = event_person.id if event_person else None
-            # Create new event
-            new_event = save_event(account_id, parsed_event, event_person_id)
-            ingest_event_details(event, new_event.id)
+        # Create new event
+        new_event = save_event(account_id, parsed_event)
+        ingest_event_details(event, new_event.id)
 
         logger.log_info("New event saved")
         return True

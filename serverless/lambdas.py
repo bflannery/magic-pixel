@@ -14,6 +14,7 @@ from magic_pixel.services.event import (
     ingest_event_message,
 )
 from magic_pixel.services.person import identify_person
+from magic_pixel.services.identity import identify_visitor
 
 
 def serverless_function(func):
@@ -160,6 +161,36 @@ def ingestion(event, context):
                 {
                     "status": "success",
                     "description": f"Messages successfully consumed from event queue.",
+                }
+            ),
+        }
+
+
+@serverless_function
+def identity(event, context):
+    logger.log_info(f"Identify Event: {event}")
+    try:
+        body = event.get("body")
+        if not body:
+            raise Exception("Event has no body object.")
+        parsed_body = json.loads(body)
+
+        # TODO: Create identity service
+        identify_visitor
+        return {
+            "statusCode": 200,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps({"status": "success"}),
+        }
+    except Exception as e:
+        logger.log_exception(e)
+        return {
+            "statusCode": 500,
+            "headers": {"Content-Type": "application/json"},
+            "body": json.dumps(
+                {
+                    "status": "error",
+                    "description": "Internal server error.",
                 }
             ),
         }

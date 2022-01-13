@@ -315,8 +315,8 @@
         var body = document.body;
         createElementMap(body, false);
         createDomLinkMap();
-        createDomFormMap();
-        // console.log({ formsMap })
+        var formsMap = createDomFormMap();
+        console.log({ formsMap: formsMap });
         return {};
     };
 
@@ -3155,16 +3155,6 @@
                     // Save context and session to browser storage
                     this._setStorageContext(this.context);
                     this._setStorageSessionId(this.sessionId);
-                    // Init Trackers
-                    this.trackClicks();
-                    this.trackLinkClicks();
-                    this.trackFormSubmits();
-                    // Load Queue from storage
-                    this._loadQueue();
-                    // Track pending events in the events Queue
-                    if (this.queue.length > 0) {
-                        this.trackQueueEvents(this.queue);
-                    }
                     return [2 /*return*/];
                 });
             });
@@ -3208,9 +3198,6 @@
         };
         MagicPixel.prototype._clearQueue = function () {
             this.queue = [];
-        };
-        MagicPixel.prototype._pushToHandler = function (f) {
-            this.handlers.push(f);
         };
         MagicPixel.prototype._dispatch = function () {
             var args = Array.prototype.slice.call(arguments, 0);
@@ -3277,8 +3264,13 @@
                 });
             });
         };
+        MagicPixel.prototype._initTrackers = function () {
+            this._trackClicks();
+            this._trackLinkClicks();
+            this._trackFormSubmits();
+        };
         // Track all clicks to the document
-        MagicPixel.prototype.trackClicks = function () {
+        MagicPixel.prototype._trackClicks = function () {
             var _this = this;
             onReady(function () {
                 return onEvent(document.body, 'click', true, function (e) { return __awaiter(_this, void 0, void 0, function () {
@@ -3301,7 +3293,7 @@
             });
         };
         // Track all link clicks on the document
-        MagicPixel.prototype.trackLinkClicks = function () {
+        MagicPixel.prototype._trackLinkClicks = function () {
             var _this = this;
             monitorElements('a', function (el) {
                 return onEvent(el, 'click', true, function (e) { return __awaiter(_this, void 0, void 0, function () {
@@ -3370,7 +3362,7 @@
             });
         };
         // Track all form submissions
-        MagicPixel.prototype.trackFormSubmits = function () {
+        MagicPixel.prototype._trackFormSubmits = function () {
             var _this = this;
             onSubmit(function (e) { return __awaiter(_this, void 0, void 0, function () {
                 return __generator(this, function (_a) {
@@ -3380,7 +3372,6 @@
                             if (!e.form.id) {
                                 e.form.id = uuidv4();
                             }
-                            debugger;
                             return [4 /*yield*/, this.trackLater('form_submit', {
                                     form: __assign(__assign({}, getFormData(e.form)), { formId: e.form.id }),
                                 })];
@@ -3391,6 +3382,14 @@
                     }
                 });
             }); });
+        };
+        MagicPixel.prototype._createEvent = function (eventType, properties) {
+            console.log({ eventType: eventType, properties: properties });
+            return __assign({ eventType: eventType, timestamp: new Date().toISOString(), source: {
+                    url: parseLocation(document.location),
+                }, target: {
+                    url: defaultURLProps,
+                } }, properties);
         };
         /**
          * @function: identify
@@ -3408,7 +3407,7 @@
                             _a.trys.push([0, 2, , 3]);
                             body = {
                                 accountId: this.context.accountId,
-                                distinctUserId: distinctUserId,
+                                namedAlias: distinctUserId,
                                 visitorId: this.context.visitorId,
                             };
                             return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/identify", body)];
@@ -3426,14 +3425,6 @@
                 });
             });
         };
-        MagicPixel.prototype.createEvent = function (eventType, properties) {
-            console.log({ eventType: eventType, properties: properties });
-            return __assign({ eventType: eventType, timestamp: new Date().toISOString(), source: {
-                    url: parseLocation(document.location),
-                }, target: {
-                    url: defaultURLProps,
-                } }, properties);
-        };
         /**
          * @function: track
          * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
@@ -3446,29 +3437,76 @@
             return __awaiter(this, void 0, void 0, function () {
                 var eventProps, mpEvent;
                 return __generator(this, function (_a) {
-                    console.log('Tracking Event: ', { eventName: eventName, properties: properties });
-                    try {
-                        eventProps = __assign(__assign({}, this.context), properties);
-                        mpEvent = this.createEvent(eventName, eventProps);
-                        console.log('Customer Tracking Event: ', { mpEvent: mpEvent });
-                        // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, customEvent)
-                        return [2 /*return*/, true];
+                    switch (_a.label) {
+                        case 0:
+                            console.log('Tracking Event: ', { eventName: eventName, properties: properties });
+                            _a.label = 1;
+                        case 1:
+                            _a.trys.push([1, 3, , 4]);
+                            eventProps = __assign(__assign({}, this.context), properties);
+                            mpEvent = this._createEvent(eventName, eventProps);
+                            console.log('Customer Tracking Event: ', { mpEvent: mpEvent });
+                            return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/collection", mpEvent)];
+                        case 2:
+                            _a.sent();
+                            return [2 /*return*/, true];
+                        case 3:
+                            _a.sent();
+                            console.error('MP: Error trying to track event.');
+                            return [2 /*return*/, false];
+                        case 4: return [2 /*return*/];
                     }
-                    catch (e) {
-                        console.error('MP: Error trying to track event.');
-                        return [2 /*return*/, false];
-                    }
-                    return [2 /*return*/];
                 });
             });
         };
+        /**
+         * @function: trackScribeEvent
+         * @param {ScribeEventType} [scribeEvent] A scribe event object
+         * @description: internal method to track an visitor and/or event details via scribe
+         */
+        MagicPixel.prototype.trackScribeEvent = function (scribeEvent) {
+            var _a, _b, _c;
+            return __awaiter(this, void 0, void 0, function () {
+                var event_1, accountEvent, response;
+                return __generator(this, function (_d) {
+                    switch (_d.label) {
+                        case 0:
+                            _d.trys.push([0, 2, , 3]);
+                            event_1 = scribeEvent.value;
+                            accountEvent = __assign(__assign({}, event_1), { type: event_1.event, accountId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountId, accountSiteId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.accountSiteId, fingerprint: this.fingerprint, visitorId: (_c = this.context) === null || _c === void 0 ? void 0 : _c.visitorId, sessionId: this.sessionId });
+                            console.log({ scribeAccountEvent: accountEvent });
+                            return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/collection", accountEvent)];
+                        case 1:
+                            response = _d.sent();
+                            if (response.status === '403') {
+                                console.warn("MP: Unauthorized");
+                                // TODO: Invalidate local storage data
+                                return [2 /*return*/, false];
+                            }
+                            return [2 /*return*/, true];
+                        case 2:
+                            _d.sent();
+                            console.error('MP: Error sending scribe event to MP server.');
+                            // TODO: Retry or invalidate local storage data
+                            return [2 /*return*/, false];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        };
+        /**
+         * @function: trackLater
+         * @param {String} eventName A string that identifies an event. Ex. "Sign Up"
+         * @param {Object | null} properties A key/pair object of custom event properties
+         * @description: track an visitor and/or event details at a later time
+         */
         MagicPixel.prototype.trackLater = function (eventName, properties) {
             return __awaiter(this, void 0, void 0, function () {
                 var eventProps, mpEvent;
                 return __generator(this, function (_a) {
                     try {
                         eventProps = __assign(__assign({}, this.context), properties);
-                        mpEvent = this.createEvent(eventName, eventProps);
+                        mpEvent = this._createEvent(eventName, eventProps);
                         this._addToQueue(mpEvent);
                         this._saveQueue();
                         return [2 /*return*/, true];
@@ -3529,38 +3567,6 @@
             }
         };
         /**
-         * @function: trackScribeEvent
-         * @param {Object} [scribeEvent] A scribe event object
-         * @description: internal method to track an visitor and/or event details via scribe
-         */
-        MagicPixel.prototype.trackScribeEvent = function (scribeEvent) {
-            var _a, _b, _c;
-            return __awaiter(this, void 0, void 0, function () {
-                var event_1, accountEvent;
-                return __generator(this, function (_d) {
-                    try {
-                        event_1 = scribeEvent.value;
-                        accountEvent = __assign(__assign({}, event_1), { accountId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountId, accountSiteId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.accountSiteId, fingerprint: this.fingerprint, visitorId: (_c = this.context) === null || _c === void 0 ? void 0 : _c.visitorId, sessionId: this.sessionId });
-                        console.log({ accountEvent: accountEvent });
-                        // const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, accountEvent)
-                        // if (response.status === '403') {
-                        //   console.warn("MP: Unauthorized")
-                        //   // TODO: Invalidate local storage data
-                        //   return false
-                        // }
-                        console.log('Sent');
-                        return [2 /*return*/, true];
-                    }
-                    catch (e) {
-                        console.error('MP: Error sending scribe event to MP server.');
-                        // TODO: Retry or invalidate local storage data
-                        return [2 /*return*/, false];
-                    }
-                    return [2 /*return*/];
-                });
-            });
-        };
-        /**
          * @function: authenticateAccountId
          * @description: Will call api to verify the account status based on the host id provided in script.
          * Will update the MP class object data and local/session storage on successful response.
@@ -3614,7 +3620,7 @@
          */
         MagicPixel.prototype.authenticateHostData = function (mpStorageContext) {
             return __awaiter(this, void 0, void 0, function () {
-                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, _a, e_4;
+                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, _a, e_6;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -3658,8 +3664,8 @@
                             return [2 /*return*/, true];
                         case 12: return [2 /*return*/, false];
                         case 13:
-                            e_4 = _b.sent();
-                            console.error(e_4);
+                            e_6 = _b.sent();
+                            console.error(e_6);
                             return [2 /*return*/, false];
                         case 14: return [2 /*return*/];
                     }
@@ -3698,7 +3704,7 @@
     var script = document.currentScript;
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var hostId, siteId, MP, accountIsActive;
+            var hostId, siteId, MP, accountIsActive, domMap, newScript;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -3714,19 +3720,20 @@
                         return [4 /*yield*/, MP.authenticateAccount()];
                     case 1:
                         accountIsActive = _a.sent();
-                        createDOMMap();
+                        domMap = createDOMMap();
+                        console.log(domMap);
                         if (!accountIsActive) return [3 /*break*/, 3];
                         console.debug('MP: Account is active.');
                         return [4 /*yield*/, MP.init()
-                            // // create a new script element
-                            // const newScript = document.createElement('script')
-                            // newScript.src = `http://localhost:8081/scribe-analytics-debug.js?hid=${hostId}`
-                            // newScript.async = true
-                            // // insert the script element into the document
-                            // document.head.appendChild(newScript)
+                            // create a new script element
                         ];
                     case 2:
                         _a.sent();
+                        newScript = document.createElement('script');
+                        newScript.src = "http://localhost:8081/scribe-analytics-debug.js?hid=" + hostId;
+                        newScript.async = true;
+                        // insert the script element into the document
+                        document.head.appendChild(newScript);
                         return [3 /*break*/, 4];
                     case 3:
                         console.error('MP: Account is not active.');
