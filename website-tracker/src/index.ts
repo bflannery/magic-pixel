@@ -1,39 +1,38 @@
-import { createDOMMap, getHostId, getSiteId } from './utils'
+import { getSiteId } from './utils'
 import MagicPixel from './magicPixel'
 
 const script = document.currentScript
 
 async function init() {
-  const hostId = getHostId(script)
   const siteId = getSiteId(script)
 
-  console.log({ hostId, siteId })
+  console.log({ siteId })
 
-  if (!hostId || !siteId) {
-    console.error('MP: Error verifying account. No host id provided')
+  if (!siteId) {
+    console.error('MP: Error verifying account. No site id provided')
     return false
   }
 
-  const MP = new MagicPixel(hostId, siteId)
+  const MP = new MagicPixel(siteId)
   window.MP = MP
 
   const accountIsActive = await MP.authenticateAccount()
 
-  const domMap = createDOMMap(document.body, false)
-  console.log(domMap);
+  // const domMap = createDOMMap(document.body, false)
+  // console.log(domMap);
 
   if (accountIsActive) {
     console.debug('MP: Account is active.')
     await MP.init()
     // create a new script element
     const newScript = document.createElement('script')
-    newScript.src = `http://localhost:8081/scribe-analytics-debug.js?hid=${hostId}`
+    newScript.src = `http://localhost:8081/scribe-analytics-debug.js?hid=${siteId}`
     newScript.async = true
 
     // insert the script element into the document
     document.head.appendChild(newScript)
   } else {
-    console.error('MP: Account is not active.')
+    console.error(`MP: Account is not active for site id ${siteId}.`)
   }
 }
 

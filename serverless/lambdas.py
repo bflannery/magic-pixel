@@ -7,7 +7,6 @@ from magic_pixel.lib.aws_sqs import RetryException
 from magic_pixel.models import Account
 from magic_pixel.services.account import (
     verify_account_status,
-    validate_event_params_and_get_account,
 )
 from magic_pixel.services.event import (
     queue_event_ingestion,
@@ -37,11 +36,7 @@ def authentication(event, context):
         logger.log_info(f"Authentication Body: {body}")
 
         parsed_body = json.loads(body)
-
-        account = validate_event_params_and_get_account(parsed_body)
-        logger.log_info(f"Authentication Account: {account}")
-
-        account_status = verify_account_status(account)
+        account_status = verify_account_status(parsed_body)
 
         if account_status != "active":
             return {
@@ -84,11 +79,7 @@ def collection(event, context):
         logger.log_info(f"Authentication Body: {body}")
 
         parsed_body = json.loads(body)
-
-        account = validate_event_params_and_get_account(parsed_body)
-        logger.log_info(f"Authentication Account: {account}")
-
-        account_status = verify_account_status(account)
+        account_status = verify_account_status(parsed_body)
         if account_status != "active":
             return {
                 "statusCode": 403,
@@ -176,7 +167,8 @@ def identity(event, context):
         parsed_body = json.loads(body)
 
         # TODO: Create identity service
-        identify_visitor
+        # identify_visitor()
+
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},

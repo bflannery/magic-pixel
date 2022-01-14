@@ -19,21 +19,17 @@ export type MPKeyboardEvent = KeyboardEvent & MPEvent
 export type MPGenericEvent = Event & MPEvent
 
 export interface MpDataProps {
-  accountId: string | null
   accountSiteId: string | null
   accountStatus: string
   lastVerified: number | null
-  distinctUserId: string | null
-  visitorId: string | null
+  userId: string | null
 }
 
 export interface EventProps {
-  accountId: string | null
   accountSiteId: string | null
   accountStatus: string
   lastVerified: number | null
-  distinctUserId: string | null
-  visitorId: string | null
+  userId: string | null
 
   [key: string]: string | number | null
 }
@@ -57,12 +53,10 @@ export interface MagicPixelType {
 }
 
 export interface MPEventType {
-  accountId: string | null
   accountSiteId: string | null
   accountStatus: string
   lastVerified: number | null
-  distinctUserId: string | null
-  visitorId: string | null
+  userId: string | null
   eventType: string
   timestamp: string
   target: {

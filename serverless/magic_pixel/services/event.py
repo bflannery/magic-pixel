@@ -9,37 +9,26 @@ from magic_pixel.models import (
     EventLocale,
     EventSource,
     EventTarget,
-    Account,
-    Person, EventForm,
+    EventForm,
 )
 from magic_pixel.lib.aws_sqs import event_queue
-from magic_pixel.models.person import Alias
-from magic_pixel.services import (
-    event_form as event_form_service,
-)
 from magic_pixel.utility import parse_url
 from magic_pixel.models.account import AccountSite
 
 
 def _parse_event(event: Dict) -> Optional[Dict]:
-    account_mp_id = event["accountId"]
-    if not account_mp_id:
-        raise Exception(f"No account exists with hid: {account_mp_id}.")
-
-    account_site_id = event["accountSiteId"]
+    account_site_id = event.get("accountSiteId")
     if not account_site_id:
-        raise Exception(f"No account site exists with hid: {account_site_id}.")
-
-    account_id = Account.db_id_from_mp_id(account_mp_id)
-    account_site_id = AccountSite.db_id_from_mp_id(account_site_id)
+        raise Exception(f"Event does not have an account site id.")
+    account_site = AccountSite.get_by_mp_id(account_site_id)
+    if not account_site:
+        raise Exception(f"No account site exists with site id {account_site_id}.")
     return {
         "created_at": event.get("timestamp"),
-        "account_id": account_id,
-        "account_site_id": account_site_id,
-        "visitor_id": event.get("visitorId"),
+        "account_site_id": account_site.id,
+        "user_id": event.get("userId"),
         "session_id": event.get("sessionId"),
         "fingerprint": event.get("fingerprint"),
-        "distinct_user_id": event.get("distinctUserId"),
         "type": event.get("type"),
     }
 
@@ -111,13 +100,12 @@ def _parse_event_form(event_id: str, event_form: dict) -> dict:
     }
 
 
-def save_event(account_id: int, event: dict, person_id=None):
+def save_event(event: dict):
     try:
         new_event = Event(
             created_at=event["created_at"],
-            account_id=account_id,
             account_site_id=event["account_site_id"],
-            visitor_id=event["visitor_id"],
+            user_id=event["user_id"],
             session_id=event["session_id"],
             fingerprint=event["fingerprint"],
             type=event["type"],
@@ -225,21 +213,12 @@ def save_event_form_message(event_id, event_form):
         raise e
 
 
-
 def queue_event_ingestion(event: dict) -> bool:
     return event_queue.send_message(event)
 
 
 def backup_event(event):
     pass
-
-
-# Example: put_object(
-#       c.EXPORT_S3_BUCKET,
-#       key_prefix + "rewards.csv",
-#       obj_str=rio.getvalue(),
-#       content_type="text/csv",
-#     )
 
 
 def ingest_event_details(event, db_event_id):
@@ -293,9 +272,8 @@ def ingest_event_message(event) -> bool:
     try:
         # Parse event
         parsed_event = _parse_event(event)
-        account_id = parsed_event["account_id"]
         # Create new event
-        new_event = save_event(account_id, parsed_event)
+        new_event = save_event(parsed_event)
         ingest_event_details(event, new_event.id)
 
         logger.log_info("New event saved")

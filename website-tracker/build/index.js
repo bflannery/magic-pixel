@@ -87,21 +87,6 @@
     function scriptIsHTML(script) {
         return 'src' in script;
     }
-    function getHostId(script) {
-        if (window.MP_HID) {
-            return window.MP_HID;
-        }
-        if (!script) {
-            console.error('MP: script requires being loaded from mp source');
-            return null;
-        }
-        if (!scriptIsHTML(script)) {
-            console.error('MP: mp does not support SVG scripts.');
-            return null;
-        }
-        var url = new URL(script.src);
-        return url.searchParams.get('hid');
-    }
     function getSiteId(script) {
         if (window.MP_SID) {
             return window.MP_SID;
@@ -232,92 +217,6 @@
             url1Object.host === url2Object.host &&
             url1Object.pathname === url2Object.pathname &&
             deepEqual(url1Object.query, url2Object.query));
-    };
-    /**
-     * Create an array of the attributes on an element
-     * @param  {NamedNodeMap} attributes The attributes on an element
-     * @return {Array}                   The attributes on an element as an array of key/value pairs
-     */
-    var getAttributes = function (attributes) {
-        return Array.prototype.map.call(attributes, function (attribute) {
-            var newAttribute = {
-                name: attribute.name,
-                value: attribute.value,
-            };
-            return newAttribute;
-        });
-    };
-    /**
-     * Create a Tree Map for an element
-     * @param  {Node}    element The element to map
-     * @param  {Boolean} isSVG   If true, node is within an SVG
-     * @return {Array}           A DOM tree map
-     */
-    var createElementMap = function (element, isSVG) {
-        var childNodes = [];
-        if (element.childNodes && element.childNodes.length > 0) {
-            childNodes = Array.prototype.filter.call(element.childNodes, function (node) {
-                return (node.nodeType !== 8 && node.nodeType == 1 && node.localName !== 'br') ||
-                    (node.nodeType === 3 && node.textContent.trim() !== '');
-            });
-        }
-        return childNodes.map(function (node, i) {
-            var id = node.id || null;
-            var className = node.className || null;
-            var attributes = node.nodeType !== 1 ? [] : getAttributes(node.attributes);
-            var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
-            var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
-            var children = createElementMap(node, isSVG || node.type === 'svg');
-            return {
-                id: id,
-                className: className,
-                content: content,
-                attributes: attributes,
-                type: type,
-                node: node,
-                children: children,
-                isSVG: isSVG || node.type === 'svg',
-            };
-        });
-    };
-    var createLinkElementMap = function (link) {
-        var _a;
-        return {
-            id: link.id,
-            className: link.className,
-            content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
-            attributes: getAttributes(link.attributes),
-            type: link.tagName.toLowerCase(),
-        };
-    };
-    var createDomLinkMap = function () {
-        var links = document.querySelectorAll('a');
-        var linksMap = {};
-        Array.prototype.map.call(links, function (link, i) {
-            var linkMap = createLinkElementMap(link);
-            var linkKey = link.id || "link-id-" + i;
-            linksMap[linkKey] = linkMap;
-        });
-        return linksMap;
-    };
-    var createDomFormMap = function () {
-        var forms = document.querySelectorAll('form');
-        var formsMap = {};
-        Array.prototype.map.call(forms, function (form, i) {
-            // console.log({ form })
-            var formMap = createElementMap(form, false);
-            var formKey = form.id || "form-id-" + i;
-            formsMap[formKey] = formMap;
-        });
-        return formsMap;
-    };
-    var createDOMMap = function (element, isSVG) {
-        var body = document.body;
-        createElementMap(body, false);
-        createDomLinkMap();
-        var formsMap = createDomFormMap();
-        console.log({ formsMap: formsMap });
-        return {};
     };
 
     /**
@@ -3123,17 +3022,15 @@
     // Initialize an agent at application startup.
     var fpPromise = FingerprintJS.load();
     var MagicPixel = /** @class */ (function () {
-        function MagicPixel(accountId, accountSiteId) {
+        function MagicPixel(accountSiteId) {
             this.apiDomain = 'http://localhost:5000/dev';
             this.fingerprint = null;
             this.sessionId = null;
             this.context = {
-                accountId: accountId,
                 accountSiteId: accountSiteId,
                 accountStatus: 'inactive',
                 lastVerified: null,
-                distinctUserId: null,
-                visitorId: null,
+                userId: null,
             };
             this.javascriptRedirect = true;
             this.oldHash = document.location.hash;
@@ -3148,8 +3045,7 @@
                     console.log({ MP: this });
                     mpContext = this._getStorageContext();
                     sessionId = this._getStorageSessionId();
-                    this.context.visitorId = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.visitorId) || uuidv4();
-                    this.context.distinctUserId = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.distinctUserId) || null;
+                    this.context.userId = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.userId) || uuidv4();
                     this.context.lastVerified = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.lastVerified) || null;
                     this.sessionId = sessionId || uuidv4();
                     // Save context and session to browser storage
@@ -3213,14 +3109,14 @@
             console.log({ handlers: this.handlers });
         };
         MagicPixel.prototype._apiRequest = function (method, endpoint, body) {
-            var _a, _b;
+            var _a;
             return __awaiter(this, void 0, void 0, function () {
                 var jsonBody, response, e_1;
-                return __generator(this, function (_c) {
-                    switch (_c.label) {
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
                         case 0:
-                            _c.trys.push([0, 2, , 3]);
-                            if (!((_a = this.context) === null || _a === void 0 ? void 0 : _a.accountId) || !((_b = this.context) === null || _b === void 0 ? void 0 : _b.accountSiteId)) {
+                            _b.trys.push([0, 2, , 3]);
+                            if (!((_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId)) {
                                 console.warn('MP: Error: Missing ids, cannot track event');
                                 return [2 /*return*/, false];
                             }
@@ -3233,10 +3129,10 @@
                                     body: jsonBody,
                                 })];
                         case 1:
-                            response = _c.sent();
+                            response = _b.sent();
                             return [2 /*return*/, response.json()];
                         case 2:
-                            e_1 = _c.sent();
+                            e_1 = _b.sent();
                             console.error(e_1);
                             return [2 /*return*/, e_1];
                         case 3: return [2 /*return*/];
@@ -3399,25 +3295,26 @@
          * Should be called when you know the identity of the current visitor (i.e login or signup).
          */
         MagicPixel.prototype.identify = function (distinctUserId) {
+            var _a, _b;
             return __awaiter(this, void 0, void 0, function () {
                 var body;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
                         case 0:
-                            _a.trys.push([0, 2, , 3]);
+                            _c.trys.push([0, 2, , 3]);
                             body = {
-                                accountId: this.context.accountId,
+                                accountSiteId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId,
                                 namedAlias: distinctUserId,
-                                visitorId: this.context.visitorId,
+                                userId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.userId,
                             };
                             return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/identify", body)];
                         case 1:
-                            _a.sent();
-                            this.context.distinctUserId = distinctUserId;
+                            _c.sent();
+                            this.context.userId = distinctUserId;
                             this._setStorageContext(this.context);
                             return [2 /*return*/, true];
                         case 2:
-                            _a.sent();
+                            _c.sent();
                             console.error('MP: Error trying to identify user.');
                             return [2 /*return*/, false];
                         case 3: return [2 /*return*/];
@@ -3465,19 +3362,19 @@
          * @description: internal method to track an visitor and/or event details via scribe
          */
         MagicPixel.prototype.trackScribeEvent = function (scribeEvent) {
-            var _a, _b, _c;
+            var _a, _b;
             return __awaiter(this, void 0, void 0, function () {
                 var event_1, accountEvent, response;
-                return __generator(this, function (_d) {
-                    switch (_d.label) {
+                return __generator(this, function (_c) {
+                    switch (_c.label) {
                         case 0:
-                            _d.trys.push([0, 2, , 3]);
+                            _c.trys.push([0, 2, , 3]);
                             event_1 = scribeEvent.value;
-                            accountEvent = __assign(__assign({}, event_1), { type: event_1.event, accountId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountId, accountSiteId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.accountSiteId, fingerprint: this.fingerprint, visitorId: (_c = this.context) === null || _c === void 0 ? void 0 : _c.visitorId, sessionId: this.sessionId });
+                            accountEvent = __assign(__assign({}, event_1), { type: event_1.event, accountSiteId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId, fingerprint: this.fingerprint, userId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.userId, sessionId: this.sessionId });
                             console.log({ scribeAccountEvent: accountEvent });
                             return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/collection", accountEvent)];
                         case 1:
-                            response = _d.sent();
+                            response = _c.sent();
                             if (response.status === '403') {
                                 console.warn("MP: Unauthorized");
                                 // TODO: Invalidate local storage data
@@ -3485,7 +3382,7 @@
                             }
                             return [2 /*return*/, true];
                         case 2:
-                            _d.sent();
+                            _c.sent();
                             console.error('MP: Error sending scribe event to MP server.');
                             // TODO: Retry or invalidate local storage data
                             return [2 /*return*/, false];
@@ -3584,18 +3481,17 @@
                             _a.fingerprint = _b.sent();
                             _b.label = 2;
                         case 2:
-                            if (!(this.context.accountId && this.context.accountSiteId)) return [3 /*break*/, 6];
+                            if (!this.context.accountSiteId) return [3 /*break*/, 6];
                             _b.label = 3;
                         case 3:
                             _b.trys.push([3, 5, , 6]);
                             authBody = {
-                                accountId: this.context.accountId,
                                 accountSiteId: this.context.accountSiteId,
                             };
                             return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/authentication", authBody)];
                         case 4:
                             response = _b.sent();
-                            mpContext = __assign(__assign({}, this.context), { accountId: this.context.accountId, accountSiteId: this.context.accountSiteId, accountStatus: response.accountStatus, lastVerified: Date.now() });
+                            mpContext = __assign(__assign({}, this.context), { accountSiteId: this.context.accountSiteId, accountStatus: response.accountStatus, lastVerified: Date.now() });
                             if (mpContext.accountStatus === 'active') {
                                 this.context = mpContext;
                                 this._setStorageContext(mpContext);
@@ -3624,50 +3520,46 @@
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            _b.trys.push([0, 13, , 14]);
+                            _b.trys.push([0, 11, , 12]);
                             // If no mpData kill it
                             if (!this.context) {
                                 return [2 /*return*/, false];
                             }
-                            if (!(this.context.accountId !== mpStorageContext.accountId)) return [3 /*break*/, 2];
+                            if (!(this.context.accountSiteId !== mpStorageContext.accountSiteId)) return [3 /*break*/, 2];
                             return [4 /*yield*/, this.authenticateAccountId()];
                         case 1: return [2 /*return*/, _b.sent()];
                         case 2:
-                            if (!(this.context.accountSiteId !== mpStorageContext.accountSiteId)) return [3 /*break*/, 4];
-                            return [4 /*yield*/, this.authenticateAccountId()];
-                        case 3: return [2 /*return*/, _b.sent()];
-                        case 4:
                             lastVerified = mpStorageContext.lastVerified, accountStatus = mpStorageContext.accountStatus;
                             now = new Date().getTime();
                             lastVerifiedTimeStamp = lastVerified || new Date().getTime();
                             lastVerifiedHours = getDiffFromTimestamp(now, lastVerifiedTimeStamp, 'hours');
-                            if (!(accountStatus === 'inactive' || accountStatus === 'delinquent')) return [3 /*break*/, 7];
-                            if (!(lastVerifiedHours < 1)) return [3 /*break*/, 5];
+                            if (!(accountStatus === 'inactive' || accountStatus === 'delinquent')) return [3 /*break*/, 5];
+                            if (!(lastVerifiedHours < 1)) return [3 /*break*/, 3];
                             return [2 /*return*/, false];
-                        case 5: return [4 /*yield*/, this.authenticateAccountId()];
+                        case 3: return [4 /*yield*/, this.authenticateAccountId()];
+                        case 4: return [2 /*return*/, _b.sent()];
+                        case 5:
+                            if (!(accountStatus === 'active')) return [3 /*break*/, 10];
+                            if (!(lastVerifiedHours >= 1)) return [3 /*break*/, 7];
+                            console.debug("MP: Re-authenticating account id " + this.context.accountSiteId);
+                            return [4 /*yield*/, this.authenticateAccountId()];
                         case 6: return [2 /*return*/, _b.sent()];
                         case 7:
-                            if (!(accountStatus === 'active')) return [3 /*break*/, 12];
-                            if (!(lastVerifiedHours >= 1)) return [3 /*break*/, 9];
-                            console.debug("MP: Re-authenticating account id " + this.context.accountId);
-                            return [4 /*yield*/, this.authenticateAccountId()];
-                        case 8: return [2 /*return*/, _b.sent()];
-                        case 9:
-                            if (!!this.fingerprint) return [3 /*break*/, 11];
+                            if (!!this.fingerprint) return [3 /*break*/, 9];
                             _a = this;
                             return [4 /*yield*/, this._fingerprint()];
-                        case 10:
+                        case 8:
                             _a.fingerprint = _b.sent();
-                            _b.label = 11;
-                        case 11:
+                            _b.label = 9;
+                        case 9:
                             this.context = __assign(__assign({}, this.context), mpStorageContext);
                             return [2 /*return*/, true];
-                        case 12: return [2 /*return*/, false];
-                        case 13:
+                        case 10: return [2 /*return*/, false];
+                        case 11:
                             e_6 = _b.sent();
                             console.error(e_6);
                             return [2 /*return*/, false];
-                        case 14: return [2 /*return*/];
+                        case 12: return [2 /*return*/];
                     }
                 });
             });
@@ -3685,13 +3577,13 @@
                         case 0:
                             mpStorageContext = this._getStorageContext();
                             if (!!mpStorageContext) return [3 /*break*/, 2];
-                            console.debug("MP: Invalid browser data. Authenticating account id " + this.context.accountId);
+                            console.debug("MP: Invalid browser data. Authenticating account site id " + this.context.accountSiteId);
                             return [4 /*yield*/, this.authenticateAccountId()];
                         case 1: 
                         // Call verification service to check account status and other data
                         return [2 /*return*/, _a.sent()];
                         case 2:
-                            console.debug("MP: Authenticating host storage data for account id " + this.context.accountId);
+                            console.debug("MP: Authenticating host storage data for account site id " + this.context.accountSiteId);
                             return [4 /*yield*/, this.authenticateHostData(mpStorageContext)];
                         case 3: return [2 /*return*/, _a.sent()];
                     }
@@ -3704,24 +3596,24 @@
     var script = document.currentScript;
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var hostId, siteId, MP, accountIsActive, domMap, newScript;
+            var siteId, MP, accountIsActive, newScript;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
-                        hostId = getHostId(script);
                         siteId = getSiteId(script);
-                        console.log({ hostId: hostId, siteId: siteId });
-                        if (!hostId || !siteId) {
-                            console.error('MP: Error verifying account. No host id provided');
+                        console.log({ siteId: siteId });
+                        if (!siteId) {
+                            console.error('MP: Error verifying account. No site id provided');
                             return [2 /*return*/, false];
                         }
-                        MP = new MagicPixel(hostId, siteId);
+                        MP = new MagicPixel(siteId);
                         window.MP = MP;
-                        return [4 /*yield*/, MP.authenticateAccount()];
+                        return [4 /*yield*/, MP.authenticateAccount()
+                            // const domMap = createDOMMap(document.body, false)
+                            // console.log(domMap);
+                        ];
                     case 1:
                         accountIsActive = _a.sent();
-                        domMap = createDOMMap();
-                        console.log(domMap);
                         if (!accountIsActive) return [3 /*break*/, 3];
                         console.debug('MP: Account is active.');
                         return [4 /*yield*/, MP.init()
@@ -3730,13 +3622,13 @@
                     case 2:
                         _a.sent();
                         newScript = document.createElement('script');
-                        newScript.src = "http://localhost:8081/scribe-analytics-debug.js?hid=" + hostId;
+                        newScript.src = "http://localhost:8081/scribe-analytics-debug.js?hid=" + siteId;
                         newScript.async = true;
                         // insert the script element into the document
                         document.head.appendChild(newScript);
                         return [3 /*break*/, 4];
                     case 3:
-                        console.error('MP: Account is not active.');
+                        console.error("MP: Account is not active for site id " + siteId + ".");
                         _a.label = 4;
                     case 4: return [2 /*return*/];
                 }

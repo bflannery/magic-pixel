@@ -2264,9 +2264,7 @@ var MP = window.MP
 
 if (MP) {
   var scribe = new Scribe({
-    tracker: new ScribeEventPublicTracker({
-      mpAccountHid: MP.accountId,
-    }),
+    tracker: new ScribeEventPublicTracker(),
     trackPageViews: true,
     trackClicks: true,
     trackHashChanges: true,

@@ -27,7 +27,7 @@ services:
     ports:
       - 5432:5432
     volumes:
-      - $HOME/docker/volumes/postgres/pixel:/var/lib/postgresql/data
+      - $HOME/docker/volumes/postgres/mp:/var/lib/postgresql/data
   test-db:
     image: postgres
     container_name: pg-test
@@ -37,7 +37,7 @@ services:
     ports:
       - 5433:5432
     volumes:
-      - $HOME/docker/volumes/postgres/pixel-test:/var/lib/postgresql/data
+      - $HOME/docker/volumes/postgres/mp-test:/var/lib/postgresql/data
   fake-sqs:
     container_name: fake-sqs
     image: softwaremill/elasticmq-native
