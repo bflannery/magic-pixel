@@ -16,28 +16,58 @@ from magic_pixel.utility import parse_url
 from magic_pixel.models.account import AccountSite
 
 
-def _parse_event(event: Dict) -> Optional[Dict]:
+def parse_event(event: Dict) -> Optional[Dict]:
+    print(f"Parse Event: {event}")
     account_site_id = event.get("accountSiteId")
     if not account_site_id:
         raise Exception(f"Event does not have an account site id.")
     account_site = AccountSite.get_by_mp_id(account_site_id)
     if not account_site:
         raise Exception(f"No account site exists with site id {account_site_id}.")
-    return {
+
+    parsed_event = {
         "created_at": event.get("timestamp"),
         "account_site_id": account_site.id,
-        "user_id": event.get("userId"),
+        "visitor_uuid": event.get("visitorUUID"),
+        "distinct_person_id": event.get("distinctPersonId"),
         "session_id": event.get("sessionId"),
         "fingerprint": event.get("fingerprint"),
         "type": event.get("type"),
     }
 
+    event_browser = event.get("browser")
+    event_screen = event.get("screen")
+    if event_browser and event_screen:
+        parsed_event["browser"] = _parse_event_browser(
+            {**event_browser, **event_screen}
+        )
 
-def _parse_event_browser(event_id: str, event_browser: dict) -> dict:
+    event_document = event.get("document")
+    if event_document:
+        parsed_event["document"] = _parse_event_document(event_document)
+
+    event_locale = event.get("locale")
+    if event_locale:
+        parsed_event["locale"] = _parse_event_locale(event_locale)
+
+    event_source = event.get("source")
+    if event_source:
+        parsed_event["source"] = _parse_event_source(event_source)
+
+    event_target = event.get("target")
+    if event_target:
+        parsed_event["target"] = _parse_event_target(event_target)
+
+    event_form = event.get("form")
+    if event_form:
+        parsed_event["form"] = _parse_event_form(event_form)
+
+    return parsed_event
+
+
+def _parse_event_browser(event_browser: dict) -> dict:
     return {
-        "event_id": event_id,
-        "language": event_browser.get("language"),
-        "name": event_browser.get("name"),
+        "browser_name": event_browser.get("name"),
         "plugins": event_browser.get("plugins"),
         "ua": event_browser.get("ua"),
         "version": event_browser.get("version"),
@@ -47,14 +77,13 @@ def _parse_event_browser(event_id: str, event_browser: dict) -> dict:
     }
 
 
-def _parse_event_document(event_id: str, event_document: dict) -> dict:
+def _parse_event_document(event_document: dict) -> dict:
     title = event_document.get("title")
     referrer_params = event_document.get("referrer")
     doc_params = event_document.get("url")
     referrer_url = parse_url(referrer_params) if referrer_params else None
     doc_url = parse_url(doc_params) if doc_params else None
     return {
-        "event_id": event_id,
         "title": title,
         "document_url": doc_url,
         "document_parameters": doc_params,
@@ -63,67 +92,44 @@ def _parse_event_document(event_id: str, event_document: dict) -> dict:
     }
 
 
-def _parse_event_locale(event_id: str, event_locale: dict) -> dict:
+def _parse_event_locale(event_locale: dict) -> dict:
     return {
-        "event_id": event_id,
         "language": event_locale.get("language"),
         "tz_offset": event_locale.get("timezoneOffset"),
     }
 
 
-def _parse_event_source(event_id: str, event_source: dict) -> dict:
+def _parse_event_source(event_source: dict) -> dict:
     url_dict = event_source.get("url")
     url = parse_url(url_dict) if url_dict else None
     return {
-        "event_id": event_id,
         "url": url,
         "parameters": event_source.get("parameters"),
     }
 
 
-def _parse_event_target(event_id: str, event_target: dict) -> dict:
+def _parse_event_target(event_target: dict) -> dict:
     url_dict = event_target.get("url")
     url = parse_url(url_dict) if url_dict else None
     return {
-        "event_id": event_id,
         "url": url,
         "parameters": event_target.get("parameters"),
         "selector": event_target.get("selector"),
     }
 
 
-def _parse_event_form(event_id: str, event_form: dict) -> dict:
+def _parse_event_form(event_form: dict) -> dict:
     return {
-        "event_id": event_id,
         "form_id": event_form.get("formId"),
         "form_fields": event_form.get("formFields"),
     }
 
 
-def save_event(event: dict):
-    try:
-        new_event = Event(
-            created_at=event["created_at"],
-            account_site_id=event["account_site_id"],
-            user_id=event["user_id"],
-            session_id=event["session_id"],
-            fingerprint=event["fingerprint"],
-            type=event["type"],
-        ).save()
-        db.session.commit()
-        return new_event
-    except Exception as e:
-        logger.log_exception(e)
-        raise e
-
-
-def save_event_browser(event_browser: dict) -> bool:
-    logger.log_info(f"save_event_browser: {event_browser}")
+def save_event_browser(event: Event, event_browser: dict) -> bool:
     try:
         new_event_browser = EventBrowser(
-            event_id=event_browser["event_id"],
-            language=event_browser["language"],
-            name=event_browser["name"],
+            event=event,
+            browser_name=event_browser["browser_name"],
             plugins=event_browser["plugins"],
             ua=event_browser["ua"],
             version=event_browser["version"],
@@ -137,11 +143,10 @@ def save_event_browser(event_browser: dict) -> bool:
         raise e
 
 
-def save_event_document(event_document: dict) -> bool:
-    logger.log_info(f"save_event_document: {event_document}")
+def save_event_document(event: Event, event_document: dict) -> bool:
     try:
         document_event = EventDocument(
-            event_id=event_document["event_id"],
+            event=event,
             title=event_document["title"],
             document_url=event_document["document_url"],
             document_parameters=event_document["document_parameters"],
@@ -154,11 +159,10 @@ def save_event_document(event_document: dict) -> bool:
         raise e
 
 
-def save_event_locale(event_locale: dict) -> bool:
-    logger.log_info(f"save_event_locale: {event_locale}")
+def save_event_locale(event: Event, event_locale: dict) -> bool:
     try:
         locale_event = EventLocale(
-            event_id=event_locale["event_id"],
+            event=event,
             language=event_locale["language"],
             tz_offset=event_locale["tz_offset"],
         ).save()
@@ -168,11 +172,10 @@ def save_event_locale(event_locale: dict) -> bool:
         raise e
 
 
-def save_event_source(event_source: dict) -> bool:
-    logger.log_info(f"save_event_source: {event_source}")
+def save_event_source(event: Event, event_source: dict) -> bool:
     try:
         source_event = EventSource(
-            event_id=event_source["event_id"],
+            event=event,
             url=event_source["url"],
             parameters=event_source["parameters"],
         ).save()
@@ -182,11 +185,10 @@ def save_event_source(event_source: dict) -> bool:
         raise e
 
 
-def save_event_target_message(event_target: dict) -> bool:
-    logger.log_info(f"save_event_target_message: {event_target}")
+def save_event_target(event: Event, event_target: dict) -> bool:
     try:
         target_event = EventTarget(
-            event_id=event_target["event_id"],
+            event=event,
             url=event_target["url"],
             selector=event_target["selector"],
             parameters=event_target["parameters"],
@@ -197,13 +199,11 @@ def save_event_target_message(event_target: dict) -> bool:
         raise e
 
 
-def save_event_form_message(event_id, event_form):
-    logger.log_info(f"save_event_form: {event_form}")
+def save_event_form(event: Event, event_form: dict):
     try:
         event_form = EventForm(
-            event_id=event_form["event_id"],
+            event=event,
             form_id=event_form["form_id"],
-            form_type=event_form["form_type"],
             form_fields=event_form["form_fields"],
         ).save()
         db.session.commit()
@@ -213,71 +213,57 @@ def save_event_form_message(event_id, event_form):
         raise e
 
 
-def queue_event_ingestion(event: dict) -> bool:
-    return event_queue.send_message(event)
+def save_event(event: dict):
+    try:
+        event_browser = event.get("browser")
+        event_document = event.get("document")
+        event_locale = event.get("locale")
+        event_source = event.get("source")
+        event_target = event.get("target")
+        event_form = event.get("form")
 
+        new_event = Event(
+            created_at=event["created_at"],
+            account_site_id=event["account_site_id"],
+            distinct_person_id=event["distinct_person_id"],
+            visitor_uuid=event["visitor_uuid"],
+            session_id=event["session_id"],
+            fingerprint=event["fingerprint"],
+            type=event["type"],
+        ).save()
+        if event_browser:
+            save_event_browser(new_event, event_browser)
+        if event_locale:
+            save_event_locale(new_event, event_locale)
+        if event_document:
+            save_event_document(new_event, event_document)
+        if event_source:
+            save_event_source(new_event, event_source)
+        if event_target:
+            save_event_target(new_event, event_target)
+        if event_form:
+            save_event_form(new_event, event_form)
 
-def backup_event(event):
-    pass
-
-
-def ingest_event_details(event, db_event_id):
-    event_browser = event.get("browser")
-    event_screen = event.get("screen")
-
-    # Breakdown event
-    # TODO: We could split these into unique SQS queues at this point to
-    # Reduce load on this single ingestion lambda
-    if event_browser and event_screen:
-        logger.log_info("parsing and saving new event browser...")
-        parsed_browser_event = _parse_event_browser(
-            db_event_id, {**event_browser, **event_screen}
-        )
-        save_event_browser(parsed_browser_event)
-
-    event_document = event.get("document")
-    if event_document:
-        logger.log_info("parsing and saving new event document...")
-        parsed_document_event = _parse_event_document(db_event_id, event_document)
-        save_event_document(parsed_document_event)
-
-    event_locale = event.get("locale")
-    if event_locale:
-        logger.log_info("parsing and saving new event locale...")
-        parsed_locale_event = _parse_event_locale(db_event_id, event_locale)
-        save_event_locale(parsed_locale_event)
-
-    event_source = event.get("source")
-    if event_source:
-        logger.log_info("parsing and saving new event source...")
-        parsed_source_event = _parse_event_source(db_event_id, event_source)
-        save_event_source(parsed_source_event)
-
-    event_target = event.get("target")
-    if event_target:
-        logger.log_info("parsing and saving new event target...")
-        parsed_target_event = _parse_event_target(db_event_id, event_target)
-        save_event_target_message(parsed_target_event)
-    db.session.commit()
-
-    event_form = event.get("form")
-    if event_form:
-        logger.log_info("parsing and saving new event form...")
-        parsed_locale_event = _parse_event_form(db_event_id, event_form)
-        save_event_locale(parsed_locale_event)
+        db.session.commit()
+        return new_event
+    except Exception as e:
+        logger.log_exception(e)
+        raise e
 
 
 def ingest_event_message(event) -> bool:
     logger.log_info(f"ingest_event_message: {event}")
     try:
         # Parse event
-        parsed_event = _parse_event(event)
+        parsed_event = parse_event(event)
         # Create new event
         new_event = save_event(parsed_event)
-        ingest_event_details(event, new_event.id)
-
-        logger.log_info("New event saved")
+        logger.log_info(f"New event {new_event} saved")
         return True
     except Exception as e:
         logger.log_exception(e)
         return False
+
+
+def queue_event_ingestion(event: dict) -> bool:
+    return event_queue.send_message(event)

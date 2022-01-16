@@ -35,7 +35,8 @@ export default class MagicPixel {
       accountSiteId: accountSiteId,
       accountStatus: 'inactive',
       lastVerified: null,
-      userId: null,
+      visitorUUID: null,
+      distinctPersonId: null,
     }
     this.javascriptRedirect = true
     this.oldHash = document.location.hash
@@ -49,7 +50,7 @@ export default class MagicPixel {
 
     const mpContext = this._getStorageContext()
     const sessionId = this._getStorageSessionId()
-    this.context.userId = mpContext?.userId || uuidv4()
+    this.context.visitorUUID = mpContext?.visitorUUID || uuidv4()
     this.context.lastVerified = mpContext?.lastVerified || null
     this.sessionId = sessionId || uuidv4()
 
@@ -287,13 +288,13 @@ export default class MagicPixel {
    */
   async identify(distinctUserId: string): Promise<boolean> {
     try {
-      const body = {
-        accountSiteId: this.context?.accountSiteId,
-        namedAlias: distinctUserId,
-        userId: this.context?.userId,
-      }
-      await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
-      this.context.userId = distinctUserId
+      // const body = {
+      //   accountSiteId: this.context?.accountSiteId,
+      //   distinctUserId: distinctUserId,
+      //   userId: this.context?.userId,
+      // }
+      // await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
+      this.context.distinctPersonId = distinctUserId
       this._setStorageContext(this.context)
       return true
     } catch (e) {
@@ -343,7 +344,8 @@ export default class MagicPixel {
         type: event.event,
         accountSiteId: this.context?.accountSiteId,
         fingerprint: this.fingerprint,
-        userId: this.context?.userId,
+        visitorUUID: this.context?.visitorUUID,
+        distinctPersonId: this.context?.distinctPersonId,
         sessionId: this.sessionId,
       }
 

@@ -33,12 +33,13 @@ def upgrade():
             nullable=True,
         ),
         sa.Column("account_site_id", sa.BigInteger(), nullable=False),
-        sa.Column("user_id", sa.Text(), nullable=False),
+        sa.Column("visitor_uuid", sa.Text(), nullable=False),
         sa.Column("language", sa.Text(), nullable=True),
         sa.Column("tz_offset", sa.Text(), nullable=True),
         sa.Column("browser_name", sa.Text(), nullable=True),
         sa.Column("platform", sa.Text(), nullable=True),
         sa.Column("plugins", sa.JSON(), nullable=True),
+        sa.Column("ua", sa.Text(), nullable=True),
         sa.Column("version", sa.Integer(), nullable=True),
         sa.Column("screen_cd", sa.Integer(), nullable=True),
         sa.Column("screen_height", sa.Integer(), nullable=True),
@@ -51,14 +52,14 @@ def upgrade():
         ),
     )
     op.create_index(
-        op.f("ix_visitor_user_id"),
+        op.f("ix_visitor_visitor_uuid"),
         "visitor",
-        ["user_id"],
+        ["visitor_uuid"],
         unique=False,
     )
 
 
 def downgrade():
-    op.drop_index("ix_visitor_user_id")
+    op.drop_index("ix_visitor_visitor_uuid")
     op.drop_constraint("visitor_account_site_id_fkey", "visitor")
     op.drop_table("visitor")

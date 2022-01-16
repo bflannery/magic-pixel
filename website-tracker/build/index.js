@@ -3030,7 +3030,8 @@
                 accountSiteId: accountSiteId,
                 accountStatus: 'inactive',
                 lastVerified: null,
-                userId: null,
+                visitorUUID: null,
+                distinctPersonId: null,
             };
             this.javascriptRedirect = true;
             this.oldHash = document.location.hash;
@@ -3045,7 +3046,7 @@
                     console.log({ MP: this });
                     mpContext = this._getStorageContext();
                     sessionId = this._getStorageSessionId();
-                    this.context.userId = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.userId) || uuidv4();
+                    this.context.visitorUUID = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.visitorUUID) || uuidv4();
                     this.context.lastVerified = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.lastVerified) || null;
                     this.sessionId = sessionId || uuidv4();
                     // Save context and session to browser storage
@@ -3295,30 +3296,24 @@
          * Should be called when you know the identity of the current visitor (i.e login or signup).
          */
         MagicPixel.prototype.identify = function (distinctUserId) {
-            var _a, _b;
             return __awaiter(this, void 0, void 0, function () {
-                var body;
-                return __generator(this, function (_c) {
-                    switch (_c.label) {
-                        case 0:
-                            _c.trys.push([0, 2, , 3]);
-                            body = {
-                                accountSiteId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId,
-                                namedAlias: distinctUserId,
-                                userId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.userId,
-                            };
-                            return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/identify", body)];
-                        case 1:
-                            _c.sent();
-                            this.context.userId = distinctUserId;
-                            this._setStorageContext(this.context);
-                            return [2 /*return*/, true];
-                        case 2:
-                            _c.sent();
-                            console.error('MP: Error trying to identify user.');
-                            return [2 /*return*/, false];
-                        case 3: return [2 /*return*/];
+                return __generator(this, function (_a) {
+                    try {
+                        // const body = {
+                        //   accountSiteId: this.context?.accountSiteId,
+                        //   distinctUserId: distinctUserId,
+                        //   userId: this.context?.userId,
+                        // }
+                        // await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
+                        this.context.distinctPersonId = distinctUserId;
+                        this._setStorageContext(this.context);
+                        return [2 /*return*/, true];
                     }
+                    catch (e) {
+                        console.error('MP: Error trying to identify user.');
+                        return [2 /*return*/, false];
+                    }
+                    return [2 /*return*/];
                 });
             });
         };
@@ -3362,19 +3357,19 @@
          * @description: internal method to track an visitor and/or event details via scribe
          */
         MagicPixel.prototype.trackScribeEvent = function (scribeEvent) {
-            var _a, _b;
+            var _a, _b, _c;
             return __awaiter(this, void 0, void 0, function () {
                 var event_1, accountEvent, response;
-                return __generator(this, function (_c) {
-                    switch (_c.label) {
+                return __generator(this, function (_d) {
+                    switch (_d.label) {
                         case 0:
-                            _c.trys.push([0, 2, , 3]);
+                            _d.trys.push([0, 2, , 3]);
                             event_1 = scribeEvent.value;
-                            accountEvent = __assign(__assign({}, event_1), { type: event_1.event, accountSiteId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId, fingerprint: this.fingerprint, userId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.userId, sessionId: this.sessionId });
+                            accountEvent = __assign(__assign({}, event_1), { type: event_1.event, accountSiteId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId, fingerprint: this.fingerprint, visitorUUID: (_b = this.context) === null || _b === void 0 ? void 0 : _b.visitorUUID, distinctPersonId: (_c = this.context) === null || _c === void 0 ? void 0 : _c.distinctPersonId, sessionId: this.sessionId });
                             console.log({ scribeAccountEvent: accountEvent });
                             return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/collection", accountEvent)];
                         case 1:
-                            response = _c.sent();
+                            response = _d.sent();
                             if (response.status === '403') {
                                 console.warn("MP: Unauthorized");
                                 // TODO: Invalidate local storage data
@@ -3382,7 +3377,7 @@
                             }
                             return [2 /*return*/, true];
                         case 2:
-                            _c.sent();
+                            _d.sent();
                             console.error('MP: Error sending scribe event to MP server.');
                             // TODO: Retry or invalidate local storage data
                             return [2 /*return*/, false];
@@ -3516,7 +3511,7 @@
          */
         MagicPixel.prototype.authenticateHostData = function (mpStorageContext) {
             return __awaiter(this, void 0, void 0, function () {
-                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, _a, e_6;
+                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, _a, e_5;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -3556,8 +3551,8 @@
                             return [2 /*return*/, true];
                         case 10: return [2 /*return*/, false];
                         case 11:
-                            e_6 = _b.sent();
-                            console.error(e_6);
+                            e_5 = _b.sent();
+                            console.error(e_5);
                             return [2 /*return*/, false];
                         case 12: return [2 /*return*/];
                     }

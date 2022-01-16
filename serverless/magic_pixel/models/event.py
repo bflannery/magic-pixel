@@ -12,7 +12,8 @@ class Event(Model):
     account_site = db.relationship(
         "AccountSite", foreign_keys=[account_site_id], backref="events"
     )
-    user_id = db.Column(db.Text, nullable=False)
+    visitor_uuid = db.Column(db.Text, nullable=False)
+    distinct_person_id = db.Column(db.Text, nullable=True)
     session_id = db.Column(db.Text, nullable=False)
     fingerprint = db.Column(db.Text, nullable=False, index=True)
     type = db.Column(db.Text, nullable=False)

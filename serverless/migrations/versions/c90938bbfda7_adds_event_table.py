@@ -33,7 +33,8 @@ def upgrade():
             nullable=True,
         ),
         sa.Column("account_site_id", sa.BigInteger(), nullable=False),
-        sa.Column("user_id", sa.Text(), nullable=False),
+        sa.Column("visitor_uuid", sa.Text(), nullable=False),
+        sa.Column("distinct_person_id", sa.Text(), nullable=True),
         sa.Column("session_id", sa.Text(), nullable=False),
         sa.Column("fingerprint", sa.Text(), nullable=True),
         sa.Column("type", sa.Text(), nullable=False),
@@ -48,14 +49,15 @@ def upgrade():
         ),
     )
     op.create_index(op.f("ix_event_account_site_id"), "event", ["account_site_id"], unique=False)
-    op.create_index(op.f('ix_event_user_id'), 'event', ['user_id'], unique=False)
+    op.create_index(op.f('ix_event_visitor_uuid'), 'event', ['visitor_uuid'], unique=False)
+    op.create_index(op.f('ix_event_distinct_person_id'), 'event', ['distinct_person_id'], unique=False)
     op.create_index(op.f('ix_event_fingerprint'), 'event', ['fingerprint'], unique=False)
 
 
 def downgrade():
     op.drop_index(op.f("ix_event_fingerprint"), table_name="event")
-    op.drop_index(op.f("ix_event_visitor_id"), table_name="event")
-    # op.drop_index(op.f("ix_event_user_id"), table_name="event")
+    op.drop_index(op.f("ix_event_distinct_person_id"), table_name="event")
+    op.drop_index(op.f("ix_event_visitor_uuid"), table_name="event")
     op.drop_index(op.f("ix_event_account_site_id"), table_name="event")
     op.drop_constraint("event_account_site_id_fkey", "event")
     op.drop_table("event")

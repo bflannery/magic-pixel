@@ -63,26 +63,26 @@ def get_form_type(form_key):
     return None
 
 
-def get_email_from_form(form_fields):
-    for form_field_key, form_field_value in form_fields.items():
-        if form_field_key == "anonymous":
-            anon_values = form_field_value  # Anonymous key can be an array of strings
-            if len(anon_values):
-                for anon_value in anon_values:
-                    if is_valid_email(anon_value):
-                        return anon_value
-            return None
-        else:
-            email_key = check_for_key([form_field_key], ["email"])
-            if not email_key:
-                # Check if field value is an email
-                email_value = (
-                    form_field_value if is_valid_email(form_field_value) else None
-                )
-                if email_value:
-                    return email_value
-            else:
-                return form_fields[email_key]
+# def get_email_from_form(form_fields):
+#     for form_field_key, form_field_value in form_fields.items():
+#         if form_field_key == "anonymous":
+#             anon_values = form_field_value  # Anonymous key can be an array of strings
+#             if len(anon_values):
+#                 for anon_value in anon_values:
+#                     if is_valid_email(anon_value):
+#                         return anon_value
+#             return None
+#         else:
+#             email_key = check_for_key([form_field_key], ["email"])
+#             if not email_key:
+#                 # Check if field value is an email
+#                 email_value = (
+#                     form_field_value if is_valid_email(form_field_value) else None
+#                 )
+#                 if email_value:
+#                     return email_value
+#             else:
+#                 return form_fields[email_key]
 
 
 def build_form_field_map(form_fields):
@@ -171,40 +171,6 @@ def identify_form_type(form_id, form_fields):
             form_type = identify_form_type_by_scraping_values(anon_fields)
         # TODO: scrape route
     return form_type
-
-
-def save_event_form(event_id, event_form):
-    logger.log_info(f"save_event_form: {event_form}")
-    try:
-        event_form = EventForm(
-            event_id=event_id,
-            form_id=event_form["form_id"],
-            form_type=event_form["form_type"],
-            form_fields=event_form["form_fields"],
-        ).save()
-        db.session.commit()
-        return event_form
-    except Exception as e:
-        logger.log_exception(e)
-        raise e
-
-
-def ingest_event_form(parsed_event_form):
-    try:
-        # Check for event form
-        event_form = EventForm.query.filter_by(
-            form_id=parsed_event_form["form_id"]
-        ).first()
-        if not event_form:
-            # Create new one
-            event_form = save_event_form(parsed_event_form)
-
-        form_fields_map = build_form_field_map(parsed_event_form["form_fields"])
-
-        return (event_form, form_fields_map)
-    except Exception as e:
-        logger.log_exception(e)
-        raise e
 
 
 def ingest_form_event(account_id, parsed_event, event_form):

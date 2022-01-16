@@ -25,6 +25,7 @@ def upgrade():
     sa.Column('account_site_id', sa.BigInteger(), nullable=True),
     sa.Column('alias_id', sa.BigInteger(), nullable=True),
     sa.Column('person_id', sa.BigInteger(), nullable=True),
+    sa.Column('confidence', sa.DECIMAL(precision=5, scale=2), nullable=False, default=0.00),
     sa.ForeignKeyConstraint(['account_site_id'], ['account_site.id'], ),
     sa.ForeignKeyConstraint(['alias_id'], ['alias.id'], ),
     sa.ForeignKeyConstraint(['person_id'], ['person.id'], ),
@@ -33,6 +34,7 @@ def upgrade():
     op.create_index(op.f('ix_person_alias_account_site_id'), 'person_alias', ['account_site_id'], unique=False)
     op.create_index(op.f('ix_person_alias_alias_id'), 'person_alias', ['alias_id'], unique=False)
     op.create_index(op.f('ix_person_alias_person_id'), 'person_alias', ['person_id'], unique=False)
+    op.create_index(op.f('ix_person_alias_confidence'), 'person_alias', ['confidence'], unique=False)
 
     op.create_table('visitor_person',
     sa.Column('id', sa.BigInteger(), nullable=False),
@@ -41,6 +43,7 @@ def upgrade():
     sa.Column('account_site_id', sa.BigInteger(), nullable=True),
     sa.Column('visitor_id', sa.BigInteger(), nullable=True),
     sa.Column('person_id', sa.BigInteger(), nullable=True),
+    sa.Column('confidence', sa.DECIMAL(precision=5, scale=2), nullable=False, default=0.00),
     sa.ForeignKeyConstraint(['account_site_id'], ['account_site.id'], ),
     sa.ForeignKeyConstraint(['person_id'], ['person.id'], ),
     sa.ForeignKeyConstraint(['visitor_id'], ['visitor.id'], ),
@@ -49,14 +52,17 @@ def upgrade():
     op.create_index(op.f('ix_visitor_person_account_site_id'), 'visitor_person', ['account_site_id'], unique=False)
     op.create_index(op.f('ix_visitor_person_person_id'), 'visitor_person', ['person_id'], unique=False)
     op.create_index(op.f('ix_visitor_person_visitor_id'), 'visitor_person', ['visitor_id'], unique=False)
+    op.create_index(op.f('ix_visitor_person_confidence'), 'visitor_person', ['confidence'], unique=False)
 
 
 def downgrade():
+    op.drop_index(op.f('ix_visitor_person_confidence'), table_name='visitor_person')
     op.drop_index(op.f('ix_visitor_person_visitor_id'), table_name='visitor_person')
     op.drop_index(op.f('ix_visitor_person_person_id'), table_name='visitor_person')
     op.drop_index(op.f('ix_visitor_person_account_site_id'), table_name='visitor_person')
     op.drop_table('visitor_person')
 
+    # op.drop_index(op.f('ix_person_alias_confidence'), table_name='person_alias')
     op.drop_index(op.f('ix_person_alias_person_id'), table_name='person_alias')
     op.drop_index(op.f('ix_person_alias_alias_id'), table_name='person_alias')
     op.drop_index(op.f('ix_person_alias_account_site_id'), table_name='person_alias')

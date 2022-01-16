@@ -33,7 +33,7 @@ def upgrade():
             nullable=True,
         ),
         sa.Column("account_site_id", sa.BigInteger(), nullable=False),
-        sa.Column("user_id", sa.Text(), nullable=True),
+        sa.Column("distinct_person_id", sa.Text(), nullable=True),
         sa.Column("email", sa.Text(), nullable=True),
         sa.Column("username", sa.Text(), nullable=True),
         sa.Column("first_name", sa.Text(), nullable=True),
@@ -52,12 +52,13 @@ def upgrade():
     op.create_index(
         op.f("ix_person_account_site_id"), "person", ["account_site_id"], unique=False
     )
-    op.create_index(op.f('ix_person_user_id'), 'person', ['user_id'], unique=False)
+    op.create_index(op.f('ix_person_distinct_person_id'), 'person', ['distinct_person_id'], unique=False)
     op.create_index(op.f('ix_person_email'), 'person', ['email'], unique=False)
 
 
 def downgrade():
     op.drop_index(op.f("ix_person_email"), table_name="person")
+    op.drop_index(op.f("ix_person_distinct_person_id"), table_name="person")
     op.drop_index(op.f("ix_person_account_site_id"), table_name="person")
     op.drop_constraint("person_account_site_id_fkey", "person")
     op.drop_table("person")

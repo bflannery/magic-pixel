@@ -34,7 +34,7 @@ def upgrade():
         ),
         sa.Column("event_id", sa.BigInteger(), nullable=False),
         sa.Column("language", sa.Text(), nullable=True),
-        sa.Column("name", sa.Text(), nullable=True),
+        sa.Column("browser_name", sa.Text(), nullable=True),
         sa.Column("platform", sa.Text(), nullable=True),
         sa.Column("plugins", sa.JSON(), nullable=True),
         sa.Column("ua", sa.Text(), nullable=True),

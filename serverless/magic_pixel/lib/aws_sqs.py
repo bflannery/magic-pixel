@@ -1,6 +1,5 @@
 import boto3
 import json
-import os
 from werkzeug.local import LocalProxy
 from flask import current_app
 from magic_pixel import logger
@@ -47,3 +46,4 @@ class Queue:
 
 
 event_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_EVENT_QUEUE_NAME")))
+identity_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_IDENTITY_QUEUE_NAME")))

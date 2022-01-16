@@ -35,11 +35,6 @@ def upgrade():
         sa.Column("event_id", sa.BigInteger(), nullable=False),
         sa.Column("form_id", sa.Text(), nullable=False),
         sa.Column(
-            "form_type",
-            sa.Enum("SIGN_UP", "LOGIN", name="eventformtypeenum"),
-            nullable=True,
-        ),
-        sa.Column(
             "form_fields",
             postgresql.JSONB(astext_type=sa.Text()),
             nullable=False,
@@ -58,4 +53,3 @@ def downgrade():
     op.drop_constraint("event_form_event_id_fkey", "event_form")
     op.drop_index(op.f("ix_event_form_event_id"), table_name="event_form")
     op.drop_table("event_form")
-    op.execute("DROP TYPE eventformtypeenum")

@@ -14,8 +14,7 @@ class EventBrowser(Model):
         backref=db.backref("event_browser", uselist=False)
     )
 
-    language = db.Column(db.Text, nullable=True)
-    name = db.Column(db.Text, nullable=True)
+    browser_name = db.Column(db.Text, nullable=True)
     platform = db.Column(db.Text, nullable=True)
     plugins = db.JSON(db.Text)
     ua = db.Column(db.Text, nullable=True)

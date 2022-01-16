@@ -22,14 +22,16 @@ export interface MpDataProps {
   accountSiteId: string | null
   accountStatus: string
   lastVerified: number | null
-  userId: string | null
+  visitorUUID: string | null
+  distinctPersonId: string | null
 }
 
 export interface EventProps {
   accountSiteId: string | null
   accountStatus: string
   lastVerified: number | null
-  userId: string | null
+  distinctPersonId: string | null
+  visitorUUID: string | null
 
   [key: string]: string | number | null
 }
@@ -56,7 +58,8 @@ export interface MPEventType {
   accountSiteId: string | null
   accountStatus: string
   lastVerified: number | null
-  userId: string | null
+  visitorUUID: string | null
+  distinctPersonId: string | null
   eventType: string
   timestamp: string
   target: {
@@ -106,7 +109,7 @@ export interface ScribeEventType {
 //   accountStatus: string
 //   lastVerified: number | null
 //   distinctUserId: string | null
-//   visitorId: string | null
+//   visitorUUID: string | null
 //   eventType: string,
 //   timestamp: string,
 //   target: {
@@ -123,6 +126,6 @@ export interface ScribeEventType {
 //   accountStatus: string
 //   lastVerified: number | null
 //   distinctUserId: string | null
-//   visitorId: string | null
+//   visitorUUID: string | null
 //   [key: string]: string | number | null
 // }

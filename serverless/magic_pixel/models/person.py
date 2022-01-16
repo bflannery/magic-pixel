@@ -14,7 +14,7 @@ class Visitor(Model):
     account_site = db.relationship(
         "AccountSite", foreign_keys=[account_site_id], backref="visitor"
     )
-    user_id = db.Column(db.Text, nullable=False)
+    visitor_uuid = db.Column(db.Text, nullable=False)
     language = db.Column(db.Text, nullable=True)
     tz_offset = db.Column(db.Text, nullable=True)
     browser_name = db.Column(db.Text, nullable=True)
@@ -36,7 +36,7 @@ class Person(Model, UserMixin):
     account_site = db.relationship(
         "AccountSite", foreign_keys=[account_site_id], backref="visitor_persons"
     )
-    user_id = db.Column(db.Text, nullable=True, index=True)
+    distinct_person_id = db.Column(db.Text, nullable=False)
     email = db.Column(db.Text, nullable=True, index=True)
     username = db.Column(db.Text, nullable=True, index=True)
     first_name = db.Column(db.Text, nullable=True, index=True)
@@ -47,8 +47,8 @@ class Person(Model, UserMixin):
 class Alias(Model):
     __tablename__ = "alias"
 
-    named_alias = db.Column(db.Text, nullable=False)
-    user_id = db.Column(db.Text, nullable=False)
+    distinct_person_id = db.Column(db.Text, nullable=False)
+    visitor_uuid = db.Column(db.Text, nullable=False)
 
 
 class VisitorPerson(Model):
@@ -58,10 +58,11 @@ class VisitorPerson(Model):
         db.BigInteger, db.ForeignKey("account_site.id"), index=True
     )
     account_site = db.relationship("AccountSite", foreign_keys=[account_site_id])
-    visitor_id = db.Column(db.BigInteger, db.ForeignKey("visitor.id"), index=True)
+    visitor_id = db.Column(db.BigInteger, db.ForeignKey("visitor.id"), index=True, nullable=False)
     visitor = db.relationship("Visitor", foreign_keys=[visitor_id])
-    person_id = db.Column(db.BigInteger, db.ForeignKey("person.id"), index=True)
+    person_id = db.Column(db.BigInteger, db.ForeignKey("person.id"), index=True, nullable=False)
     person = db.relationship("Person", foreign_keys=[person_id])
+    confidence = db.Column(db.DECIMAL(precision=5, scale=2), index=True, nullable=False)
 
 
 class PersonAlias(Model):
@@ -71,7 +72,8 @@ class PersonAlias(Model):
         db.BigInteger, db.ForeignKey("account_site.id"), index=True
     )
     account_site = db.relationship("AccountSite", foreign_keys=[account_site_id])
-    alias_id = db.Column(db.BigInteger, db.ForeignKey("alias.id"), index=True)
+    alias_id = db.Column(db.BigInteger, db.ForeignKey("alias.id"), index=True, nullable=False)
     alias = db.relationship("Alias", foreign_keys=[alias_id])
-    person_id = db.Column(db.BigInteger, db.ForeignKey("person.id"), index=True)
+    person_id = db.Column(db.BigInteger, db.ForeignKey("person.id"), index=True, nullable=False)
     person = db.relationship("Person", foreign_keys=[person_id])
+    confidence = db.Column(db.DECIMAL(precision=5, scale=2), index=True, nullable=False)

@@ -30,6 +30,9 @@ provider:
         - Fn::GetAtt:
             - EventQueue
             - Arn
+        - Fn::GetAtt:
+            - IdentityQueue
+            - Arn
   environment:
     NODE_ENV: 'test'
     ENV: ${opt:stage, 'local'}
@@ -49,6 +52,7 @@ provider:
     SQS_REGION: ${self:custom.sqs.region}
     SQS_ENDPOINT_URL: ${self:custom.sqs.endpointUrl}
     SQS_EVENT_QUEUE_NAME: ${self:custom.sqs.eventQueueName}
+    SQS_IDENTITY_QUEUE_NAME: ${self:custom.sqs.identityQueueName}
     SECRET_KEY: ${self:custom.flask.secretKey}
     POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
     POSTGRES_PW: ${self:custom.postgres.${opt:stage, 'dev'}.pw}
@@ -96,6 +100,7 @@ custom:
     region: 'us-east-1'
     endpointUrl: ''
     eventQueueName: ${opt:stage, 'dev'}-event-queue
+    identityQueueName: ${opt:stage, 'dev'}-identity-queue
   postgres:
     local:
       user: 'postgres'
@@ -202,6 +207,15 @@ functions:
             Fn::GetAtt:
               - EventQueue
               - Arn
+  identity:
+    handler: lambdas.identity
+    timeout: 60
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - IdentityQueue
+              - Arn
 
 resources:
   Resources:
@@ -221,3 +235,20 @@ resources:
       Properties:
         QueueName: ${self:custom.sqs.eventQueueName}-deadletter
         MessageRetentionPeriod: 604800
+    IdentityQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqs.identityQueueName}
+        VisibilityTimeout: 300
+        RedrivePolicy:
+          maxReceiveCount: 5
+          deadLetterTargetArn:
+            Fn::GetAtt:
+              - IdentityDLQueue
+              - Arn
+    IdentityDLQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqs.identityQueueName}-deadletter
+        MessageRetentionPeriod: 604800
+
