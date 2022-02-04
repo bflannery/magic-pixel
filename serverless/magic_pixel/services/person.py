@@ -1,5 +1,5 @@
 from magic_pixel.db import db
-from magic_pixel.models.person import Person, Alias
+from magic_pixel.models import Person, Alias
 
 
 def get_person_by_email(account_id, email):

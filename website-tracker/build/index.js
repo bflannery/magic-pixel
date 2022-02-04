@@ -3596,17 +3596,13 @@
                 switch (_a.label) {
                     case 0:
                         siteId = getSiteId(script);
-                        console.log({ siteId: siteId });
                         if (!siteId) {
                             console.error('MP: Error verifying account. No site id provided');
                             return [2 /*return*/, false];
                         }
                         MP = new MagicPixel(siteId);
                         window.MP = MP;
-                        return [4 /*yield*/, MP.authenticateAccount()
-                            // const domMap = createDOMMap(document.body, false)
-                            // console.log(domMap);
-                        ];
+                        return [4 /*yield*/, MP.authenticateAccount()];
                     case 1:
                         accountIsActive = _a.sent();
                         if (!accountIsActive) return [3 /*break*/, 3];

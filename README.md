@@ -67,20 +67,27 @@ You will probably want to install postgres on your host as well for command line
 
 ### Running local env
 - Start Docker 
-  - Will start postgres db, mock sqs-pipeline server (ElasticMQ), and a test website 
-    - In a new terminal window, from root of project, run `docker compose up`
-    - Reference `docker-compose.yml` for configuration
+  - This will start :
+    - Postgres db
+    - mock SQS-pipeline server (ElasticMQ)
+    - a test website 
+  - In a new terminal window, from root of project, run `docker compose up`
+  - Reference `docker-compose.yml` for configuration
 - Start Serverless Backend
-  - Will start serverless offline backend flask app, sqs-pipelines, and lambda functions
+  - This will start a serverless offline backend: 
+    - Flask app 
+    - SQS-pipelines
+    - Lambda functions
   - In a new terminal window, navigate to serverless directory by running `cd ./serverless` from root directory
   - Activate python env with `source venv/bin/activate`
   - Start serverless env by running `npm run start:offline`
-  - Reference Files for configuration:
+  - Reference files for configuration:
     - `./serverless/serverless.yml`
     - `./serverless/config`
     - `./serverless/package.json` 
 - Start Serverless Frontend Client
-  - Will start Typescript React app 
+  - This will start: 
+    - Typescript React app 
   - In a new terminal window, navigate to serverless client by running `cd ./serverless/client` from root directory
   - Start client env by running `npm run start`
 - Start Web Tracker

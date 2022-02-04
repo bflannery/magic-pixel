@@ -1,5 +1,4 @@
 from magic_pixel.models.base import Model
-from sqlalchemy.dialects.postgresql.json import JSONB
 from magic_pixel.db import db
 
 
@@ -17,4 +16,3 @@ class Event(Model):
     session_id = db.Column(db.Text, nullable=False)
     fingerprint = db.Column(db.Text, nullable=False, index=True)
     type = db.Column(db.Text, nullable=False)
-    properties = db.Column(JSONB, default={}, nullable=True)

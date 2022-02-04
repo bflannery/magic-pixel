@@ -4,8 +4,7 @@ from sqlalchemy import or_
 from magic_pixel import logger
 from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum
 from magic_pixel.db import db
-from magic_pixel.models import EventForm, Event
-from magic_pixel.models.person import Person, Alias
+from magic_pixel.models import EventForm, Event, Person, Alias
 from magic_pixel.utility import is_valid_email, is_valid_uuid
 
 LOGIN_HINTS = ["login", "signin" "enter"]
@@ -173,6 +172,7 @@ def identify_form_type(form_id, form_fields):
     return form_type
 
 
+# TODO: Needs to be re-worked. Was implemented before visitor/person/alias relationships
 def ingest_form_event(account_id, parsed_event, event_form):
     try:
         parsed_event_form = parse_event_form(event_form)

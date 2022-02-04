@@ -3,17 +3,17 @@ from typing import Dict, Optional
 from magic_pixel import logger
 from magic_pixel.db import db
 from magic_pixel.models import (
+    AccountSite,
     Event,
     EventBrowser,
     EventDocument,
+    EventForm,
     EventLocale,
     EventSource,
     EventTarget,
-    EventForm,
 )
 from magic_pixel.lib.aws_sqs import event_queue
 from magic_pixel.utility import parse_url
-from magic_pixel.models.account import AccountSite
 
 
 def parse_event(event: Dict) -> Optional[Dict]:

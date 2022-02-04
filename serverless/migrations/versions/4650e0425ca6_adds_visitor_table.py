@@ -7,7 +7,6 @@ Create Date: 2022-01-12 19:54:27.535041
 """
 from alembic import op
 import sqlalchemy as sa
-from sqlalchemy.dialects import postgresql
 
 # revision identifiers, used by Alembic.
 revision = "4650e0425ca6"
@@ -34,6 +33,7 @@ def upgrade():
         ),
         sa.Column("account_site_id", sa.BigInteger(), nullable=False),
         sa.Column("visitor_uuid", sa.Text(), nullable=False),
+        sa.Column("fingerprint", sa.Text(), nullable=False),
         sa.Column("language", sa.Text(), nullable=True),
         sa.Column("tz_offset", sa.Text(), nullable=True),
         sa.Column("browser_name", sa.Text(), nullable=True),
@@ -56,6 +56,9 @@ def upgrade():
         "visitor",
         ["visitor_uuid"],
         unique=False,
+    )
+    op.create_index(
+        op.f("ix_visitor_fingerprint"), "visitor", ["fingerprint"], unique=False
     )
 
 

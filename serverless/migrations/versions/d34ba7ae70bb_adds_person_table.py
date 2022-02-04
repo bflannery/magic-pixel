@@ -36,8 +36,7 @@ def upgrade():
         sa.Column("distinct_person_id", sa.Text(), nullable=True),
         sa.Column("email", sa.Text(), nullable=True),
         sa.Column("username", sa.Text(), nullable=True),
-        sa.Column("first_name", sa.Text(), nullable=True),
-        sa.Column("last_name", sa.Text(), nullable=True),
+        sa.Column("fullname", sa.Text(), nullable=True),
         sa.Column(
             "attributes",
             postgresql.JSONB(astext_type=sa.Text()),
