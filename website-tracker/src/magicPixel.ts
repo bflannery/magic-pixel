@@ -2,6 +2,7 @@ import { getDiffFromTimestamp, isChildLink, isSamePage, parseLocation, parseUrl,
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
 import * as Dom from './dom'
 import { getFormData } from './dom'
+import PageIdentification from './pageIdentification'
 import { EventProps, MpDataProps, MPEventType, MPGenericEvent, ScribeEventType } from './types'
 
 const defaultURLProps = {
@@ -68,6 +69,15 @@ export default class MagicPixel {
     // if (this.queue.length > 0) {
     //   this.trackQueueEvents(this.queue)
     // }
+  }
+
+  async init_page_identification(): Promise<void> {
+    console.debug('MP: Initializing Magic Pixel Page Identification')
+    console.log({ MP: this })
+
+    const pageIdentification = new PageIdentification()
+    window.MP_PAGE_ID = pageIdentification
+    pageIdentification.init()
   }
 
   // Context
@@ -352,7 +362,7 @@ export default class MagicPixel {
       console.log({ scribeAccountEvent: accountEvent })
       const response = await this._apiRequest('POST', `${this.apiDomain}/collection`, accountEvent)
       if (response.status === '403') {
-        console.warn("MP: Unauthorized")
+        console.warn('MP: Unauthorized')
         // TODO: Invalidate local storage data
         return false
       }

@@ -3010,6 +3010,236 @@
         handler.push(f_);
     };
 
+    var PAGE_ID_PROPERTIES = {
+        eCommerce: {
+            keywords: [
+                'paypal',
+                'google_pay',
+                'apple_pay',
+                'bolt_pay',
+                'stripe_for',
+                'braintree_form',
+                'square_form',
+                'checkout',
+                'purchase',
+                'order',
+                'buy',
+                'order_summary',
+                'total',
+                'subtotal',
+                'shipping',
+                'tax',
+                'payment',
+                'promo_code',
+                'coupon',
+                'shipping_address',
+                'billing_address',
+            ],
+            dom: {
+                paypal: false,
+                google_pay: false,
+                apple_pay: false,
+                bolt_pay: false,
+                stripe_for: false,
+                braintree_form: false,
+                square_form: false,
+                checkout: false,
+                purchase: false,
+                order: false,
+                buy: false,
+                order_summary: false,
+                total: false,
+                subtotal: false,
+                shipping: false,
+                tax: false,
+                payment: false,
+                promo_code: false,
+                coupon: false,
+                shipping_address: false,
+                billing_address: false,
+            },
+        },
+        confirmation: {
+            keywords: ['thankyou', 'order', 'ordersummary', 'confirmation'],
+            url: {
+                thank_you: false,
+                order_summary: false,
+                order: false,
+                confirmation: false,
+            },
+            dom: {
+                confirmation: false,
+            },
+        },
+        lead_gen: {
+            keywords: ['email'],
+            dom: {
+                email: true,
+            },
+        },
+        contact_us: {
+            keywords: ['contact', 'feedback'],
+            url: {
+                contact: false,
+                feedback: false,
+            },
+        },
+        careers: {
+            keywords: ['careers', 'jobs'],
+            url: {
+                careers: false,
+                jobs: false,
+            },
+        },
+        blog: {
+            keywords: ['blog', 'articles'],
+            url: {
+                blog: false,
+                articles: false,
+            },
+            dom: {
+                list_of_articles: false,
+                list_of_links: false,
+            },
+        },
+        general: {
+            forms_input: 0,
+            videos_on_page: 0,
+            content_on_page: 0,
+        },
+        misc: {
+            buttons: [],
+        },
+    };
+    var PageIdentification = /** @class */ (function () {
+        function PageIdentification() {
+            var _this = this;
+            /**
+             * Create an array of the attributes on an element
+             * @param  {NamedNodeMap} attributes The attributes on an element
+             * @return {Array} sThe attributes on an element as an array of key/value pairs
+             */
+            this._getAttributes = function (attributes) {
+                var allAttributes = [];
+                Array.prototype.map.call(attributes, function (attribute) {
+                    var newAttribute = {
+                        name: attribute.name,
+                        value: attribute.value,
+                    };
+                    allAttributes.push(newAttribute);
+                });
+                return allAttributes;
+            };
+            this._createButtonElementMap = function (link) {
+                var _a;
+                return {
+                    id: link.id,
+                    className: link.className,
+                    content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
+                    attributes: _this._getAttributes(link.attributes),
+                    type: link.tagName.toLowerCase(),
+                };
+            };
+            /**
+             * Create a Tree Map for an element
+             * @param  {Node}    element The element to map
+             * @param  {Boolean} isSVG   If true, node is within an SVG
+             * @return {Array}           A DOM tree map
+             */
+            this._createElementMap = function (element, isSVG) {
+                var childNodes = [];
+                if (element.childNodes && element.childNodes.length > 0) {
+                    childNodes = Array.prototype.filter.call(element.childNodes, function (node) {
+                        return (node.nodeType !== 8 && node.nodeType == 1 && node.localName !== 'br') ||
+                            (node.nodeType === 3 && node.textContent.trim() !== '');
+                    });
+                }
+                return childNodes.map(function (node, i) {
+                    var id = node.id || null;
+                    var className = node.className || null;
+                    var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
+                    var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
+                    var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
+                    var children = _this._createElementMap(node, isSVG || node.type === 'svg');
+                    return {
+                        id: id,
+                        className: className,
+                        content: content,
+                        attributes: attributes,
+                        type: type,
+                        node: node,
+                        children: children,
+                        isSVG: isSVG || node.type === 'svg',
+                    };
+                });
+            };
+            this._createLinkElementMap = function (link) {
+                var _a;
+                return {
+                    id: link.id,
+                    className: link.className,
+                    content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
+                    attributes: _this._getAttributes(link.attributes),
+                    type: link.tagName.toLowerCase(),
+                };
+            };
+            this._createDomLinkMap = function () {
+                var links = document.querySelectorAll('a');
+                var linksMap = {};
+                Array.prototype.map.call(links, function (link, i) {
+                    var linkMap = _this._createLinkElementMap(link);
+                    var linkKey = link.id || "link-id-" + i;
+                    linksMap[linkKey] = linkMap;
+                });
+                return linksMap;
+            };
+            this._createDomFormMap = function () {
+                var forms = document.querySelectorAll('form');
+                var formsMap = {};
+                Array.prototype.map.call(forms, function (form, i) {
+                    var formMap = _this._createElementMap(form, false);
+                    var formKey = form.id || "form-id-" + i;
+                    formsMap[formKey] = formMap;
+                });
+                return formsMap;
+            };
+            this._createDomButtonMap = function () {
+                var buttons = document.querySelectorAll('button');
+                var inputButtons = document.querySelectorAll('input[type="submit"]');
+                var allButtons = Array.prototype.slice.call(buttons).concat(Array.prototype.slice.call(inputButtons));
+                var buttonsMap = {};
+                Array.prototype.map.call(allButtons, function (buttonNode, i) {
+                    var buttonMap = _this._createButtonElementMap(buttonNode);
+                    var buttonKey = buttonNode.id || "button-id-" + i;
+                    buttonsMap[buttonKey] = buttonMap;
+                });
+                return buttonsMap;
+            };
+            this.getDomMap = function () {
+                console.log('Getting Dom Map...');
+                var body = document.body;
+                return {
+                    forms: _this._createDomFormMap(),
+                    links: _this._createDomLinkMap(),
+                    buttons: _this._createDomButtonMap(),
+                    body: _this._createElementMap(body, false),
+                };
+            };
+            this.buttons = [];
+            this.forms = [];
+            this.links = [];
+            this.pageIdProps = PAGE_ID_PROPERTIES;
+        }
+        PageIdentification.prototype.init = function () {
+            var domMap = this.getDomMap();
+            this.buttons = domMap.buttons;
+            this.forms = domMap.forms;
+            this.links = domMap.links;
+            console.log({ pageIdThis: this });
+        };
+        return PageIdentification;
+    }());
+
     var defaultURLProps = {
         href: null,
         hash: null,
@@ -3052,6 +3282,19 @@
                     // Save context and session to browser storage
                     this._setStorageContext(this.context);
                     this._setStorageSessionId(this.sessionId);
+                    return [2 /*return*/];
+                });
+            });
+        };
+        MagicPixel.prototype.init_page_identification = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var pageIdentification;
+                return __generator(this, function (_a) {
+                    console.debug('MP: Initializing Magic Pixel Page Identification');
+                    console.log({ MP: this });
+                    pageIdentification = new PageIdentification();
+                    window.MP_PAGE_ID = pageIdentification;
+                    pageIdentification.init();
                     return [2 /*return*/];
                 });
             });
@@ -3371,7 +3614,7 @@
                         case 1:
                             response = _d.sent();
                             if (response.status === '403') {
-                                console.warn("MP: Unauthorized");
+                                console.warn('MP: Unauthorized');
                                 // TODO: Invalidate local storage data
                                 return [2 /*return*/, false];
                             }
@@ -3605,7 +3848,7 @@
                         return [4 /*yield*/, MP.authenticateAccount()];
                     case 1:
                         accountIsActive = _a.sent();
-                        if (!accountIsActive) return [3 /*break*/, 3];
+                        if (!accountIsActive) return [3 /*break*/, 4];
                         console.debug('MP: Account is active.');
                         return [4 /*yield*/, MP.init()
                             // create a new script element
@@ -3615,13 +3858,16 @@
                         newScript = document.createElement('script');
                         newScript.src = "http://localhost:8081/scribe-analytics-debug.js?hid=" + siteId;
                         newScript.async = true;
-                        // insert the script element into the document
+                        // insert the scribe script element into the document
                         document.head.appendChild(newScript);
-                        return [3 /*break*/, 4];
+                        return [4 /*yield*/, MP.init_page_identification()];
                     case 3:
+                        _a.sent();
+                        return [3 /*break*/, 5];
+                    case 4:
                         console.error("MP: Account is not active for site id " + siteId + ".");
-                        _a.label = 4;
-                    case 4: return [2 /*return*/];
+                        _a.label = 5;
+                    case 5: return [2 /*return*/];
                 }
             });
         });

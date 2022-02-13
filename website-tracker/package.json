@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "description": "",
   "scripts": {
-    "start": "rollup -c rollup.config.js --watch",
+    "start:watch": "rollup -c rollup.config.js --watch",
     "serve": "python -m http.server 8083",
     "build": "rollup -c rollup.config.js"
   },

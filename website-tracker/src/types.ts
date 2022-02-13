@@ -46,11 +46,6 @@ export interface MagicPixelType {
   track: (eventType: string, properties: object) => Promise<boolean>
   authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
   authenticateAccountId: () => Promise<boolean>
-  clearStorage: () => void
-  _getStorageContext: () => MpDataProps | null
-  _getStorageSessionId: () => string | null
-  setStorageContext: (data: MpDataProps) => void
-  setSessionId: (sid: string) => void
   trackScribeEvent: (scribeEvent: any) => void
 }
 
@@ -102,6 +97,127 @@ export interface ScribeEventType {
   success: () => void
   failure: () => void
 }
+
+
+export interface DomAttributeType {
+  name: string
+  value: string
+}
+
+export interface DomElementType {
+  id: string | null
+  className: string | null
+  content: string | null
+  attributes: DomAttributeType[]
+  type: string | null
+  node: Node
+  children: any
+  isSVG: boolean
+}
+
+export interface DomLinkType {
+  id: string | null
+  className: string | null
+  content: string | null
+  attributes: DomAttributeType[] | null
+  type: string | null
+}
+
+export interface DomMapType {
+  forms: DomElementType[]
+  links: DomLinkType[]
+  buttons: DomElementType[]
+  body: DomElementType[]
+}
+
+export interface PageIdPropsType {
+  eCommerce: {
+    keywords: string[]
+    dom: {
+      paypal: boolean
+      google_pay: boolean
+      apple_pay: boolean
+      bolt_pay: boolean
+      stripe_for: boolean
+      braintree_form: boolean
+      square_form: boolean
+      checkout: boolean
+      purchase: boolean
+      order: boolean
+      buy: boolean
+      order_summary: boolean
+      total: boolean
+      subtotal: boolean
+      shipping: boolean
+      tax: boolean
+      payment: boolean
+      promo_code: boolean
+      coupon: boolean
+      shipping_address: boolean
+      billing_address: boolean
+    }
+  }
+  confirmation: {
+    keywords: string[]
+    url: {
+      thank_you: boolean
+      order_summary: boolean
+      order: boolean
+      confirmation: boolean
+    }
+    dom: {
+      confirmation: boolean
+    }
+  }
+  lead_gen: {
+    keywords: string[]
+    dom: {
+      email: boolean
+    }
+  }
+  contact_us: {
+    keywords: string[]
+    url: {
+      contact: boolean
+      feedback: boolean
+    }
+  }
+  careers: {
+    keywords: string[]
+    url: {
+      careers: boolean
+      jobs: boolean
+    }
+  }
+  blog: {
+    keywords: string[]
+    url: {
+      blog: boolean
+      articles: boolean
+    }
+    dom: {
+      list_of_articles: boolean
+      list_of_links: boolean
+    }
+  }
+  general: {
+    forms_input: number
+    videos_on_page: number
+    content_on_page: number
+  }
+  misc: {
+    buttons: HTMLElement[] | []
+  }
+}
+
+export interface PageIdentificationType {
+  buttons: DomElementType[]
+  forms: DomElementType[]
+  links: DomLinkType[]
+  pageIdProps: PageIdPropsType
+  getDomMap: () => DomMapType
+}
+
 
 // export interface EventType {
 //   accountId: string | null

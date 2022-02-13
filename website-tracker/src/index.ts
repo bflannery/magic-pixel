@@ -24,8 +24,9 @@ async function init() {
     newScript.src = `http://localhost:8081/scribe-analytics-debug.js?hid=${siteId}`
     newScript.async = true
 
-    // insert the script element into the document
+    // insert the scribe script element into the document
     document.head.appendChild(newScript)
+    await MP.init_page_identification()
   } else {
     console.error(`MP: Account is not active for site id ${siteId}.`)
   }

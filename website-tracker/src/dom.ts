@@ -1,6 +1,14 @@
-import { toObject, toObjectInterface } from './utils'
+import {createDOMMap, toObject, toObjectInterface} from './utils'
 import EventHandler from './handler'
-import { MPEventForm, MPGenericEvent, MPKeyboardEvent } from './types'
+import {
+  DomAttributeType,
+  DomElementType,
+  DomLinkType,
+  DomMapType,
+  MPEventForm,
+  MPGenericEvent,
+  MPKeyboardEvent
+} from './types'
 
 export const getAncestors = (node: any): Element[] => {
   let cur = node

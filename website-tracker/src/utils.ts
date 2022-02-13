@@ -1,3 +1,5 @@
+import { DomAttributeType, DomElementType, DomLinkType, DomMapType } from './types'
+
 function scriptIsHTML(script: HTMLOrSVGScriptElement): script is HTMLScriptElement {
   return 'src' in script
 }
@@ -192,35 +194,21 @@ export const isSamePage = (url1: string, url2: string) => {
   )
 }
 
-interface attributeType {
-  name: string
-  value: string
-}
-
 /**
  * Create an array of the attributes on an element
  * @param  {NamedNodeMap} attributes The attributes on an element
- * @return {Array}                   The attributes on an element as an array of key/value pairs
+ * @return {Array} sThe attributes on an element as an array of key/value pairs
  */
-var getAttributes = function (attributes: NamedNodeMap): unknown[] {
-  return Array.prototype.map.call(attributes, function (attribute) {
-    const newAttribute: attributeType = {
+const getAttributes = function (attributes: NamedNodeMap): DomAttributeType[] {
+  const allAttributes: DomAttributeType[] = []
+  Array.prototype.map.call(attributes, function (attribute) {
+    const newAttribute: DomAttributeType = {
       name: attribute.name,
       value: attribute.value,
     }
-    return newAttribute
+    allAttributes.push(newAttribute)
   })
-}
-
-interface DomDetailsType {
-  id: string | null
-  className: string | null
-  content: string | null
-  attributes: unknown[]
-  type: string | null
-  node: Node
-  isSVG: boolean
-  children: unknown[]
+  return allAttributes
 }
 
 /**
@@ -229,7 +217,7 @@ interface DomDetailsType {
  * @param  {Boolean} isSVG   If true, node is within an SVG
  * @return {Array}           A DOM tree map
  */
-export const createElementMap = (element: Element, isSVG: boolean): unknown[] => {
+export const createElementMap = (element: Element, isSVG: boolean): DomElementType[] => {
   let childNodes = []
   if (element.childNodes && element.childNodes.length > 0) {
     childNodes = Array.prototype.filter.call(
@@ -239,7 +227,7 @@ export const createElementMap = (element: Element, isSVG: boolean): unknown[] =>
         (node.nodeType === 3 && node.textContent.trim() !== ''),
     )
   }
-  return childNodes.map((node, i): DomDetailsType => {
+  return childNodes.map((node, i): DomElementType => {
     const id = node.id || null
     const className = node.className || null
     const attributes = node.nodeType !== 1 ? [] : getAttributes(node.attributes)
@@ -259,7 +247,7 @@ export const createElementMap = (element: Element, isSVG: boolean): unknown[] =>
   })
 }
 
-const createLinkElementMap = (link: Element) => {
+const createLinkElementMap = (link: Element): DomLinkType => {
   return {
     id: link.id,
     className: link.className,
@@ -269,7 +257,7 @@ const createLinkElementMap = (link: Element) => {
   }
 }
 
-const createDomLinkMap = () => {
+const createDomLinkMap = (): DomLinkType[] => {
   const links = document.querySelectorAll('a')
   const linksMap: any = {}
   Array.prototype.map.call(links, (link, i) => {
@@ -280,11 +268,10 @@ const createDomLinkMap = () => {
   return linksMap
 }
 
-const createDomFormMap = () => {
+const createDomFormMap = (): DomElementType[] => {
   const forms = document.querySelectorAll('form')
   const formsMap: any = {}
   Array.prototype.map.call(forms, (form, i) => {
-    // console.log({ form })
     const formMap = createElementMap(form, false)
     const formKey = form.id || `form-id-${i}`
     formsMap[formKey] = formMap
@@ -292,11 +279,23 @@ const createDomFormMap = () => {
   return formsMap
 }
 
-export const createDOMMap = function (element: Element, isSVG: boolean): unknown {
+const createDomButtonMap = (): DomElementType[] => {
+  const buttons = document.querySelectorAll('button')
+  const buttonsMap: any = {}
+  Array.prototype.map.call(buttons, (button, i) => {
+    const buttonMap = createElementMap(button, false)
+    const buttonKey = button.id || `button-id-${i}`
+    buttonsMap[buttonKey] = buttonMap
+  })
+  return buttonsMap
+}
+
+export const createDOMMap = function (): DomMapType {
   const body = document.body
-  const bodyMap = createElementMap(body, false)
-  const linksMap = createDomLinkMap()
-  const formsMap = createDomFormMap()
-  console.log({ formsMap })
-  return {}
+  return {
+    forms: createDomFormMap(),
+    links: createDomLinkMap(),
+    buttons: createDomButtonMap(),
+    body: createElementMap(body, false),
+  }
 }
