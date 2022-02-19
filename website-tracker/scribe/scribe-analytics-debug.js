@@ -1830,7 +1830,7 @@
           this.options,
         )
 
-        // Always assume that Javascript is the culprit of leaving the page
+        // Always assume that Javascript is the culprit of leaving the pageIdentification
         // (we'll detect and intercept clicks on links and buttons as best
         // as possible and override this assumption in these cases):
         this.javascriptRedirect = true
@@ -1895,10 +1895,10 @@
           })
         }
 
-        // Track page view
+        // Track pageIdentification view
         if (this.options.trackPageViews) {
           Events.onready(function () {
-            // Track page view, but only after the DOM has loaded:
+            // Track pageIdentification view, but only after the DOM has loaded:
             self.pageview()
           })
         }
@@ -1951,7 +1951,7 @@
 
               var target = e.target
 
-              // TODO: Make sure the link is actually to a page.
+              // TODO: Make sure the link is actually to a pageIdentification.
               // It's a click, not a Javascript redirect:
               self.javascriptRedirect = false
               setTimeout(function () {
@@ -1964,22 +1964,22 @@
               }
 
               if (Util.isSamePage(parsedUrl, document.location.href)) {
-                console.log('User is jumping around the same page')
-                // User is jumping around the same page. Track here in case the
+                console.log('User is jumping around the same pageIdentification')
+                // User is jumping around the same pageIdentification. Track here in case the
                 // client prevents the default action and the hash doesn't change
                 // (otherwise it would be tracked by onhashchange):
                 self.oldHash = undefined
 
                 trackJump(document.location.hash)
               } else if (parsedUrl.hostname === document.location.hostname) {
-                // We are linking to a page on the same site. There's no need to send
+                // We are linking to a pageIdentification on the same site. There's no need to send
                 // the event now, we can safely send it later:
-                console.log('We are linking to a page on the same site.')
+                console.log('We are linking to a pageIdentification on the same site.')
                 self.trackLater('click', value)
               } else {
                 if (that.options.waitOnTracker) e.preventDefault()
-                console.log('We are linking to a page that is not on this site.')
-                // We are linking to a page that is not on this site. So we first
+                console.log('We are linking to a pageIdentification that is not on this site.')
+                // We are linking to a pageIdentification that is not on this site. So we first
                 // wait to send the event before simulating a different click
                 // on the link. This ensures we don't lose the event if the user
                 // does not return to this site ever again.
@@ -2181,9 +2181,9 @@
 
       /**
        * Tracks an event later. The event will only be tracked if the user visits
-       * some page on the same domain that has Scribe Analytics installed.
+       * some pageIdentification on the same domain that has Scribe Analytics installed.
        *
-       * This function is mainly useful when the user is leaving the page and
+       * This function is mainly useful when the user is leaving the pageIdentification and
        * there is not enough time to capture some user behavior.
        *
        * @memberof Scribe
@@ -2229,7 +2229,7 @@
       }
 
       /**
-       * Tracks a page view.
+       * Tracks a pageIdentification view.
        *
        */
       Scribe.prototype.pageview = function (url, success, failure) {

@@ -32,7 +32,7 @@ async function init() {
   }
 }
 
-// Wait until all elements are on the page from initial load
+// Wait until all elements are on the pageIdentification from initial load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init)
 } else {

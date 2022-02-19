@@ -126,7 +126,7 @@ function pagedFieldPolicy(keyArgs: string[]): FieldPolicy {
       { args, fieldName }: FieldFunctionOptions<{ cursor?: string }>,
     ): PagedType {
       if (!incoming || !existing) return incoming
-      // no cursor, not looking for next page, replace fields instead
+      // no cursor, not looking for next pageIdentification, replace fields instead
       if (!args?.cursor) {
         return {
           ...existing,

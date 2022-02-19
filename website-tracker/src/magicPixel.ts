@@ -73,7 +73,6 @@ export default class MagicPixel {
 
   async init_page_identification(): Promise<void> {
     console.debug('MP: Initializing Magic Pixel Page Identification')
-    console.log({ MP: this })
 
     const pageIdentification = new PageIdentification()
     window.MP_PAGE_ID = pageIdentification
@@ -206,7 +205,7 @@ export default class MagicPixel {
 
         const target = e.target
 
-        // TODO: Make sure the link is actually to a page.
+        // TODO: Make sure the link is actually to a pageIdentification.
         // It's a click, not a Javascript redirect:
         this.javascriptRedirect = false
 
@@ -223,22 +222,22 @@ export default class MagicPixel {
         }
 
         if (isSamePage(parsedUrl.href, document.location.href)) {
-          console.log('User is jumping around the same page')
-          // User is jumping around the same page. Track here in case the
+          console.log('User is jumping around the same pageIdentification')
+          // User is jumping around the same pageIdentification. Track here in case the
           // client prevents the default action and the hash doesn't change
           // (otherwise it would be tracked by onhashchange):
           this.oldHash = null
 
           // trackJump(document.location.hash);
         } else if (parsedUrl.hostname === document.location.hostname) {
-          // We are linking to a page on the same site. There's no need to send
+          // We are linking to a pageIdentification on the same site. There's no need to send
           // the event now, we can safely send it later:
-          console.log('We are linking to a page on the same site.')
+          console.log('We are linking to a pageIdentification on the same site.')
           await this.trackLater('click', value)
         } else {
           e.preventDefault()
-          console.log('We are linking to a page that is not on this site.')
-          // We are linking to a page that is not on this site. So we first
+          console.log('We are linking to a pageIdentification that is not on this site.')
+          // We are linking to a pageIdentification that is not on this site. So we first
           // wait to send the event before simulating a different click
           // on the link. This ensures we don't lose the event if the user
           // does not return to this site ever again.

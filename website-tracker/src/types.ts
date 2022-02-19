@@ -115,6 +115,32 @@ export interface DomElementType {
   isSVG: boolean
 }
 
+export interface DomFormElementType {
+  id: string | null
+  className: string | null
+  content: string | null
+  attributes: DomAttributeType[]
+  type: string | null
+  node: Node
+  children: any
+}
+
+export interface DomFormType {
+  isTemplateForm: boolean
+  formElements: DomFormElementType[]
+}
+
+export type DomFormMapType = Record<string, DomFormType>
+
+export interface DomButtonType {
+  id: string | null
+  className: string | null
+  content: string | null
+  attributes: DomAttributeType[] | null
+  type: string | null
+  ancestors: Element[] | null
+}
+
 export interface DomLinkType {
   id: string | null
   className: string | null
@@ -123,39 +149,43 @@ export interface DomLinkType {
   type: string | null
 }
 
+export type DomButtonMapType = Record<string, DomButtonType>
+
 export interface DomMapType {
-  forms: DomElementType[]
+  forms: DomFormMapType
   links: DomLinkType[]
-  buttons: DomElementType[]
+  buttons: DomButtonMapType | null
   body: DomElementType[]
+}
+
+interface EcommDomType extends Record<string, boolean>{
+  paypal: boolean
+  google_pay: boolean
+  apple_pay: boolean
+  bolt_pay: boolean
+  stripe_for: boolean
+  braintree_form: boolean
+  square_form: boolean
+  checkout: boolean
+  purchase: boolean
+  order: boolean
+  buy: boolean
+  order_summary: boolean
+  total: boolean
+  subtotal: boolean
+  shipping: boolean
+  tax: boolean
+  payment: boolean
+  promo_code: boolean
+  coupon: boolean
+  shipping_address: boolean
+  billing_address: boolean
 }
 
 export interface PageIdPropsType {
   eCommerce: {
     keywords: string[]
-    dom: {
-      paypal: boolean
-      google_pay: boolean
-      apple_pay: boolean
-      bolt_pay: boolean
-      stripe_for: boolean
-      braintree_form: boolean
-      square_form: boolean
-      checkout: boolean
-      purchase: boolean
-      order: boolean
-      buy: boolean
-      order_summary: boolean
-      total: boolean
-      subtotal: boolean
-      shipping: boolean
-      tax: boolean
-      payment: boolean
-      promo_code: boolean
-      coupon: boolean
-      shipping_address: boolean
-      billing_address: boolean
-    }
+    dom: EcommDomType
   }
   confirmation: {
     keywords: string[]
@@ -206,12 +236,38 @@ export interface PageIdPropsType {
     content_on_page: number
   }
   misc: {
-    buttons: HTMLElement[] | []
+    has_sidebar: boolean
+    has_topbar: boolean
+    has_navbar: boolean
   }
 }
 
+export type EcommKeywordType =
+  'paypal' |
+  'google_pay' |
+  'apple_pay' |
+  'bolt_pay' |
+  'stripe_for' |
+  'braintree_form' |
+  'square_form' |
+  'checkout' |
+  'purchase' |
+  'order' |
+  'buy' |
+  'order_summary' |
+  'total' |
+  'subtotal' |
+  'shipping' |
+  'tax' |
+  'payment' |
+  'promo_code' |
+  'coupon' |
+  'shipping_address' |
+  'billing_address' |
+  null
+
 export interface PageIdentificationType {
-  buttons: DomElementType[]
+  buttons: DomButtonMapType | null
   forms: DomElementType[]
   links: DomLinkType[]
   pageIdProps: PageIdPropsType

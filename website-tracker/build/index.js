@@ -3058,6 +3058,12 @@
                 shipping_address: false,
                 billing_address: false,
             },
+            url: {
+                thank_you: false,
+                order_summary: false,
+                order: false,
+                confirmation: false,
+            },
         },
         confirmation: {
             keywords: ['thankyou', 'order', 'ordersummary', 'confirmation'],
@@ -3108,135 +3114,246 @@
             content_on_page: 0,
         },
         misc: {
-            buttons: [],
+            has_sidebar: false,
+            has_topbar: false,
+            has_navbar: false,
         },
     };
+
     var PageIdentification = /** @class */ (function () {
         function PageIdentification() {
-            var _this = this;
-            /**
-             * Create an array of the attributes on an element
-             * @param  {NamedNodeMap} attributes The attributes on an element
-             * @return {Array} sThe attributes on an element as an array of key/value pairs
-             */
-            this._getAttributes = function (attributes) {
-                var allAttributes = [];
-                Array.prototype.map.call(attributes, function (attribute) {
-                    var newAttribute = {
-                        name: attribute.name,
-                        value: attribute.value,
-                    };
-                    allAttributes.push(newAttribute);
-                });
-                return allAttributes;
-            };
-            this._createButtonElementMap = function (link) {
-                var _a;
-                return {
-                    id: link.id,
-                    className: link.className,
-                    content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
-                    attributes: _this._getAttributes(link.attributes),
-                    type: link.tagName.toLowerCase(),
-                };
-            };
-            /**
-             * Create a Tree Map for an element
-             * @param  {Node}    element The element to map
-             * @param  {Boolean} isSVG   If true, node is within an SVG
-             * @return {Array}           A DOM tree map
-             */
-            this._createElementMap = function (element, isSVG) {
-                var childNodes = [];
-                if (element.childNodes && element.childNodes.length > 0) {
-                    childNodes = Array.prototype.filter.call(element.childNodes, function (node) {
-                        return (node.nodeType !== 8 && node.nodeType == 1 && node.localName !== 'br') ||
-                            (node.nodeType === 3 && node.textContent.trim() !== '');
-                    });
-                }
-                return childNodes.map(function (node, i) {
-                    var id = node.id || null;
-                    var className = node.className || null;
-                    var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
-                    var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
-                    var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
-                    var children = _this._createElementMap(node, isSVG || node.type === 'svg');
-                    return {
-                        id: id,
-                        className: className,
-                        content: content,
-                        attributes: attributes,
-                        type: type,
-                        node: node,
-                        children: children,
-                        isSVG: isSVG || node.type === 'svg',
-                    };
-                });
-            };
-            this._createLinkElementMap = function (link) {
-                var _a;
-                return {
-                    id: link.id,
-                    className: link.className,
-                    content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
-                    attributes: _this._getAttributes(link.attributes),
-                    type: link.tagName.toLowerCase(),
-                };
-            };
-            this._createDomLinkMap = function () {
-                var links = document.querySelectorAll('a');
-                var linksMap = {};
-                Array.prototype.map.call(links, function (link, i) {
-                    var linkMap = _this._createLinkElementMap(link);
-                    var linkKey = link.id || "link-id-" + i;
-                    linksMap[linkKey] = linkMap;
-                });
-                return linksMap;
-            };
-            this._createDomFormMap = function () {
-                var forms = document.querySelectorAll('form');
-                var formsMap = {};
-                Array.prototype.map.call(forms, function (form, i) {
-                    var formMap = _this._createElementMap(form, false);
-                    var formKey = form.id || "form-id-" + i;
-                    formsMap[formKey] = formMap;
-                });
-                return formsMap;
-            };
-            this._createDomButtonMap = function () {
-                var buttons = document.querySelectorAll('button');
-                var inputButtons = document.querySelectorAll('input[type="submit"]');
-                var allButtons = Array.prototype.slice.call(buttons).concat(Array.prototype.slice.call(inputButtons));
-                var buttonsMap = {};
-                Array.prototype.map.call(allButtons, function (buttonNode, i) {
-                    var buttonMap = _this._createButtonElementMap(buttonNode);
-                    var buttonKey = buttonNode.id || "button-id-" + i;
-                    buttonsMap[buttonKey] = buttonMap;
-                });
-                return buttonsMap;
-            };
-            this.getDomMap = function () {
-                console.log('Getting Dom Map...');
-                var body = document.body;
-                return {
-                    forms: _this._createDomFormMap(),
-                    links: _this._createDomLinkMap(),
-                    buttons: _this._createDomButtonMap(),
-                    body: _this._createElementMap(body, false),
-                };
-            };
-            this.buttons = [];
-            this.forms = [];
+            this.buttons = null;
+            this.forms = {};
             this.links = [];
             this.pageIdProps = PAGE_ID_PROPERTIES;
+            this.elements = null;
         }
         PageIdentification.prototype.init = function () {
-            var domMap = this.getDomMap();
+            var domMap = this._getDomMap();
             this.buttons = domMap.buttons;
             this.forms = domMap.forms;
             this.links = domMap.links;
-            console.log({ pageIdThis: this });
+            var docElements = document.querySelectorAll('*');
+            this.elements = Array.from(docElements);
+            console.log({ initThis: this });
+            // this._isEcommPage()
+            this._isGeneralPage();
         };
+        PageIdentification.prototype._getDomMap = function () {
+            var body = document.body;
+            return {
+                forms: this._createDomFormMap(),
+                links: this._createDomLinkMap(),
+                buttons: this._createDomButtonMap(),
+                body: this._createElementMap(body, false),
+            };
+        };
+        /**
+         * Create an array of the attributes on an element
+         * @param  {NamedNodeMap} attributes The attributes on an element
+         * @return {Array} sThe attributes on an element as an array of key/value pairs
+         */
+        PageIdentification.prototype._getAttributes = function (attributes) {
+            var allAttributes = [];
+            Array.prototype.map.call(attributes, function (attribute) {
+                var newAttribute = {
+                    name: attribute.name,
+                    value: attribute.value,
+                };
+                allAttributes.push(newAttribute);
+            });
+            return allAttributes;
+        };
+        /**
+         * Check if form is apart of the page template. We are looking for unique forms per page
+         * @param  {HTMLFormElement} form The attributes on an element
+         * @return {Boolean}
+         */
+        PageIdentification.prototype._isTemplateForm = function (form) {
+            var ancestors = getAncestors(form);
+            var isTemplateForm = false;
+            ancestors.forEach(function (ancestor) {
+                ['sidebar', 'topbar', 'nav', 'header'].forEach(function (templateKeyword) {
+                    if (ancestor.id.includes(templateKeyword)) {
+                        isTemplateForm = true;
+                    }
+                    if (ancestor.className.includes(templateKeyword)) {
+                        isTemplateForm = true;
+                    }
+                });
+            });
+            return isTemplateForm;
+        };
+        /**
+         * Create a elements map of an HTMLElement
+         * @param  {HTMLElement} element the HTMLElement
+         * @param  {Boolean} isSVG SVG are handled uniquely
+         * @return {DomElementType[]} attributes about the HTMLFormElement
+         */
+        PageIdentification.prototype._createElementMap = function (element, isSVG) {
+            var _this = this;
+            var childNodes = [];
+            if (element.childNodes && element.childNodes.length > 0) {
+                childNodes = Array.prototype.filter.call(element.childNodes, function (node) {
+                    return (node.nodeType !== 8 && node.nodeType == 1 && node.localName !== 'br') ||
+                        (node.nodeType === 3 && node.textContent.trim() !== '');
+                });
+            }
+            return childNodes.map(function (node, i) {
+                var id = node.id || null;
+                var className = node.className || null;
+                var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
+                var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
+                var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
+                var children = _this._createElementMap(node, isSVG || node.type === 'svg');
+                return {
+                    id: id,
+                    className: className,
+                    content: content,
+                    attributes: attributes,
+                    type: type,
+                    node: node,
+                    children: children,
+                    isSVG: isSVG || node.type === 'svg',
+                };
+            });
+        };
+        /**
+         * Create a elements map of a form HTMLFormElement
+         * @param  {HTMLButtonElement} form the HTMLFormElement
+         * @return {DomFormElementType[]} an array of form elements with attributes about the HTMLFormElement
+         */
+        PageIdentification.prototype._createFormElementsMap = function (form) {
+            var _this = this;
+            var childNodes = [];
+            if (form.childNodes && form.childNodes.length > 0) {
+                childNodes = Array.prototype.filter.call(form.childNodes, function (node) {
+                    return (node.nodeType !== 8 && node.nodeType == 1 && node.localName !== 'br') ||
+                        (node.nodeType === 3 && node.textContent.trim() !== '');
+                });
+            }
+            return childNodes.map(function (node, i) {
+                var id = node.id || null;
+                var className = node.className || null;
+                var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
+                var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
+                var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
+                var children = _this._createFormElementsMap(node);
+                return {
+                    id: id,
+                    className: className,
+                    content: content,
+                    attributes: attributes,
+                    type: type,
+                    node: node,
+                    children: children,
+                };
+            });
+        };
+        /**
+         * Create a attribute map of a HTMLButton element
+         * @param  {HTMLButtonElement} button HTMLButton element
+         * @return {DomButtonType} attributes about the HTMLButton
+         */
+        PageIdentification.prototype._createButtonElementMap = function (button) {
+            var _a;
+            return {
+                id: button.id,
+                className: button.className,
+                content: ((_a = button.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
+                attributes: this._getAttributes(button.attributes),
+                type: button.tagName.toLowerCase(),
+                ancestors: getAncestors(button),
+            };
+        };
+        PageIdentification.prototype._createLinkElementMap = function (link) {
+            var _a;
+            return {
+                id: link.id,
+                className: link.className,
+                content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
+                attributes: this._getAttributes(link.attributes),
+                type: link.tagName.toLowerCase(),
+            };
+        };
+        PageIdentification.prototype._createDomLinkMap = function () {
+            var _this = this;
+            var links = document.querySelectorAll('a');
+            var linksMap = {};
+            Array.from(links).map(function (link, i) {
+                var linkMap = _this._createLinkElementMap(link);
+                var linkKey = link.id || "link-id-" + i;
+                linksMap[linkKey] = linkMap;
+            });
+            return linksMap;
+        };
+        PageIdentification.prototype._createDomFormMap = function () {
+            var _this = this;
+            var forms = document.querySelectorAll('form');
+            var formsMap = {};
+            Array.from(forms).map(function (form, i) {
+                var formKey = form.id || "form-id-" + i;
+                formsMap[formKey] = {
+                    isTemplateForm: _this._isTemplateForm(form),
+                    formElements: _this._createFormElementsMap(form),
+                };
+            });
+            return formsMap;
+        };
+        PageIdentification.prototype._createDomButtonMap = function () {
+            var _this = this;
+            var buttons = document.querySelectorAll('button');
+            var inputButtons = document.querySelectorAll('input[type="submit"]');
+            var allButtons = Array.prototype.slice.call(buttons).concat(Array.prototype.slice.call(inputButtons));
+            var buttonsMap = {};
+            Array.from(allButtons).map(function (buttonNode, i) {
+                var buttonMap = _this._createButtonElementMap(buttonNode);
+                var buttonKey = buttonNode.id || "button-id-" + i;
+                buttonsMap[buttonKey] = buttonMap;
+            });
+            return buttonsMap;
+        };
+        PageIdentification.prototype._checkElementsForKeywords = function (elements, keywords) {
+            var _this = this;
+            elements.map(function (element, i) {
+                var keyword = keywords.find(function (k) {
+                    if (element.textContent) {
+                        return element.textContent.toLowerCase().includes(k);
+                    }
+                });
+                if (keyword) {
+                    _this.pageIdProps.eCommerce.dom[keyword] = true;
+                }
+            });
+        };
+        PageIdentification.prototype._isEcommPage = function () {
+            // Check for payment processor button
+            // Determine if the JS objects, scripts or methods exist.
+            // Does the DOM contain ecommerce keywords?
+            var keywords = this.pageIdProps.eCommerce.keywords;
+            var elements = this.elements;
+            if (elements) {
+                this._checkElementsForKeywords(elements, keywords);
+            }
+            // Does the URL contain ecommerce keywords?
+            console.log({ pageIdProps: this.pageIdProps });
+        };
+        PageIdentification.prototype._isGeneralPage = function () {
+            // How many form inputs are on the page?
+            var forms = this.forms;
+            console.log({ forms: forms });
+            // How many videos are on the page?
+            // How much content is on the page?
+        };
+        PageIdentification.prototype._isConfirmationPage = function () {
+            // Does the URL contain the following words?	[thankyou, confirmation, ordersummary, summary]
+            // Does the DOM contain the keyword, 'confirmation'
+        };
+        PageIdentification.prototype._isLeadGenPage = function () { };
+        PageIdentification.prototype._isMiscPage = function () { };
+        PageIdentification.prototype._isContactPage = function () { };
+        PageIdentification.prototype._isCareersPage = function () { };
+        PageIdentification.prototype._isBlogPage = function () { };
         return PageIdentification;
     }());
 
@@ -3291,7 +3408,6 @@
                 var pageIdentification;
                 return __generator(this, function (_a) {
                     console.debug('MP: Initializing Magic Pixel Page Identification');
-                    console.log({ MP: this });
                     pageIdentification = new PageIdentification();
                     window.MP_PAGE_ID = pageIdentification;
                     pageIdentification.init();
@@ -3447,7 +3563,7 @@
                                     return [2 /*return*/];
                                 }
                                 target = e.target;
-                                // TODO: Make sure the link is actually to a page.
+                                // TODO: Make sure the link is actually to a pageIdentification.
                                 // It's a click, not a Javascript redirect:
                                 this.javascriptRedirect = false;
                                 setTimeout(function () {
@@ -3458,25 +3574,25 @@
                                     target: __assign({ url: parsedUrl }, getNodeDescriptor(target)),
                                 };
                                 if (!isSamePage(parsedUrl.href, document.location.href)) return [3 /*break*/, 1];
-                                console.log('User is jumping around the same page');
-                                // User is jumping around the same page. Track here in case the
+                                console.log('User is jumping around the same pageIdentification');
+                                // User is jumping around the same pageIdentification. Track here in case the
                                 // client prevents the default action and the hash doesn't change
                                 // (otherwise it would be tracked by onhashchange):
                                 this.oldHash = null;
                                 return [3 /*break*/, 5];
                             case 1:
                                 if (!(parsedUrl.hostname === document.location.hostname)) return [3 /*break*/, 3];
-                                // We are linking to a page on the same site. There's no need to send
+                                // We are linking to a pageIdentification on the same site. There's no need to send
                                 // the event now, we can safely send it later:
-                                console.log('We are linking to a page on the same site.');
+                                console.log('We are linking to a pageIdentification on the same site.');
                                 return [4 /*yield*/, this.trackLater('click', value)];
                             case 2:
                                 _a.sent();
                                 return [3 /*break*/, 5];
                             case 3:
                                 e.preventDefault();
-                                console.log('We are linking to a page that is not on this site.');
-                                // We are linking to a page that is not on this site. So we first
+                                console.log('We are linking to a pageIdentification that is not on this site.');
+                                // We are linking to a pageIdentification that is not on this site. So we first
                                 // wait to send the event before simulating a different click
                                 // on the link. This ensures we don't lose the event if the user
                                 // does not return to this site ever again.
@@ -3489,7 +3605,7 @@
                                         }
                                     })];
                             case 4:
-                                // We are linking to a page that is not on this site. So we first
+                                // We are linking to a pageIdentification that is not on this site. So we first
                                 // wait to send the event before simulating a different click
                                 // on the link. This ensures we don't lose the event if the user
                                 // does not return to this site ever again.
@@ -3872,7 +3988,7 @@
             });
         });
     }
-    // Wait until all elements are on the page from initial load
+    // Wait until all elements are on the pageIdentification from initial load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     }

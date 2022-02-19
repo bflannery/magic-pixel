@@ -4,6 +4,7 @@ import { nodeResolve } from '@rollup/plugin-node-resolve'
 import commonjs from '@rollup/plugin-commonjs'
 import postcss from 'rollup-plugin-postcss-modules'
 import inject from '@rollup/plugin-inject'
+import json from '@rollup/plugin-json'
 import { sizeSnapshot } from 'rollup-plugin-size-snapshot'
 
 const env = process.env.NODE_ENV || 'local'
@@ -27,6 +28,7 @@ const config = {
     typescript(),
     nodeResolve(), // node like env
     commonjs(),
+    json(),
     sizeSnapshot(), // print bundle sizes
     // terser(), // minified
   ],

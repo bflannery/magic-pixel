@@ -1,178 +1,317 @@
-
-
-<!DOCTYPE html>
-<html lang="en">
-   <head>
-      <!-- basic -->
-      <meta charset="utf-8">
-      <meta http-equiv="X-UA-Compatible" content="IE=edge">
-      <!-- mobile metas -->
-      <meta name="viewport" content="width=device-width, initial-scale=1">
-      <meta name="viewport" content="initial-scale=1, maximum-scale=1">
-      <!-- site metas -->
-      <title>pcoint</title>
-      <meta name="keywords" content="">
-      <meta name="description" content="">
-      <meta name="author" content="">
-      <!-- bootstrap css -->
-      <link rel="stylesheet" href="css/bootstrap.min.css">
-      <!-- style css -->
-      <link rel="stylesheet" href="css/style.css">
-      <!-- Responsive-->
-      <link rel="stylesheet" href="css/responsive.css">
-      <!-- fevicon -->
-      <link rel="icon" href="images/fevicon.png" type="image/gif" />
-      <!-- Scrollbar Custom CSS -->
-      <link rel="stylesheet" href="css/jquery.mCustomScrollbar.min.css">
-      <!-- Tweaks for older IEs-->
-      <link rel="stylesheet" href="https://netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css">
-      <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.css" media="screen">
-      <!--[if lt IE 9]>
-      <script src="https://oss.maxcdn.com/html5shiv/3.7.3/html5shiv.min.js"></script>
-      <script src="https://oss.maxcdn.com/respond/1.4.2/respond.min.js"></script><![endif]-->
-   </head>
-   <!-- body -->
-   <body class="main-layout">
-      <!-- loader  -->
-      <div class="loader_bg">
-         <div class="loader"><img src="images/loading.gif" alt="#" /></div>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <title>Shop Around</title>
+    <meta http-equiv="Content-type" content="text/html; charset=utf-8" />
+    <link rel="stylesheet" href="css/style.css" type="text/css" media="all" />
+    <!--[if lte IE 6
+      ]><link rel="stylesheet" href="css/ie6.css" type="text/css" media="all"
+    /><![endif]-->
+<!--     <link rel="stylesheet" href="checkout.css" />-->
+     <script src="https://js.stripe.com/v3/"></script>
+<!--     <script src="checkout.js" defer></script>-->
+    <script src="js/jquery-1.4.1.min.js" type="text/javascript"></script>
+    <script src="js/jquery.jcarousel.pack.js" type="text/javascript"></script>
+    <script src="js/jquery-func.js" type="text/javascript"></script>
+  </head>
+  <body>
+    <!-- Shell -->
+    <div class="shell">
+      <!-- Header -->
+      <div id="header">
+        <h1 id="logo"><a href="#">shoparound</a></h1>
+        <!-- Cart -->
+        <div id="cart">
+          <a href="#" class="cart-link">Your Shopping Cart</a>
+          <div class="cl">&nbsp;</div>
+          <span>Articles: <strong>4</strong></span> &nbsp;&nbsp;
+          <span>Cost: <strong>$250.99</strong></span>
+        </div>
+        <!-- End Cart -->
+        <!-- Navigation -->
+        <div id="navigation">
+          <ul>
+            <li><a href="./index.html" class="active">Home</a></li>
+            <li><a href="./login.html">Login</a></li>
+            <li><a href="./signup.html">Sign up</a></li>
+            <li><a href="#">Contact</a></li>
+            <li><a href="#">Support</a></li>
+          </ul>
+        </div>
+        <!-- End Navigation -->
       </div>
-      <!-- end loader -->
-      <!-- header -->
-      <header>
-         <!-- header inner -->
-         <div  class="head_top">
-            <div class="header">
-               <div class="container">
-                  <div class="row">
-                     <div class="col-xl-3 col-lg-3 col-md-3 col-sm-3 col logo_section">
-                        <div class="full">
-                           <div class="center-desk">
-                              <div class="logo">
-                                 <a href="index.html"><img src="images/logo.png" alt="#" /></a>
-                              </div>
-                           </div>
-                        </div>
-                     </div>
-                     <div class="col-xl-9 col-lg-9 col-md-9 col-sm-9">
-                        <nav class="navigation navbar navbar-expand-md navbar-dark ">
-                           <button class="navbar-toggler" type="button" data-toggle="collapse" data-target="#navbarsExample04" aria-controls="navbarsExample04" aria-expanded="false" aria-label="Toggle navigation">
-                           <span class="navbar-toggler-icon"></span>
-                           </button>
-                           <div class="collapse navbar-collapse" id="navbarsExample04">
-                              <ul class="navbar-nav mr-auto">
-                                 <li class="nav-item">
-                                    <a class="nav-link" href="index.html"> Home  </a>
-                                 </li>
-                                 <li class="nav-item">
-                                    <a class="nav-link" href="#about">About</a>
-                                 </li>
-                                 <li class="nav-item">
-                                    <a class="nav-link" href="#contact">Contact us</a>
-                                 </li>
-                              </ul>
-                              <div class="sign_btn"><a href="#">Sign in</a></div>
-                           </div>
-                        </nav>
-                     </div>
-                  </div>
-               </div>
+      <!-- End Header -->
+      <!-- Main -->
+      <div id="main">
+        <div class="cl">&nbsp;</div>
+        <!-- Content -->
+        <div id="content">
+          <div>
+            <h5>Purchase Products</h5>
+<!--             <div id="smart-button-container">-->
+<!--                <div style="text-align: center;">-->
+<!--                   <div id="paypal-button-container"></div>-->
+<!--                </div>-->
+<!--             </div>-->
+             <form id="payment-form">
+                <div id="payment-element">
+                   <!--Stripe.js injects the Payment Element-->
+                </div>
+                <button id="submit">
+                   <div class="spinner hidden" id="spinner"></div>
+                   <span id="button-text">Pay now</span>
+                </button>
+                <div id="payment-message" class="hidden"></div>
+             </form>
+          </div>
+        </div>
+        <!-- End Content -->
+        <!-- Sidebar -->
+        <div id="sidebar">
+          <!-- Search -->
+          <div class="box search">
+            <h2>Search by <span></span></h2>
+            <div class="box-content">
+              <form action="#" method="post">
+                <label>Keyword</label>
+                <input type="text" class="field" />
+                <label>Category</label>
+                <select class="field">
+                  <option value="">-- Select Category --</option>
+                </select>
+                <div class="inline-field">
+                  <label>Price</label>
+                  <select class="field small-field">
+                    <option value="">$10</option>
+                  </select>
+                  <label>to:</label>
+                  <select class="field small-field">
+                    <option value="">$50</option>
+                  </select>
+                </div>
+                <input type="submit" class="search-submit" value="Search" />
+                <p>
+                  <a href="#" class="bul">Advanced search</a><br />
+                  <a href="#" class="bul">Contact Customer Support</a>
+                </p>
+              </form>
             </div>
-         </div>
-      </header>
-      <!-- end header -->
-      <div id="contact" class="request">
-         <div class="container">
-            <div class="row">
-               <div class="col-md-12">
-                  <div class="titlepage">
-                     <h2>Purchase Product</h2>
-                     <span>Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor <br>
-                     incididunt ut labore et dolore magna</span>
-                  </div>
-               </div>
+          </div>
+          <!-- End Search -->
+          <!-- Categories -->
+          <div class="box categories">
+            <h2>Categories <span></span></h2>
+            <div class="box-content">
+              <ul>
+                <li><a href="#">Category 1</a></li>
+                <li><a href="#">Category 2</a></li>
+                <li><a href="#">Category 3</a></li>
+                <li><a href="#">Category 4</a></li>
+                <li><a href="#">Category 5</a></li>
+                <li><a href="#">Category 6</a></li>
+                <li><a href="#">Category 7</a></li>
+                <li><a href="#">Category 8</a></li>
+                <li><a href="#">Category 9</a></li>
+                <li><a href="#">Category 10</a></li>
+                <li><a href="#">Category 11</a></li>
+                <li><a href="#">Category 12</a></li>
+                <li class="last"><a href="#">Category 13</a></li>
+              </ul>
             </div>
-            <div class="row">
-               <div class="col-sm-12">
-                  <div class="black_bg">
-                     <div class="row">
-                        <div class="col-md-7 ">
-                           <form class="main_form">
-                              <div class="row">
-                                 <div class="col-md-12 ">
-                                    <input class="contactus" placeholder="Nmae" type="text" name="Nmae">
-                                 </div>
-                                 <div class="col-md-12">
-                                    <input class="contactus" placeholder="Phone number" type="text" name=" Phone number">
-                                 </div>
-                                 <div class="col-md-12">
-                                    <input class="contactus" placeholder="Email" type="text" name="Email">
-                                 </div>
-                                 <div class="col-md-12">
-                                    <textarea class="textarea" placeholder="Message" type="text" name="Message "> Message </textarea>
-                                 </div>
-                                 <div class="col-sm-12">
-                                    <button class="send_btn">Send</button>
-                                 </div>
-                              </div>
-                           </form>
-                        </div>
-                        <div class="col-md-5">
-                           <div class="mane_img">
-                              <figure><img src="images/mane_img.jpg" alt="#"/></figure>
-                           </div>
-                        </div>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
+          </div>
+          <!-- End Categories -->
+        </div>
+        <!-- End Sidebar -->
+        <div class="cl">&nbsp;</div>
       </div>
-      <!-- end request -->
-      <!--  footer -->
-      <footer>
-         <div class="footer">
-            <div class="container">
-               <div class="row">
-                  <div class="col-md-6">
-                     <div class="cont">
-                        <h3> <strong class="multi"> Free Multipurpose</strong><br>
-                           Responsive Landing Page 2019
-                        </h3>
-                     </div>
-                  </div>
-                  <div class="col-md-6">
-                     <div class="cont_call">
-                        <h3> <strong class="multi"> Call Now</strong><br>
-                           (+1) 12345667890
-                        </h3>
-                     </div>
-                  </div>
-               </div>
-            </div>
-            <div class="copyright">
-               <div class="container">
-                  <div class="row">
-                     <div class="col-md-12">
-                        <p>© 2019 All Rights Reserved. Design by <a href="https://html.design/"> Free Html Templates</a></p>
-                     </div>
-                  </div>
-               </div>
-            </div>
-         </div>
-      </footer>
-      <!-- end footer -->
-      <!-- Javascript files-->
-      <script src="js/jquery.min.js"></script>
-      <script src="js/popper.min.js"></script>
-      <script src="js/bootstrap.bundle.min.js"></script>
-      <script src="js/jquery-3.0.0.min.js"></script>
-      <script src="js/plugin.js"></script>
-      <!-- sidebar -->
-      <script src="js/jquery.mCustomScrollbar.concat.min.js"></script>
-      <script src="js/custom.js"></script>
-      <script src="https:cdnjs.cloudflare.com/ajax/libs/fancybox/2.1.5/jquery.fancybox.min.js"></script>
-      <script type="text/javascript" src="http://localhost:8081/mp-tracker.js?hid=YWNjb3VudDox&sid=YWNjb3VudF9zaXRlOjE="></script>
-   </body>
+      <!-- End Main -->
+      <!-- Side Full -->
+      <div class="side-full">
+        <!-- More Products -->
+        <div class="more-products">
+          <div class="more-products-holder">
+            <ul>
+              <li>
+                <a href="#"><img src="css/images/small1.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small2.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small3.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small4.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small5.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small6.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small7.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small1.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small2.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small3.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small4.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small5.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small6.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small7.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small1.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small2.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small3.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small4.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small5.jpg" alt="" /></a>
+              </li>
+              <li>
+                <a href="#"><img src="css/images/small6.jpg" alt="" /></a>
+              </li>
+              <li class="last">
+                <a href="#"><img src="css/images/small7.jpg" alt="" /></a>
+              </li>
+            </ul>
+          </div>
+          <div class="more-nav">
+            <a href="#" class="prev">previous</a>
+            <a href="#" class="next">next</a>
+          </div>
+        </div>
+        <!-- End More Products -->
+        <!-- Text Cols -->
+        <div class="cols">
+          <div class="cl">&nbsp;</div>
+          <div class="col">
+            <h3 class="ico ico1">Donec imperdiet</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+              imperdiet, metus ac cursus auctor, arcu felis ornare dui.
+            </p>
+            <p class="more"><a href="#" class="bul">Lorem ipsum</a></p>
+          </div>
+          <div class="col">
+            <h3 class="ico ico2">Donec imperdiet</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+              imperdiet, metus ac cursus auctor, arcu felis ornare dui.
+            </p>
+            <p class="more"><a href="#" class="bul">Lorem ipsum</a></p>
+          </div>
+          <div class="col">
+            <h3 class="ico ico3">Donec imperdiet</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+              imperdiet, metus ac cursus auctor, arcu felis ornare dui.
+            </p>
+            <p class="more"><a href="#" class="bul">Lorem ipsum</a></p>
+          </div>
+          <div class="col col-last">
+            <h3 class="ico ico4">Donec imperdiet</h3>
+            <p>
+              Lorem ipsum dolor sit amet, consectetur adipiscing elit. Donec
+              imperdiet, metus ac cursus auctor, arcu felis ornare dui.
+            </p>
+            <p class="more"><a href="#" class="bul">Lorem ipsum</a></p>
+          </div>
+          <div class="cl">&nbsp;</div>
+        </div>
+        <!-- End Text Cols -->
+      </div>
+      <!-- End Side Full -->
+      <!-- Footer -->
+      <div id="footer">
+        <p class="left">
+          <a href="#">Home</a> <span>|</span> <a href="#">Support</a>
+          <span>|</span> <a href="#">My Account</a> <span>|</span>
+          <a href="#">The Store</a> <span>|</span> <a href="#">Contact</a>
+        </p>
+        <p class="right">
+          &copy; 2010 Shop Around. Design by
+          <a href="http://chocotemplates.com">Chocotemplates.com</a>
+        </p>
+      </div>
+      <!-- End Footer -->
+    </div>
+    <!-- End Shell -->
+    <script
+      type="text/javascript"
+      src="http://localhost:8081/mp-tracker.js?hid=YWNjb3VudDox&sid=YWNjb3VudF9zaXRlOjE="
+    ></script>
+    <!-- Paypal -->
+<!--    <script-->
+<!--      src="https://www.paypal.com/sdk/js?client-id=sb&enable-funding=venmo&currency=USD"-->
+<!--      data-sdk-integration-source="button-factory"-->
+<!--    ></script>-->
+<!--    <script>-->
+<!--      function initPayPalButton() {-->
+<!--        paypal-->
+<!--          .Buttons({-->
+<!--            style: {-->
+<!--              shape: "rect",-->
+<!--              color: "gold",-->
+<!--              layout: "vertical",-->
+<!--              label: "paypal",-->
+<!--            },-->
+
+<!--            createOrder: function (data, actions) {-->
+<!--              return actions.order.create({-->
+<!--                purchase_units: [-->
+<!--                  { amount: { currency_code: "USD", value: 1 } },-->
+<!--                ],-->
+<!--              });-->
+<!--            },-->
+
+<!--            onApprove: function (data, actions) {-->
+<!--              return actions.order.capture().then(function (orderData) {-->
+<!--                // Full available details-->
+<!--                console.log(-->
+<!--                  "Capture result",-->
+<!--                  orderData,-->
+<!--                  JSON.stringify(orderData, null, 2)-->
+<!--                );-->
+
+<!--                // Show a success message within this page, e.g.-->
+<!--                const element = document.getElementById(-->
+<!--                  "paypal-button-container"-->
+<!--                );-->
+<!--                element.innerHTML = "";-->
+<!--                element.innerHTML = "&lt;h3>Thank you for your payment!&lt;/h3>";-->
+
+<!--                // Or go to another URL:  actions.redirect('thank_you.html');-->
+<!--              });-->
+<!--            },-->
+
+<!--            onError: function (err) {-->
+<!--              console.log(err);-->
+<!--            },-->
+<!--          })-->
+<!--          .render("#paypal-button-container");-->
+<!--      }-->
+<!--      initPayPalButton();-->
+<!--    </script>-->
+  </body>
 </html>
-

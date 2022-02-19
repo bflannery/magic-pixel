@@ -1,10 +1,6 @@
-import {createDOMMap, toObject, toObjectInterface} from './utils'
+import { toObject, toObjectInterface} from './utils'
 import EventHandler from './handler'
 import {
-  DomAttributeType,
-  DomElementType,
-  DomLinkType,
-  DomMapType,
   MPEventForm,
   MPGenericEvent,
   MPKeyboardEvent
