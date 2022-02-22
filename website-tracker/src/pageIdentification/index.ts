@@ -5,24 +5,24 @@ import {
   DomElementType,
   DomFormElementType,
   DomFormMapType,
-  DomLinkType,
-  DomMapType,
+  DomLinkMapType,
+  DomMapType, DomVideoMapType,
   PageIdPropsType,
 } from '../types'
 import { getAncestors } from '../dom'
 import { PAGE_ID_PROPERTIES } from './constants'
 
 export default class PageIdentification {
-  buttons: DomButtonMapType | null
-  forms: DomFormMapType
-  links: DomLinkType[]
-  pageIdProps: PageIdPropsType
   elements: Element[] | null
+  buttons: DomButtonMapType | null
+  forms: DomFormMapType[] | null
+  links: DomLinkMapType[] | null
+  pageIdProps: PageIdPropsType
 
   constructor() {
     this.buttons = null
-    this.forms = {}
-    this.links = []
+    this.forms = null
+    this.links = null
     this.pageIdProps = PAGE_ID_PROPERTIES
     this.elements = null
   }
@@ -43,12 +43,11 @@ export default class PageIdentification {
   }
 
   _getDomMap(): DomMapType {
-    const body = document.body
     return {
       forms: this._createDomFormMap(),
       links: this._createDomLinkMap(),
       buttons: this._createDomButtonMap(),
-      body: this._createElementMap(body, false),
+      videos: this._createDomVideoMap(),
     }
   }
 
@@ -70,12 +69,12 @@ export default class PageIdentification {
   }
 
   /**
-   * Check if form is apart of the page template. We are looking for unique forms per page
-   * @param  {HTMLFormElement} form The attributes on an element
+   * Check if form is apart of the page template. We are looking for unique elements per page
+   * @param  {HTMLFormElement} element The attributes on an element
    * @return {Boolean}
    */
-  _isTemplateForm(form: HTMLFormElement): boolean {
-    const ancestors = getAncestors(form)
+  _isTemplateElement(element: Element): boolean {
+    const ancestors = getAncestors(element)
     let isTemplateForm = false
     ancestors.forEach((ancestor) => {
       ;['sidebar', 'topbar', 'nav', 'header'].forEach((templateKeyword) => {
@@ -176,9 +175,16 @@ export default class PageIdentification {
     }
   }
 
-  _createLinkElementMap(link: Element): DomLinkType {
+  /**
+   * Create a attribute map of a HTMLAnchorElement element
+   * @param  {HTMLAnchorElement} link HTMLAnchorElement element
+   * @param  {number} index used for reference if id is not provided
+   * @return {DomLinkMapType} attributes about the HTMLAnchorElement
+   */
+  _createLinkElementMap(link: HTMLAnchorElement, index: number): DomLinkMapType {
     return {
-      id: link.id,
+      id: link.id || `link-id-${index}`,
+      isTemplateElement: this._isTemplateElement(link),
       className: link.className,
       content: link.textContent?.trim() || null,
       attributes: this._getAttributes(link.attributes),
@@ -186,26 +192,34 @@ export default class PageIdentification {
     }
   }
 
-  _createDomLinkMap(): DomLinkType[] {
+  /**
+   * Create a list of attribute maps for each HTMLAnchorElement element
+   * @return {DomLinkMapType[]} an array of attributes about the HTMLAnchorElement
+   */
+  _createDomLinkMap(): DomLinkMapType[] {
     const links = document.querySelectorAll('a')
-    const linksMap: any = {}
+    const linksMap: DomLinkMapType[] = []
     Array.from(links).map((link, i) => {
-      const linkMap = this._createLinkElementMap(link)
-      const linkKey = link.id || `link-id-${i}`
-      linksMap[linkKey] = linkMap
+      const mappedLink = this._createLinkElementMap(link, i)
+      linksMap.push(mappedLink)
     })
     return linksMap
   }
 
-  _createDomFormMap(): DomFormMapType {
+  /**
+   * Create a list of attribute maps for each HTMLFormElement element
+   * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
+   */
+  _createDomFormMap(): DomFormMapType[] {
     const forms = document.querySelectorAll('form')
-    const formsMap: DomFormMapType = {}
+    const formsMap: DomFormMapType[] = []
     Array.from(forms).map((form, i) => {
-      const formKey = form.id || `form-id-${i}`
-      formsMap[formKey] = {
-        isTemplateForm: this._isTemplateForm(form),
-        formElements: this._createFormElementsMap(form),
+      const mappedForm = {
+        id: form.id || `form-id-${i}`,
+        isTemplateElement: this._isTemplateElement(form),
+        elements: this._createFormElementsMap(form),
       }
+      formsMap.push(mappedForm)
     })
     return formsMap
   }
@@ -221,6 +235,23 @@ export default class PageIdentification {
       buttonsMap[buttonKey] = buttonMap
     })
     return buttonsMap
+  }
+
+  /**
+   * Create a list of attribute maps for each HTMLVideoElement element
+   * @return {DomVideoMapType[]} an array of attributes about the HTMLVideoElement
+   */
+  _createDomVideoMap(): DomVideoMapType[] {
+    const videos = document.querySelectorAll('video')
+    const videosMap: DomVideoMapType[] = []
+    Array.from(videos).map((video, i) => {
+      const mappedForm = {
+        id: video.id || `video-id-${i}`,
+        elements: this._createElementMap(video, false),
+      }
+      videosMap.push(mappedForm)
+    })
+    return videosMap
   }
 
   _checkElementsForKeywords(elements: Element[], keywords: string[]): void {
@@ -249,14 +280,13 @@ export default class PageIdentification {
     }
 
     // Does the URL contain ecommerce keywords?
-    console.log({ pageIdProps: this.pageIdProps })
   }
 
   _isGeneralPage() {
     // How many form inputs are on the page?
-    const forms = this.forms
-    console.log({ forms })
+    const pageForms = this.forms && this.forms.filter((f) => !f.isTemplateElement).length
     // How many videos are on the page?
+
     // How much content is on the page?
   }
 

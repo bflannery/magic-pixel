@@ -125,12 +125,11 @@ export interface DomFormElementType {
   children: any
 }
 
-export interface DomFormType {
-  isTemplateForm: boolean
-  formElements: DomFormElementType[]
+export interface DomFormMapType {
+  id: string,
+  isTemplateElement: boolean
+  elements: DomFormElementType[]
 }
-
-export type DomFormMapType = Record<string, DomFormType>
 
 export interface DomButtonType {
   id: string | null
@@ -141,7 +140,8 @@ export interface DomButtonType {
   ancestors: Element[] | null
 }
 
-export interface DomLinkType {
+export interface DomLinkMapType {
+  isTemplateElement: boolean
   id: string | null
   className: string | null
   content: string | null
@@ -149,13 +149,18 @@ export interface DomLinkType {
   type: string | null
 }
 
+export interface DomVideoMapType {
+  id: string,
+  elements: DomElementType[]
+}
+
 export type DomButtonMapType = Record<string, DomButtonType>
 
 export interface DomMapType {
-  forms: DomFormMapType
-  links: DomLinkType[]
-  buttons: DomButtonMapType | null
-  body: DomElementType[]
+  forms: DomFormMapType[]
+  links: DomLinkMapType[]
+  buttons: DomButtonMapType
+  videos: DomVideoMapType[]
 }
 
 interface EcommDomType extends Record<string, boolean>{
@@ -269,7 +274,7 @@ export type EcommKeywordType =
 export interface PageIdentificationType {
   buttons: DomButtonMapType | null
   forms: DomElementType[]
-  links: DomLinkType[]
+  links: DomLinkMapType[]
   pageIdProps: PageIdPropsType
   getDomMap: () => DomMapType
 }

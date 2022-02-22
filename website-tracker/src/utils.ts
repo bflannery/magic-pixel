@@ -1,5 +1,3 @@
-import { DomAttributeType, DomElementType, DomLinkType, DomMapType } from './types'
-
 function scriptIsHTML(script: HTMLOrSVGScriptElement): script is HTMLScriptElement {
   return 'src' in script
 }

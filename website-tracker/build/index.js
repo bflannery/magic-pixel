@@ -3123,8 +3123,8 @@
     var PageIdentification = /** @class */ (function () {
         function PageIdentification() {
             this.buttons = null;
-            this.forms = {};
-            this.links = [];
+            this.forms = null;
+            this.links = null;
             this.pageIdProps = PAGE_ID_PROPERTIES;
             this.elements = null;
         }
@@ -3140,12 +3140,11 @@
             this._isGeneralPage();
         };
         PageIdentification.prototype._getDomMap = function () {
-            var body = document.body;
             return {
                 forms: this._createDomFormMap(),
                 links: this._createDomLinkMap(),
                 buttons: this._createDomButtonMap(),
-                body: this._createElementMap(body, false),
+                videos: this._createDomVideoMap(),
             };
         };
         /**
@@ -3165,12 +3164,12 @@
             return allAttributes;
         };
         /**
-         * Check if form is apart of the page template. We are looking for unique forms per page
-         * @param  {HTMLFormElement} form The attributes on an element
+         * Check if form is apart of the page template. We are looking for unique elements per page
+         * @param  {HTMLFormElement} element The attributes on an element
          * @return {Boolean}
          */
-        PageIdentification.prototype._isTemplateForm = function (form) {
-            var ancestors = getAncestors(form);
+        PageIdentification.prototype._isTemplateElement = function (element) {
+            var ancestors = getAncestors(element);
             var isTemplateForm = false;
             ancestors.forEach(function (ancestor) {
                 ['sidebar', 'topbar', 'nav', 'header'].forEach(function (templateKeyword) {
@@ -3266,37 +3265,52 @@
                 ancestors: getAncestors(button),
             };
         };
-        PageIdentification.prototype._createLinkElementMap = function (link) {
+        /**
+         * Create a attribute map of a HTMLAnchorElement element
+         * @param  {HTMLAnchorElement} link HTMLAnchorElement element
+         * @param  {number} index used for reference if id is not provided
+         * @return {DomLinkMapType} attributes about the HTMLAnchorElement
+         */
+        PageIdentification.prototype._createLinkElementMap = function (link, index) {
             var _a;
             return {
-                id: link.id,
+                id: link.id || "link-id-" + index,
+                isTemplateElement: this._isTemplateElement(link),
                 className: link.className,
                 content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
                 attributes: this._getAttributes(link.attributes),
                 type: link.tagName.toLowerCase(),
             };
         };
+        /**
+         * Create a list of attribute maps for each HTMLAnchorElement element
+         * @return {DomLinkMapType[]} an array of attributes about the HTMLAnchorElement
+         */
         PageIdentification.prototype._createDomLinkMap = function () {
             var _this = this;
             var links = document.querySelectorAll('a');
-            var linksMap = {};
+            var linksMap = [];
             Array.from(links).map(function (link, i) {
-                var linkMap = _this._createLinkElementMap(link);
-                var linkKey = link.id || "link-id-" + i;
-                linksMap[linkKey] = linkMap;
+                var mappedLink = _this._createLinkElementMap(link, i);
+                linksMap.push(mappedLink);
             });
             return linksMap;
         };
+        /**
+         * Create a list of attribute maps for each HTMLFormElement element
+         * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
+         */
         PageIdentification.prototype._createDomFormMap = function () {
             var _this = this;
             var forms = document.querySelectorAll('form');
-            var formsMap = {};
+            var formsMap = [];
             Array.from(forms).map(function (form, i) {
-                var formKey = form.id || "form-id-" + i;
-                formsMap[formKey] = {
-                    isTemplateForm: _this._isTemplateForm(form),
-                    formElements: _this._createFormElementsMap(form),
+                var mappedForm = {
+                    id: form.id || "form-id-" + i,
+                    isTemplateElement: _this._isTemplateElement(form),
+                    elements: _this._createFormElementsMap(form),
                 };
+                formsMap.push(mappedForm);
             });
             return formsMap;
         };
@@ -3312,6 +3326,23 @@
                 buttonsMap[buttonKey] = buttonMap;
             });
             return buttonsMap;
+        };
+        /**
+         * Create a list of attribute maps for each HTMLVideoElement element
+         * @return {DomVideoMapType[]} an array of attributes about the HTMLVideoElement
+         */
+        PageIdentification.prototype._createDomVideoMap = function () {
+            var _this = this;
+            var videos = document.querySelectorAll('video');
+            var videosMap = [];
+            Array.from(videos).map(function (video, i) {
+                var mappedForm = {
+                    id: video.id || "video-id-" + i,
+                    elements: _this._createElementMap(video, false),
+                };
+                videosMap.push(mappedForm);
+            });
+            return videosMap;
         };
         PageIdentification.prototype._checkElementsForKeywords = function (elements, keywords) {
             var _this = this;
@@ -3336,12 +3367,10 @@
                 this._checkElementsForKeywords(elements, keywords);
             }
             // Does the URL contain ecommerce keywords?
-            console.log({ pageIdProps: this.pageIdProps });
         };
         PageIdentification.prototype._isGeneralPage = function () {
             // How many form inputs are on the page?
-            var forms = this.forms;
-            console.log({ forms: forms });
+            this.forms && this.forms.filter(function (f) { return !f.isTemplateElement; }).length;
             // How many videos are on the page?
             // How much content is on the page?
         };
