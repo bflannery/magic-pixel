@@ -75,8 +75,10 @@ export default class MagicPixel {
     console.debug('MP: Initializing Magic Pixel Page Identification')
 
     const pageIdentification = new PageIdentification()
-    window.MP_PAGE_ID = pageIdentification
-    pageIdentification.init()
+    if (pageIdentification) {
+      window.MP_PAGE_ID = pageIdentification
+      pageIdentification.init()
+    }
   }
 
   // Context

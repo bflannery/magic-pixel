@@ -27,8 +27,8 @@ Cloud configuration and deployment is managed by [The Serverless Framework](http
 
 #### Python Env
 
-All our lambda's run python 3.7, most OS's come with a version of python but it is important to install
-this specify version. Since you probably don't want to override the global version of python3 to python3.7
+All our lambda's run python 3.9, most OS's come with a version of python but it is important to install
+this specify version. Since you probably don't want to override the global version of python3 to python3.9
 you will have to be able to support more than one python3 on your computer.
 
 For MacOS, you most likely need to use [`pyenv`](https://github.com/pyenv/pyenv)
@@ -60,7 +60,7 @@ For Mac, it's recommend to use postico as an easy ui for postgres
 #### Setup a venv for deps
 In root of project
 If using pyenv, install python3.7 and verify version is 3.7 w/ `python --version`
-If not, run commands below w/ specific version of python `python3.7` or `/path/to/python3.7`
+If not, run commands below w/ specific version of python `python3.9` or `/path/to/python3.9`
 - `python -m venv .venv`.
 This will make a virtual environment under .venv directory
 - `source ./.venv/bin/activate`.

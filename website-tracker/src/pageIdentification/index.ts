@@ -11,18 +11,21 @@ import {
 } from '../types'
 import { getAncestors } from '../dom'
 import { PAGE_ID_PROPERTIES } from './constants'
+import {ParsedURLProps, parseLocation} from "../utils";
 
 export default class PageIdentification {
   elements: Element[] | null
   buttons: DomButtonMapType | null
   forms: DomFormMapType[] | null
   links: DomLinkMapType[] | null
+  videos: DomVideoMapType[] | null
   pageIdProps: PageIdPropsType
 
   constructor() {
     this.buttons = null
     this.forms = null
     this.links = null
+    this.videos = null
     this.pageIdProps = PAGE_ID_PROPERTIES
     this.elements = null
   }
@@ -32,14 +35,15 @@ export default class PageIdentification {
     this.buttons = domMap.buttons
     this.forms = domMap.forms
     this.links = domMap.links
+    this.videos = domMap.videos
 
     const docElements = document.querySelectorAll('*')
     this.elements = Array.from(docElements)
 
     console.log({ initThis: this })
 
-    // this._isEcommPage()
-    this._isGeneralPage()
+    this._isEcommPage()
+    // this._isGeneralPage()
   }
 
   _getDomMap(): DomMapType {
@@ -254,7 +258,7 @@ export default class PageIdentification {
     return videosMap
   }
 
-  _checkElementsForKeywords(elements: Element[], keywords: string[]): void {
+  _checkElementsForEcommKeywords(elements: Element[], keywords: string[]): void {
     elements.map((element, i) => {
       const keyword = keywords.find((k) => {
         if (element.textContent) {
@@ -267,6 +271,16 @@ export default class PageIdentification {
     })
   }
 
+  _checkUrlForKeywords(url: ParsedURLProps, keywords: string[]): void {
+    const pathname = url.pathname
+    if (pathname) {
+      const keyword = keywords.find(k => pathname.includes(k))
+      if (keyword) {
+        this.pageIdProps.eCommerce.url[keyword] = true
+      }
+    }
+  }
+
   _isEcommPage(): void {
     // Check for payment processor button
     // Determine if the JS objects, scripts or methods exist.
@@ -276,16 +290,24 @@ export default class PageIdentification {
     const elements = this.elements
 
     if (elements) {
-      this._checkElementsForKeywords(elements, keywords)
+      this._checkElementsForEcommKeywords(elements, keywords)
     }
 
     // Does the URL contain ecommerce keywords?
+    const url = parseLocation(document.location)
+    console.log({ url })
+    if (url) {
+      this._checkUrlForKeywords(url, keywords)
+    }
   }
 
   _isGeneralPage() {
     // How many form inputs are on the page?
-    const pageForms = this.forms && this.forms.filter((f) => !f.isTemplateElement).length
+    const pageForms = this.forms && this.forms.filter((f) => !f.isTemplateElement)
+    const numberOfForms = pageForms && pageForms.length
+
     // How many videos are on the page?
+
 
     // How much content is on the page?
   }

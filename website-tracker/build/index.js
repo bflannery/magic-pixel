@@ -3059,10 +3059,11 @@
                 billing_address: false,
             },
             url: {
-                thank_you: false,
-                order_summary: false,
+                checkout: false,
+                purchase: false,
                 order: false,
-                confirmation: false,
+                buy: false,
+                order_summary: false,
             },
         },
         confirmation: {
@@ -3125,6 +3126,7 @@
             this.buttons = null;
             this.forms = null;
             this.links = null;
+            this.videos = null;
             this.pageIdProps = PAGE_ID_PROPERTIES;
             this.elements = null;
         }
@@ -3133,11 +3135,12 @@
             this.buttons = domMap.buttons;
             this.forms = domMap.forms;
             this.links = domMap.links;
+            this.videos = domMap.videos;
             var docElements = document.querySelectorAll('*');
             this.elements = Array.from(docElements);
             console.log({ initThis: this });
-            // this._isEcommPage()
-            this._isGeneralPage();
+            this._isEcommPage();
+            // this._isGeneralPage()
         };
         PageIdentification.prototype._getDomMap = function () {
             return {
@@ -3344,7 +3347,7 @@
             });
             return videosMap;
         };
-        PageIdentification.prototype._checkElementsForKeywords = function (elements, keywords) {
+        PageIdentification.prototype._checkElementsForEcommKeywords = function (elements, keywords) {
             var _this = this;
             elements.map(function (element, i) {
                 var keyword = keywords.find(function (k) {
@@ -3357,6 +3360,15 @@
                 }
             });
         };
+        PageIdentification.prototype._checkUrlForKeywords = function (url, keywords) {
+            var pathname = url.pathname;
+            if (pathname) {
+                var keyword = keywords.find(function (k) { return pathname.includes(k); });
+                if (keyword) {
+                    this.pageIdProps.eCommerce.url[keyword] = true;
+                }
+            }
+        };
         PageIdentification.prototype._isEcommPage = function () {
             // Check for payment processor button
             // Determine if the JS objects, scripts or methods exist.
@@ -3364,13 +3376,19 @@
             var keywords = this.pageIdProps.eCommerce.keywords;
             var elements = this.elements;
             if (elements) {
-                this._checkElementsForKeywords(elements, keywords);
+                this._checkElementsForEcommKeywords(elements, keywords);
             }
             // Does the URL contain ecommerce keywords?
+            var url = parseLocation(document.location);
+            console.log({ url: url });
+            if (url) {
+                this._checkUrlForKeywords(url, keywords);
+            }
         };
         PageIdentification.prototype._isGeneralPage = function () {
             // How many form inputs are on the page?
-            this.forms && this.forms.filter(function (f) { return !f.isTemplateElement; }).length;
+            var pageForms = this.forms && this.forms.filter(function (f) { return !f.isTemplateElement; });
+            pageForms && pageForms.length;
             // How many videos are on the page?
             // How much content is on the page?
         };
@@ -3438,8 +3456,10 @@
                 return __generator(this, function (_a) {
                     console.debug('MP: Initializing Magic Pixel Page Identification');
                     pageIdentification = new PageIdentification();
-                    window.MP_PAGE_ID = pageIdentification;
-                    pageIdentification.init();
+                    if (pageIdentification) {
+                        window.MP_PAGE_ID = pageIdentification;
+                        pageIdentification.init();
+                    }
                     return [2 /*return*/];
                 });
             });

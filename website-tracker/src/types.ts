@@ -187,10 +187,19 @@ interface EcommDomType extends Record<string, boolean>{
   billing_address: boolean
 }
 
+interface EcommUrlType extends Record<string, boolean>{
+  checkout: boolean
+  purchase: boolean
+  order: boolean
+  buy: boolean
+  order_summary: boolean
+}
+
 export interface PageIdPropsType {
   eCommerce: {
     keywords: string[]
     dom: EcommDomType
+    url: EcommUrlType
   }
   confirmation: {
     keywords: string[]
@@ -273,10 +282,9 @@ export type EcommKeywordType =
 
 export interface PageIdentificationType {
   buttons: DomButtonMapType | null
-  forms: DomElementType[]
-  links: DomLinkMapType[]
+  forms: DomFormMapType[] | null
+  links: DomLinkMapType[] | null
   pageIdProps: PageIdPropsType
-  getDomMap: () => DomMapType
 }
 
 

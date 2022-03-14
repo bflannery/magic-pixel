@@ -21,5 +21,7 @@
         "serverless-python-requirements": "^5.1.1",
         "serverless-wsgi": "^2.0.1"
     },
-    "devDependencies": {"serverless-offline": "^8.2.0"}
+    "devDependencies": {
+        "serverless-offline": "^8.2.0"
+    }
 }

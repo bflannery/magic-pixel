@@ -4,7 +4,7 @@ from .schema import schema
 from .loaders import create_loaders
 
 graphql_view = cross_origin(
-    origins=["http://localhost:300[0-9]", r"^https://.*\.(get)?loudcrowd\.com$"],
+    origins=["http://localhost:300[0-9]"],
     supports_credentials=True,
 )(
     GraphQLView.as_view(

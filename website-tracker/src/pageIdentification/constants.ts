@@ -47,10 +47,11 @@ export const PAGE_ID_PROPERTIES = {
       billing_address: false,
     },
     url: {
-      thank_you: false,
-      order_summary: false,
+      checkout: false,
+      purchase: false,
       order: false,
-      confirmation: false,
+      buy: false,
+      order_summary: false,
     },
   },
   confirmation: {
