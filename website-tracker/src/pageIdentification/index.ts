@@ -40,10 +40,10 @@ export default class PageIdentification {
     const docElements = document.querySelectorAll('*')
     this.elements = Array.from(docElements)
 
-    console.log({ initThis: this })
-
     this._isEcommPage()
     // this._isGeneralPage()
+
+    console.log({ initThis: this })
   }
 
   _getDomMap(): DomMapType {
@@ -281,6 +281,14 @@ export default class PageIdentification {
     }
   }
 
+  _checkIfEcommPage() {
+    this.pageIdProps.eCommerce.isEcommPage = (
+      Object.values(this.pageIdProps.eCommerce.dom).some(value => value) ||
+      Object.values(this.pageIdProps.eCommerce.url).some(value => value)
+    )
+
+  }
+
   _isEcommPage(): void {
     // Check for payment processor button
     // Determine if the JS objects, scripts or methods exist.
@@ -295,11 +303,13 @@ export default class PageIdentification {
 
     // Does the URL contain ecommerce keywords?
     const url = parseLocation(document.location)
-    console.log({ url })
     if (url) {
       this._checkUrlForKeywords(url, keywords)
     }
+
+    this._checkIfEcommPage()
   }
+
 
   _isGeneralPage() {
     // How many form inputs are on the page?

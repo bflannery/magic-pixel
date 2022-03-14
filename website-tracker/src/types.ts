@@ -197,6 +197,7 @@ interface EcommUrlType extends Record<string, boolean>{
 
 export interface PageIdPropsType {
   eCommerce: {
+    isEcommPage: boolean,
     keywords: string[]
     dom: EcommDomType
     url: EcommUrlType

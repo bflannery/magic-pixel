@@ -1,5 +1,6 @@
 export const PAGE_ID_PROPERTIES = {
   eCommerce: {
+    isEcommPage: false,
     keywords: [
       'paypal',
       'google_pay',

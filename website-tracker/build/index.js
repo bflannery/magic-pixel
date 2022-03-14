@@ -3012,6 +3012,7 @@
 
     var PAGE_ID_PROPERTIES = {
         eCommerce: {
+            isEcommPage: false,
             keywords: [
                 'paypal',
                 'google_pay',
@@ -3138,9 +3139,9 @@
             this.videos = domMap.videos;
             var docElements = document.querySelectorAll('*');
             this.elements = Array.from(docElements);
-            console.log({ initThis: this });
             this._isEcommPage();
             // this._isGeneralPage()
+            console.log({ initThis: this });
         };
         PageIdentification.prototype._getDomMap = function () {
             return {
@@ -3369,6 +3370,10 @@
                 }
             }
         };
+        PageIdentification.prototype._checkIfEcommPage = function () {
+            this.pageIdProps.eCommerce.isEcommPage = (Object.values(this.pageIdProps.eCommerce.dom).some(function (value) { return value; }) ||
+                Object.values(this.pageIdProps.eCommerce.url).some(function (value) { return value; }));
+        };
         PageIdentification.prototype._isEcommPage = function () {
             // Check for payment processor button
             // Determine if the JS objects, scripts or methods exist.
@@ -3380,10 +3385,10 @@
             }
             // Does the URL contain ecommerce keywords?
             var url = parseLocation(document.location);
-            console.log({ url: url });
             if (url) {
                 this._checkUrlForKeywords(url, keywords);
             }
+            this._checkIfEcommPage();
         };
         PageIdentification.prototype._isGeneralPage = function () {
             // How many form inputs are on the page?
