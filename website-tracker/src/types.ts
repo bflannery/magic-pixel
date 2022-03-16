@@ -195,66 +195,106 @@ interface EcommUrlType extends Record<string, boolean>{
   order_summary: boolean
 }
 
+interface ConfirmationDomType extends Record<string, boolean>{
+  confirmation: boolean
+}
+
+interface ConfirmationUrlType extends Record<string, boolean>{
+  thank_you: boolean
+  order_summary: boolean
+  order: boolean
+  confirmation: boolean
+}
+
+interface LeadGenDomType extends Record<string, boolean>{
+  email: boolean
+}
+
+interface ContactUsDomType extends Record<string, boolean>{
+  contact: boolean
+}
+
+interface ContactUsUrlType extends Record<string, boolean>{
+  contact: boolean
+  feedback: boolean
+}
+
+interface CareersUrlType extends Record<string, boolean>{
+  careers: boolean
+  jobs: boolean
+}
+
+interface BlogDomType extends Record<string, boolean>{
+  list_of_articles: boolean
+  list_of_links: boolean
+}
+
+interface BlogUrlType extends Record<string, boolean>{
+  blog: boolean
+  articles: boolean
+}
+
+interface GeneralType extends Record<string, boolean | number>{
+  form_inputs_on_page: number
+  videos_on_page: number
+  content_on_page: number
+}
+
+interface MiscType extends Record<string, boolean>{
+  has_sidebar: boolean
+  has_topbar: boolean
+  has_navbar: boolean
+}
+
+
+interface PageType {
+  isEcommPage?: boolean
+  isConfirmationPage?: boolean
+  isLeadGenPage?: boolean
+  isContactUsPage?: boolean
+  isCareersPage?: boolean
+  isBlogPage?: boolean
+  dom?:
+    EcommDomType |
+    ConfirmationDomType |
+    LeadGenDomType |
+    ContactUsDomType |
+    CareersUrlType |
+    BlogDomType
+  url?: EcommUrlType | ConfirmationUrlType | ContactUsUrlType | BlogUrlType
+}
+
 export interface PageIdPropsType {
   eCommerce: {
-    isEcommPage: boolean,
-    keywords: string[]
+    isEcommPage: boolean
     dom: EcommDomType
     url: EcommUrlType
   }
   confirmation: {
-    keywords: string[]
-    url: {
-      thank_you: boolean
-      order_summary: boolean
-      order: boolean
-      confirmation: boolean
-    }
-    dom: {
-      confirmation: boolean
-    }
+    isConfirmationPage: boolean
+    url: ConfirmationUrlType
+    dom: ConfirmationDomType
   }
   lead_gen: {
-    keywords: string[]
-    dom: {
-      email: boolean
-    }
+    isLeadGenPage: boolean
+    dom: LeadGenDomType
   }
   contact_us: {
-    keywords: string[]
-    url: {
-      contact: boolean
-      feedback: boolean
-    }
+    isContactUsPage: boolean
+    dom: ContactUsDomType
+    url: ContactUsUrlType
   }
   careers: {
-    keywords: string[]
-    url: {
-      careers: boolean
-      jobs: boolean
-    }
+    isCareersPage: boolean
+    url: CareersUrlType
   }
   blog: {
-    keywords: string[]
-    url: {
-      blog: boolean
-      articles: boolean
-    }
-    dom: {
-      list_of_articles: boolean
-      list_of_links: boolean
-    }
+    isBlogPage: boolean
+    url: BlogUrlType
+    dom: BlogDomType
   }
-  general: {
-    forms_input: number
-    videos_on_page: number
-    content_on_page: number
-  }
-  misc: {
-    has_sidebar: boolean
-    has_topbar: boolean
-    has_navbar: boolean
-  }
+  general: GeneralType
+  misc: MiscType
 }
 
 export type EcommKeywordType =

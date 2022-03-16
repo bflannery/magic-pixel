@@ -1,29 +1,42 @@
+export const ECOMM_KEYWORDS = [
+  'paypal',
+  'google_pay',
+  'apple_pay',
+  'bolt_pay',
+  'stripe_for',
+  'braintree_form',
+  'square_form',
+  'checkout',
+  'purchase',
+  'order',
+  'buy',
+  'order_summary',
+  'total',
+  'subtotal',
+  'shipping',
+  'tax',
+  'payment',
+  'promo_code',
+  'coupon',
+  'shipping_address',
+  'billing_address',
+]
+
+export const CONFIRMATION_KEYWORDS = [
+  'thankyou',
+  'order',
+  'ordersummary',
+  'confirmation'
+]
+
+export const LEAD_GEN_KEYWORDS = ['email']
+export const CONTACT_US_KEYWORDS = ['contact', 'feedback']
+export const CAREERS_KEYWORDS = ['careers', 'jobs']
+export const BLOG_KEYWORDS = ['blog', 'articles']
+
 export const PAGE_ID_PROPERTIES = {
   eCommerce: {
     isEcommPage: false,
-    keywords: [
-      'paypal',
-      'google_pay',
-      'apple_pay',
-      'bolt_pay',
-      'stripe_for',
-      'braintree_form',
-      'square_form',
-      'checkout',
-      'purchase',
-      'order',
-      'buy',
-      'order_summary',
-      'total',
-      'subtotal',
-      'shipping',
-      'tax',
-      'payment',
-      'promo_code',
-      'coupon',
-      'shipping_address',
-      'billing_address',
-    ],
     dom: {
       paypal: false,
       google_pay: false,
@@ -56,7 +69,7 @@ export const PAGE_ID_PROPERTIES = {
     },
   },
   confirmation: {
-    keywords: ['thankyou', 'order', 'ordersummary', 'confirmation'],
+    isConfirmationPage: false,
     url: {
       thank_you: false,
       order_summary: false,
@@ -68,27 +81,30 @@ export const PAGE_ID_PROPERTIES = {
     },
   },
   lead_gen: {
-    keywords: ['email'],
+    isLeadGenPage: false,
     dom: {
       email: true,
     },
   },
   contact_us: {
-    keywords: ['contact', 'feedback'],
+    isContactUsPage: false,
+    dom: {
+      contact: true,
+    },
     url: {
       contact: false,
       feedback: false,
     },
   },
   careers: {
-    keywords: ['careers', 'jobs'],
+    isCareersPage: false,
     url: {
       careers: false,
       jobs: false,
     },
   },
   blog: {
-    keywords: ['blog', 'articles'],
+    isBlogPage: false,
     url: {
       blog: false,
       articles: false,
@@ -99,7 +115,7 @@ export const PAGE_ID_PROPERTIES = {
     },
   },
   general: {
-    forms_input: 0,
+    form_inputs_on_page: 0,
     videos_on_page: 0,
     content_on_page: 0,
   },

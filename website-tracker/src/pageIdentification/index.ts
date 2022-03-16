@@ -10,7 +10,10 @@ import {
   PageIdPropsType,
 } from '../types'
 import { getAncestors } from '../dom'
-import { PAGE_ID_PROPERTIES } from './constants'
+import {
+  CONFIRMATION_KEYWORDS,
+  ECOMM_KEYWORDS, LEAD_GEN_KEYWORDS, PAGE_ID_PROPERTIES
+} from './constants'
 import {ParsedURLProps, parseLocation} from "../utils";
 
 export default class PageIdentification {
@@ -20,6 +23,7 @@ export default class PageIdentification {
   links: DomLinkMapType[] | null
   videos: DomVideoMapType[] | null
   pageIdProps: PageIdPropsType
+  url: ParsedURLProps | null
 
   constructor() {
     this.buttons = null
@@ -28,6 +32,7 @@ export default class PageIdentification {
     this.videos = null
     this.pageIdProps = PAGE_ID_PROPERTIES
     this.elements = null
+    this.url = null
   }
 
   init() {
@@ -36,12 +41,21 @@ export default class PageIdentification {
     this.forms = domMap.forms
     this.links = domMap.links
     this.videos = domMap.videos
+    // Does the URL contain ecommerce keywords?
+    this.url = parseLocation(document.location)
 
     const docElements = document.querySelectorAll('*')
     this.elements = Array.from(docElements)
 
+    // Page Checks
+    // TODO: Once page has been identified, can we stop checking?
     this._isEcommPage()
-    // this._isGeneralPage()
+    this._isConfirmationPage()
+    this._isLeadGenPage()
+
+    // General and Misc items on the page
+    this._checkGeneralProperties()
+    this._checkMiscProperties()
 
     console.log({ initThis: this })
   }
@@ -73,7 +87,7 @@ export default class PageIdentification {
   }
 
   /**
-   * Check if form is apart of the page template. We are looking for unique elements per page
+   * Check if form is part of the page template. We are looking for unique elements per page
    * @param  {HTMLFormElement} element The attributes on an element
    * @return {Boolean}
    */
@@ -94,7 +108,7 @@ export default class PageIdentification {
   }
 
   /**
-   * Create a elements map of an HTMLElement
+   * Create an elements map of an HTMLElement
    * @param  {HTMLElement} element the HTMLElement
    * @param  {Boolean} isSVG SVG are handled uniquely
    * @return {DomElementType[]} attributes about the HTMLFormElement
@@ -109,7 +123,7 @@ export default class PageIdentification {
           (node.nodeType === 3 && node.textContent.trim() !== ''),
       )
     }
-    return childNodes.map((node, i): DomElementType => {
+    return childNodes.map((node): DomElementType => {
       const id = node.id || null
       const className = node.className || null
       const attributes = node.nodeType !== 1 ? [] : this._getAttributes(node.attributes)
@@ -130,7 +144,7 @@ export default class PageIdentification {
   }
 
   /**
-   * Create a elements map of a form HTMLFormElement
+   * Create an elements map of a form HTMLFormElement
    * @param  {HTMLButtonElement} form the HTMLFormElement
    * @return {DomFormElementType[]} an array of form elements with attributes about the HTMLFormElement
    */
@@ -144,7 +158,7 @@ export default class PageIdentification {
           (node.nodeType === 3 && node.textContent.trim() !== ''),
       )
     }
-    return childNodes.map((node, i): DomFormElementType => {
+    return childNodes.map((node): DomFormElementType => {
       const id = node.id || null
       const className = node.className || null
       const attributes = node.nodeType !== 1 ? [] : this._getAttributes(node.attributes)
@@ -164,8 +178,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Create a attribute map of a HTMLButton element
-   * @param  {HTMLButtonElement} button HTMLButton element
+   * Create an attribute map of a HTMLButton element
+   * @param  {HTMLButtonElement} button: HTMLButton element
    * @return {DomButtonType} attributes about the HTMLButton
    */
   _createButtonElementMap(button: HTMLButtonElement): DomButtonType {
@@ -180,8 +194,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Create a attribute map of a HTMLAnchorElement element
-   * @param  {HTMLAnchorElement} link HTMLAnchorElement element
+   * Create an attribute map of a HTMLAnchorElement element
+   * @param  {HTMLAnchorElement} link: HTMLAnchorElement element
    * @param  {number} index used for reference if id is not provided
    * @return {DomLinkMapType} attributes about the HTMLAnchorElement
    */
@@ -258,82 +272,161 @@ export default class PageIdentification {
     return videosMap
   }
 
-  _checkElementsForEcommKeywords(elements: Element[], keywords: string[]): void {
-    elements.map((element, i) => {
-      const keyword = keywords.find((k) => {
+  /**
+   * @function _checkUrlForKeywords
+   * @description Check url object to see if it contains a keyword in the keywords array.
+   * @param {Element[]} elements: an array of element from the dom
+   * @param {string[]} keywords: array of keywords to search from
+   */
+  _checkDomElementsForKeywords(elements: Element[], keywords: string[]): string[] | null {
+    const keywordMatches: string[] = []
+    elements.map((element) => {
+      return keywords.find((k) => {
         if (element.textContent) {
-          return element.textContent.toLowerCase().includes(k)
+          const isMatch = element.textContent.toLowerCase().includes(k)
+          if (isMatch) {
+            keywordMatches.push(k)
+          }
         }
       })
-      if (keyword) {
-        this.pageIdProps.eCommerce.dom[keyword] = true
-      }
     })
+    return !!keywordMatches.length ? keywordMatches : null
   }
 
-  _checkUrlForKeywords(url: ParsedURLProps, keywords: string[]): void {
+  /**
+   * @function _checkUrlForKeywords
+   * @description Check url object for keywords
+   * @param {ParsedURLProps} url: url object
+   * @param {string[]} keywords: array of keywords to search from
+   */
+  _checkUrlForKeywords(url: ParsedURLProps, keywords: string[]): string | null {
     const pathname = url.pathname
-    if (pathname) {
-      const keyword = keywords.find(k => pathname.includes(k))
+    return pathname ? (keywords.find(k => pathname.includes(k)) || null) : null
+  }
+
+  /**
+   * @function _isEcommPage
+   * @description Check if page is an ecomm page by checking the url and dom for
+   * ECOMM_KEYWORDS. If so, set the ecomm page flag true
+   */
+  _isEcommPage(): void {
+    // Check for payment processor button
+    // Determine if the JS objects, scripts or methods exist.
+    // TODO: Get Clarity from Justin on this
+
+    // Does the URL contain ecommerce keywords?
+    if (this.url) {
+      const keyword = this._checkUrlForKeywords(this.url, ECOMM_KEYWORDS)
       if (keyword) {
         this.pageIdProps.eCommerce.url[keyword] = true
       }
     }
-  }
 
-  _checkIfEcommPage() {
+    // Does the DOM contain ecommerce keywords?
+    if (this.elements) {
+      const keywords = this._checkDomElementsForKeywords(this.elements, ECOMM_KEYWORDS)
+      if (keywords) {
+        keywords.forEach((keyword => this.pageIdProps.eCommerce.dom[keyword] = true))
+      }
+    }
+
+    // Check if page is an ecomm page
     this.pageIdProps.eCommerce.isEcommPage = (
       Object.values(this.pageIdProps.eCommerce.dom).some(value => value) ||
       Object.values(this.pageIdProps.eCommerce.url).some(value => value)
     )
-
   }
 
-  _isEcommPage(): void {
-    // Check for payment processor button
-    // Determine if the JS objects, scripts or methods exist.
+  /**
+   * @function _isConfirmationPage
+   * @description Check if page is a confirmation page by checking the url and dom
+   * for CONFIRMATION_KEYWORDS. If so, will set the confirmation page flag true
+   */
+  _isConfirmationPage() {
+    // Does the URL contain CONFIRMATION_KEYWORDS keywords?
+    if (this.url) {
+      const keyword = this._checkUrlForKeywords(this.url, CONFIRMATION_KEYWORDS)
+      if (keyword) {
+        this.pageIdProps.confirmation.url[keyword] = true
+      }
 
-    // Does the DOM contain ecommerce keywords?
-    const keywords = this.pageIdProps.eCommerce.keywords
-    const elements = this.elements
-
-    if (elements) {
-      this._checkElementsForEcommKeywords(elements, keywords)
     }
 
-    // Does the URL contain ecommerce keywords?
-    const url = parseLocation(document.location)
-    if (url) {
-      this._checkUrlForKeywords(url, keywords)
+    // Does the DOM contain CONFIRMATION_KEYWORDS keywords?
+    if (this.elements) {
+      const keywords = this._checkDomElementsForKeywords(this.elements, CONFIRMATION_KEYWORDS)
+      if (keywords) {
+        keywords.forEach((keyword => this.pageIdProps.confirmation.dom[keyword] = true))
+      }
     }
 
-    this._checkIfEcommPage()
+    // Check if page is a confirmation page
+    this.pageIdProps.confirmation.isConfirmationPage = (
+      Object.values(this.pageIdProps.confirmation.dom).some(value => value) ||
+      Object.values(this.pageIdProps.confirmation.url).some(value => value)
+    )
   }
 
+  /**
+   * @function _isLeadGenPage
+   * @description Check if page is a lead gen page by checking the url and dom
+   * for LEAD_GEN_KEYWORDS. If so, will set the lead gen page flag true
+   */
+  _isLeadGenPage() {
+    // Does the DOM contain LEAD_GEN_KEYWORDS keywords?
+    if (this.elements) {
+      const keywords = this._checkDomElementsForKeywords(this.elements, LEAD_GEN_KEYWORDS)
+      if (keywords) {
+        keywords.forEach((keyword => this.pageIdProps.lead_gen.dom[keyword] = true))
+      }
+    }
 
-  _isGeneralPage() {
+    // Check if page is a lead gen page
+    this.pageIdProps.lead_gen.isLeadGenPage = (
+      Object.values(this.pageIdProps.lead_gen.dom).some(value => value)
+    )
+  }
+
+  /**
+   * @function _isContactPage
+   * @description Check if page is a contact page by checking the url and dom
+   * for CONTACT_KEYWORDS. If so, will set the contact page flag true
+   */
+  // _isContactPage() {}
+
+  /**
+   * @function _isCareersPage
+   * @description Check if page is a careers' page by checking the url and dom
+   * for CAREERS_KEYWORDS. If so, will set the careers' page flag true
+   */
+  // _isCareersPage() {}
+
+  /**
+   * @function _isBlogPage
+   * @description Check if page is a blog page by checking the url and dom
+   * for BLOG_KEYWORDS. If so, will set the blog page flag true
+   */
+  // _isBlogPage() {}
+
+
+  /**
+   * @function _checkGeneralProperties
+   * @description Check page for general page properties. Will set general attributes
+   * on general page id properties
+   */
+  _checkGeneralProperties(): void {
     // How many form inputs are on the page?
     const pageForms = this.forms && this.forms.filter((f) => !f.isTemplateElement)
-    const numberOfForms = pageForms && pageForms.length
+    this.pageIdProps.general.form_inputs_on_page = pageForms?.length || 0
 
     // How many videos are on the page?
-
+    this.pageIdProps.general.videos_on_page = this.videos?.length || 0
 
     // How much content is on the page?
+    // TODO: Get Clarity from Justin on this
   }
 
-  _isConfirmationPage() {
-    // Does the URL contain the following words?	[thankyou, confirmation, ordersummary, summary]
-    // Does the DOM contain the keyword, 'confirmation'
+  _checkMiscProperties(): void {
+    // What buttons are on the page?
   }
-
-  _isLeadGenPage() {}
-
-  _isMiscPage() {}
-
-  _isContactPage() {}
-
-  _isCareersPage() {}
-
-  _isBlogPage() {}
 }

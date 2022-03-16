@@ -3010,32 +3010,39 @@
         handler.push(f_);
     };
 
+    var ECOMM_KEYWORDS = [
+        'paypal',
+        'google_pay',
+        'apple_pay',
+        'bolt_pay',
+        'stripe_for',
+        'braintree_form',
+        'square_form',
+        'checkout',
+        'purchase',
+        'order',
+        'buy',
+        'order_summary',
+        'total',
+        'subtotal',
+        'shipping',
+        'tax',
+        'payment',
+        'promo_code',
+        'coupon',
+        'shipping_address',
+        'billing_address',
+    ];
+    var CONFIRMATION_KEYWORDS = [
+        'thankyou',
+        'order',
+        'ordersummary',
+        'confirmation'
+    ];
+    var LEAD_GEN_KEYWORDS = ['email'];
     var PAGE_ID_PROPERTIES = {
         eCommerce: {
             isEcommPage: false,
-            keywords: [
-                'paypal',
-                'google_pay',
-                'apple_pay',
-                'bolt_pay',
-                'stripe_for',
-                'braintree_form',
-                'square_form',
-                'checkout',
-                'purchase',
-                'order',
-                'buy',
-                'order_summary',
-                'total',
-                'subtotal',
-                'shipping',
-                'tax',
-                'payment',
-                'promo_code',
-                'coupon',
-                'shipping_address',
-                'billing_address',
-            ],
             dom: {
                 paypal: false,
                 google_pay: false,
@@ -3068,7 +3075,7 @@
             },
         },
         confirmation: {
-            keywords: ['thankyou', 'order', 'ordersummary', 'confirmation'],
+            isConfirmationPage: false,
             url: {
                 thank_you: false,
                 order_summary: false,
@@ -3080,27 +3087,30 @@
             },
         },
         lead_gen: {
-            keywords: ['email'],
+            isLeadGenPage: false,
             dom: {
                 email: true,
             },
         },
         contact_us: {
-            keywords: ['contact', 'feedback'],
+            isContactUsPage: false,
+            dom: {
+                contact: true,
+            },
             url: {
                 contact: false,
                 feedback: false,
             },
         },
         careers: {
-            keywords: ['careers', 'jobs'],
+            isCareersPage: false,
             url: {
                 careers: false,
                 jobs: false,
             },
         },
         blog: {
-            keywords: ['blog', 'articles'],
+            isBlogPage: false,
             url: {
                 blog: false,
                 articles: false,
@@ -3111,7 +3121,7 @@
             },
         },
         general: {
-            forms_input: 0,
+            form_inputs_on_page: 0,
             videos_on_page: 0,
             content_on_page: 0,
         },
@@ -3130,6 +3140,7 @@
             this.videos = null;
             this.pageIdProps = PAGE_ID_PROPERTIES;
             this.elements = null;
+            this.url = null;
         }
         PageIdentification.prototype.init = function () {
             var domMap = this._getDomMap();
@@ -3137,10 +3148,18 @@
             this.forms = domMap.forms;
             this.links = domMap.links;
             this.videos = domMap.videos;
+            // Does the URL contain ecommerce keywords?
+            this.url = parseLocation(document.location);
             var docElements = document.querySelectorAll('*');
             this.elements = Array.from(docElements);
+            // Page Checks
+            // TODO: Once page has been identified, can we stop checking?
             this._isEcommPage();
-            // this._isGeneralPage()
+            this._isConfirmationPage();
+            this._isLeadGenPage();
+            // General and Misc items on the page
+            this._checkGeneralProperties();
+            this._checkMiscProperties();
             console.log({ initThis: this });
         };
         PageIdentification.prototype._getDomMap = function () {
@@ -3168,7 +3187,7 @@
             return allAttributes;
         };
         /**
-         * Check if form is apart of the page template. We are looking for unique elements per page
+         * Check if form is part of the page template. We are looking for unique elements per page
          * @param  {HTMLFormElement} element The attributes on an element
          * @return {Boolean}
          */
@@ -3188,7 +3207,7 @@
             return isTemplateForm;
         };
         /**
-         * Create a elements map of an HTMLElement
+         * Create an elements map of an HTMLElement
          * @param  {HTMLElement} element the HTMLElement
          * @param  {Boolean} isSVG SVG are handled uniquely
          * @return {DomElementType[]} attributes about the HTMLFormElement
@@ -3202,7 +3221,7 @@
                         (node.nodeType === 3 && node.textContent.trim() !== '');
                 });
             }
-            return childNodes.map(function (node, i) {
+            return childNodes.map(function (node) {
                 var id = node.id || null;
                 var className = node.className || null;
                 var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
@@ -3222,7 +3241,7 @@
             });
         };
         /**
-         * Create a elements map of a form HTMLFormElement
+         * Create an elements map of a form HTMLFormElement
          * @param  {HTMLButtonElement} form the HTMLFormElement
          * @return {DomFormElementType[]} an array of form elements with attributes about the HTMLFormElement
          */
@@ -3235,7 +3254,7 @@
                         (node.nodeType === 3 && node.textContent.trim() !== '');
                 });
             }
-            return childNodes.map(function (node, i) {
+            return childNodes.map(function (node) {
                 var id = node.id || null;
                 var className = node.className || null;
                 var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
@@ -3254,8 +3273,8 @@
             });
         };
         /**
-         * Create a attribute map of a HTMLButton element
-         * @param  {HTMLButtonElement} button HTMLButton element
+         * Create an attribute map of a HTMLButton element
+         * @param  {HTMLButtonElement} button: HTMLButton element
          * @return {DomButtonType} attributes about the HTMLButton
          */
         PageIdentification.prototype._createButtonElementMap = function (button) {
@@ -3270,8 +3289,8 @@
             };
         };
         /**
-         * Create a attribute map of a HTMLAnchorElement element
-         * @param  {HTMLAnchorElement} link HTMLAnchorElement element
+         * Create an attribute map of a HTMLAnchorElement element
+         * @param  {HTMLAnchorElement} link: HTMLAnchorElement element
          * @param  {number} index used for reference if id is not provided
          * @return {DomLinkMapType} attributes about the HTMLAnchorElement
          */
@@ -3348,64 +3367,142 @@
             });
             return videosMap;
         };
-        PageIdentification.prototype._checkElementsForEcommKeywords = function (elements, keywords) {
-            var _this = this;
-            elements.map(function (element, i) {
-                var keyword = keywords.find(function (k) {
+        /**
+         * @function _checkUrlForKeywords
+         * @description Check url object to see if it contains a keyword in the keywords array.
+         * @param {Element[]} elements: an array of element from the dom
+         * @param {string[]} keywords: array of keywords to search from
+         */
+        PageIdentification.prototype._checkDomElementsForKeywords = function (elements, keywords) {
+            var keywordMatches = [];
+            elements.map(function (element) {
+                return keywords.find(function (k) {
                     if (element.textContent) {
-                        return element.textContent.toLowerCase().includes(k);
+                        var isMatch = element.textContent.toLowerCase().includes(k);
+                        if (isMatch) {
+                            keywordMatches.push(k);
+                        }
                     }
                 });
-                if (keyword) {
-                    _this.pageIdProps.eCommerce.dom[keyword] = true;
-                }
             });
+            return !!keywordMatches.length ? keywordMatches : null;
         };
+        /**
+         * @function _checkUrlForKeywords
+         * @description Check url object for keywords
+         * @param {ParsedURLProps} url: url object
+         * @param {string[]} keywords: array of keywords to search from
+         */
         PageIdentification.prototype._checkUrlForKeywords = function (url, keywords) {
             var pathname = url.pathname;
-            if (pathname) {
-                var keyword = keywords.find(function (k) { return pathname.includes(k); });
+            return pathname ? (keywords.find(function (k) { return pathname.includes(k); }) || null) : null;
+        };
+        /**
+         * @function _isEcommPage
+         * @description Check if page is an ecomm page by checking the url and dom for
+         * ECOMM_KEYWORDS. If so, set the ecomm page flag true
+         */
+        PageIdentification.prototype._isEcommPage = function () {
+            // Check for payment processor button
+            // Determine if the JS objects, scripts or methods exist.
+            // TODO: Get Clarity from Justin on this
+            var _this = this;
+            // Does the URL contain ecommerce keywords?
+            if (this.url) {
+                var keyword = this._checkUrlForKeywords(this.url, ECOMM_KEYWORDS);
                 if (keyword) {
                     this.pageIdProps.eCommerce.url[keyword] = true;
                 }
             }
-        };
-        PageIdentification.prototype._checkIfEcommPage = function () {
+            // Does the DOM contain ecommerce keywords?
+            if (this.elements) {
+                var keywords = this._checkDomElementsForKeywords(this.elements, ECOMM_KEYWORDS);
+                if (keywords) {
+                    keywords.forEach((function (keyword) { return _this.pageIdProps.eCommerce.dom[keyword] = true; }));
+                }
+            }
+            // Check if page is an ecomm page
             this.pageIdProps.eCommerce.isEcommPage = (Object.values(this.pageIdProps.eCommerce.dom).some(function (value) { return value; }) ||
                 Object.values(this.pageIdProps.eCommerce.url).some(function (value) { return value; }));
         };
-        PageIdentification.prototype._isEcommPage = function () {
-            // Check for payment processor button
-            // Determine if the JS objects, scripts or methods exist.
-            // Does the DOM contain ecommerce keywords?
-            var keywords = this.pageIdProps.eCommerce.keywords;
-            var elements = this.elements;
-            if (elements) {
-                this._checkElementsForEcommKeywords(elements, keywords);
+        /**
+         * @function _isConfirmationPage
+         * @description Check if page is a confirmation page by checking the url and dom
+         * for CONFIRMATION_KEYWORDS. If so, will set the confirmation page flag true
+         */
+        PageIdentification.prototype._isConfirmationPage = function () {
+            var _this = this;
+            // Does the URL contain CONFIRMATION_KEYWORDS keywords?
+            if (this.url) {
+                var keyword = this._checkUrlForKeywords(this.url, CONFIRMATION_KEYWORDS);
+                if (keyword) {
+                    this.pageIdProps.confirmation.url[keyword] = true;
+                }
             }
-            // Does the URL contain ecommerce keywords?
-            var url = parseLocation(document.location);
-            if (url) {
-                this._checkUrlForKeywords(url, keywords);
+            // Does the DOM contain CONFIRMATION_KEYWORDS keywords?
+            if (this.elements) {
+                var keywords = this._checkDomElementsForKeywords(this.elements, CONFIRMATION_KEYWORDS);
+                if (keywords) {
+                    keywords.forEach((function (keyword) { return _this.pageIdProps.confirmation.dom[keyword] = true; }));
+                }
             }
-            this._checkIfEcommPage();
+            // Check if page is a confirmation page
+            this.pageIdProps.confirmation.isConfirmationPage = (Object.values(this.pageIdProps.confirmation.dom).some(function (value) { return value; }) ||
+                Object.values(this.pageIdProps.confirmation.url).some(function (value) { return value; }));
         };
-        PageIdentification.prototype._isGeneralPage = function () {
+        /**
+         * @function _isLeadGenPage
+         * @description Check if page is a lead gen page by checking the url and dom
+         * for LEAD_GEN_KEYWORDS. If so, will set the lead gen page flag true
+         */
+        PageIdentification.prototype._isLeadGenPage = function () {
+            var _this = this;
+            // Does the DOM contain LEAD_GEN_KEYWORDS keywords?
+            if (this.elements) {
+                var keywords = this._checkDomElementsForKeywords(this.elements, LEAD_GEN_KEYWORDS);
+                if (keywords) {
+                    keywords.forEach((function (keyword) { return _this.pageIdProps.lead_gen.dom[keyword] = true; }));
+                }
+            }
+            // Check if page is a lead gen page
+            this.pageIdProps.lead_gen.isLeadGenPage = (Object.values(this.pageIdProps.lead_gen.dom).some(function (value) { return value; }));
+        };
+        /**
+         * @function _isContactPage
+         * @description Check if page is a contact page by checking the url and dom
+         * for CONTACT_KEYWORDS. If so, will set the contact page flag true
+         */
+        // _isContactPage() {}
+        /**
+         * @function _isCareersPage
+         * @description Check if page is a careers' page by checking the url and dom
+         * for CAREERS_KEYWORDS. If so, will set the careers' page flag true
+         */
+        // _isCareersPage() {}
+        /**
+         * @function _isBlogPage
+         * @description Check if page is a blog page by checking the url and dom
+         * for BLOG_KEYWORDS. If so, will set the blog page flag true
+         */
+        // _isBlogPage() {}
+        /**
+         * @function _checkGeneralProperties
+         * @description Check page for general page properties. Will set general attributes
+         * on general page id properties
+         */
+        PageIdentification.prototype._checkGeneralProperties = function () {
+            var _a;
             // How many form inputs are on the page?
             var pageForms = this.forms && this.forms.filter(function (f) { return !f.isTemplateElement; });
-            pageForms && pageForms.length;
+            this.pageIdProps.general.form_inputs_on_page = (pageForms === null || pageForms === void 0 ? void 0 : pageForms.length) || 0;
             // How many videos are on the page?
+            this.pageIdProps.general.videos_on_page = ((_a = this.videos) === null || _a === void 0 ? void 0 : _a.length) || 0;
             // How much content is on the page?
+            // TODO: Get Clarity from Justin on this
         };
-        PageIdentification.prototype._isConfirmationPage = function () {
-            // Does the URL contain the following words?	[thankyou, confirmation, ordersummary, summary]
-            // Does the DOM contain the keyword, 'confirmation'
+        PageIdentification.prototype._checkMiscProperties = function () {
+            // What buttons are on the page?
         };
-        PageIdentification.prototype._isLeadGenPage = function () { };
-        PageIdentification.prototype._isMiscPage = function () { };
-        PageIdentification.prototype._isContactPage = function () { };
-        PageIdentification.prototype._isCareersPage = function () { };
-        PageIdentification.prototype._isBlogPage = function () { };
         return PageIdentification;
     }());
 
