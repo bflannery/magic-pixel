@@ -3040,6 +3040,9 @@
         'confirmation'
     ];
     var LEAD_GEN_KEYWORDS = ['email'];
+    var CONTACT_US_KEYWORDS = ['contact', 'feedback'];
+    var CAREERS_KEYWORDS = ['careers', 'jobs'];
+    var BLOG_KEYWORDS = ['blog', 'articles'];
     var PAGE_ID_PROPERTIES = {
         eCommerce: {
             isEcommPage: false,
@@ -3134,46 +3137,29 @@
 
     var PageIdentification = /** @class */ (function () {
         function PageIdentification() {
+            this.pageIdProps = PAGE_ID_PROPERTIES;
+            this.url = null;
+            this.scripts = null;
+            this.elements = null;
             this.buttons = null;
             this.forms = null;
             this.links = null;
             this.videos = null;
-            this.pageIdProps = PAGE_ID_PROPERTIES;
-            this.elements = null;
-            this.url = null;
         }
         PageIdentification.prototype.init = function () {
-            var domMap = this._getDomMap();
-            this.buttons = domMap.buttons;
-            this.forms = domMap.forms;
-            this.links = domMap.links;
-            this.videos = domMap.videos;
-            // Does the URL contain ecommerce keywords?
+            // Check the url
             this.url = parseLocation(document.location);
-            var docElements = document.querySelectorAll('*');
-            this.elements = Array.from(docElements);
-            // Page Checks
-            // TODO: Once page has been identified, can we stop checking?
-            this._isEcommPage();
-            this._isConfirmationPage();
-            this._isLeadGenPage();
-            // General and Misc items on the page
-            this._checkGeneralProperties();
-            this._checkMiscProperties();
+            // Map the Dom
+            this._mapDom();
+            // Run through page Checks
+            this._checkForPage();
             console.log({ initThis: this });
         };
-        PageIdentification.prototype._getDomMap = function () {
-            return {
-                forms: this._createDomFormMap(),
-                links: this._createDomLinkMap(),
-                buttons: this._createDomButtonMap(),
-                videos: this._createDomVideoMap(),
-            };
-        };
         /**
-         * Create an array of the attributes on an element
+         * @function _getAttributes
+         * @description Create an array of the attributes on an element
          * @param  {NamedNodeMap} attributes The attributes on an element
-         * @return {Array} sThe attributes on an element as an array of key/value pairs
+         * @return {Array} The attributes on an element as an array of key/value pairs
          */
         PageIdentification.prototype._getAttributes = function (attributes) {
             var allAttributes = [];
@@ -3187,7 +3173,8 @@
             return allAttributes;
         };
         /**
-         * Check if form is part of the page template. We are looking for unique elements per page
+         * @function _isTemplateElement
+         * @description Check if form is part of the page template. We are looking for unique elements per page
          * @param  {HTMLFormElement} element The attributes on an element
          * @return {Boolean}
          */
@@ -3207,8 +3194,9 @@
             return isTemplateForm;
         };
         /**
-         * Create an elements map of an HTMLElement
-         * @param  {HTMLElement} element the HTMLElement
+         * @function _createElementMap
+         * @description Create an elements map of an HTMLElement
+         * @param  {HTMLElement | Element} element the HTMLElement
          * @param  {Boolean} isSVG SVG are handled uniquely
          * @return {DomElementType[]} attributes about the HTMLFormElement
          */
@@ -3241,7 +3229,8 @@
             });
         };
         /**
-         * Create an elements map of a form HTMLFormElement
+         * @function _createFormElementsMap
+         * @description Create an elements map of a form HTMLFormElement
          * @param  {HTMLButtonElement} form the HTMLFormElement
          * @return {DomFormElementType[]} an array of form elements with attributes about the HTMLFormElement
          */
@@ -3273,7 +3262,8 @@
             });
         };
         /**
-         * Create an attribute map of a HTMLButton element
+         * @function _createButtonElementMap
+         * @description Create an attribute map of a HTMLButton element
          * @param  {HTMLButtonElement} button: HTMLButton element
          * @return {DomButtonType} attributes about the HTMLButton
          */
@@ -3289,7 +3279,8 @@
             };
         };
         /**
-         * Create an attribute map of a HTMLAnchorElement element
+         * @function _createLinkElementMap
+         * @description Create an attribute map of a HTMLAnchorElement element
          * @param  {HTMLAnchorElement} link: HTMLAnchorElement element
          * @param  {number} index used for reference if id is not provided
          * @return {DomLinkMapType} attributes about the HTMLAnchorElement
@@ -3306,7 +3297,8 @@
             };
         };
         /**
-         * Create a list of attribute maps for each HTMLAnchorElement element
+         * @function _createDomLinkMap
+         * @description Create a list of attribute maps for each HTMLAnchorElement element
          * @return {DomLinkMapType[]} an array of attributes about the HTMLAnchorElement
          */
         PageIdentification.prototype._createDomLinkMap = function () {
@@ -3320,7 +3312,8 @@
             return linksMap;
         };
         /**
-         * Create a list of attribute maps for each HTMLFormElement element
+         * @function _createDomFormMap
+         * @description Create a list of attribute maps for each HTMLFormElement element
          * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
          */
         PageIdentification.prototype._createDomFormMap = function () {
@@ -3337,6 +3330,11 @@
             });
             return formsMap;
         };
+        /**
+         * @function _createDomButtonMap
+         * @description Create a list of attribute maps for each HTMLFormElement element
+         * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
+         */
         PageIdentification.prototype._createDomButtonMap = function () {
             var _this = this;
             var buttons = document.querySelectorAll('button');
@@ -3351,14 +3349,28 @@
             return buttonsMap;
         };
         /**
-         * Create a list of attribute maps for each HTMLVideoElement element
+         * @function _createDomIFrameMap
+         * @description
+         * @return
+         */
+        PageIdentification.prototype._createDomIFrameMap = function () {
+            var iframes = document.querySelectorAll('iframe');
+            console.log({ iframes: iframes });
+        };
+        /**
+         * @function _createDomVideoMap
+         * @description Create a list of attribute maps for each HTMLVideoElement element
          * @return {DomVideoMapType[]} an array of attributes about the HTMLVideoElement
          */
         PageIdentification.prototype._createDomVideoMap = function () {
             var _this = this;
+            // Search for video elements
             var videos = document.querySelectorAll('video');
+            // Search for external video libraries
+            var videoJsVideos = document.querySelectorAll('video-js');
+            var allVideoElements = __spreadArray(__spreadArray([], Array.from(videos), true), Array.from(videoJsVideos), true);
             var videosMap = [];
-            Array.from(videos).map(function (video, i) {
+            allVideoElements.map(function (video, i) {
                 var mappedForm = {
                     id: video.id || "video-id-" + i,
                     elements: _this._createElementMap(video, false),
@@ -3368,7 +3380,7 @@
             return videosMap;
         };
         /**
-         * @function _checkUrlForKeywords
+         * @function _checkDomElementsForKeywords
          * @description Check url object to see if it contains a keyword in the keywords array.
          * @param {Element[]} elements: an array of element from the dom
          * @param {string[]} keywords: array of keywords to search from
@@ -3407,6 +3419,31 @@
             // Determine if the JS objects, scripts or methods exist.
             // TODO: Get Clarity from Justin on this
             var _this = this;
+            // Is there a PayPal button on the page?
+            // Check for button element: <paypal-button-container />
+            var paypalButton = document.querySelector('#paypal-button-container');
+            if (paypalButton) {
+                this.pageIdProps.eCommerce.dom.paypal = true;
+            }
+            // Is there a Google Pay button on the page?
+            // Check for button element: <google-pay-button />
+            var googlePayButton = document.querySelector('google-pay-button');
+            if (googlePayButton) {
+                this.pageIdProps.eCommerce.dom.google_pay = true;
+            }
+            // Is there an Apple Pay button on the page?
+            // Check for button element: <google-pay-button />
+            var applyPayButton = document.querySelector('apple-pay-button');
+            if (applyPayButton) {
+                this.pageIdProps.eCommerce.dom.apple_pay = true;
+            }
+            // <script src="https://js.stripe.com/v3/"></script>
+            // Is there a Stripe script on the page?
+            // Check for button element: <google-pay-button />
+            document.querySelectorAll('script');
+            if (applyPayButton) {
+                this.pageIdProps.eCommerce.dom.apple_pay = true;
+            }
             // Does the URL contain ecommerce keywords?
             if (this.url) {
                 var keyword = this._checkUrlForKeywords(this.url, ECOMM_KEYWORDS);
@@ -3472,19 +3509,67 @@
          * @description Check if page is a contact page by checking the url and dom
          * for CONTACT_KEYWORDS. If so, will set the contact page flag true
          */
-        // _isContactPage() {}
+        PageIdentification.prototype._isContactPage = function () {
+            var _this = this;
+            // Does the URL contain CONTACT_US_KEYWORDS keywords?
+            if (this.url) {
+                var keyword = this._checkUrlForKeywords(this.url, CONTACT_US_KEYWORDS);
+                if (keyword) {
+                    this.pageIdProps.contact_us.url[keyword] = true;
+                }
+            }
+            // Does the DOM contain CONTACT_US_KEYWORDS keywords?
+            if (this.elements) {
+                var keywords = this._checkDomElementsForKeywords(this.elements, CONTACT_US_KEYWORDS);
+                if (keywords) {
+                    keywords.forEach((function (keyword) { return _this.pageIdProps.contact_us.dom[keyword] = true; }));
+                }
+            }
+            // Check if page is a contact page
+            this.pageIdProps.contact_us.isContactUsPage = (Object.values(this.pageIdProps.contact_us.url).some(function (value) { return value; }) ||
+                Object.values(this.pageIdProps.contact_us.dom).some(function (value) { return value; }));
+        };
         /**
          * @function _isCareersPage
          * @description Check if page is a careers' page by checking the url and dom
          * for CAREERS_KEYWORDS. If so, will set the careers' page flag true
          */
-        // _isCareersPage() {}
+        PageIdentification.prototype._isCareersPage = function () {
+            // Does the URL contain CAREERS_KEYWORDS keywords?
+            if (this.url) {
+                var keyword = this._checkUrlForKeywords(this.url, CAREERS_KEYWORDS);
+                if (keyword) {
+                    this.pageIdProps.careers.url[keyword] = true;
+                }
+                // Check if page is careers page
+                this.pageIdProps.careers.isCareersPage = (Object.values(this.pageIdProps.careers.url).some(function (value) { return value; }));
+            }
+        };
         /**
          * @function _isBlogPage
          * @description Check if page is a blog page by checking the url and dom
          * for BLOG_KEYWORDS. If so, will set the blog page flag true
          */
-        // _isBlogPage() {}
+        PageIdentification.prototype._isBlogPage = function () {
+            var _this = this;
+            // Does the URL contain BLOG_KEYWORDS keywords?
+            if (this.url) {
+                var keyword = this._checkUrlForKeywords(this.url, BLOG_KEYWORDS);
+                if (keyword) {
+                    this.pageIdProps.blog.url[keyword] = true;
+                }
+            }
+            // Does the DOM contain BLOG_KEYWORDS keywords?
+            if (this.elements) {
+                var keywords = this._checkDomElementsForKeywords(this.elements, BLOG_KEYWORDS);
+                if (keywords) {
+                    keywords.forEach((function (keyword) { return _this.pageIdProps.blog.dom[keyword] = true; }));
+                }
+            }
+            // Check if page is a blog page
+            this.pageIdProps.blog.isBlogPage = (Object.values(this.pageIdProps.blog.url).some(function (value) { return value; }) ||
+                Object.values(this.pageIdProps.blog.dom).some(function (value) { return value; }));
+        };
         /**
          * @function _checkGeneralProperties
          * @description Check page for general page properties. Will set general attributes
@@ -3500,8 +3585,49 @@
             // How much content is on the page?
             // TODO: Get Clarity from Justin on this
         };
+        /**
+         * @function _checkMiscProperties
+         * @description Check page for misc page properties. Will set general attributes
+         * on misc page id properties
+         */
         PageIdentification.prototype._checkMiscProperties = function () {
             // What buttons are on the page?
+        };
+        /**
+         * @function _mapDom
+         * @description Get and set, parsed Dom scripts and elements
+         */
+        PageIdentification.prototype._mapDom = function () {
+            // Select all page elements
+            var docElements = document.querySelectorAll('*');
+            // Select all scripts
+            var scripts = document.querySelectorAll('script');
+            // Set DOM mapped attributes
+            this.elements = Array.from(docElements);
+            this.scripts = Array.from(scripts);
+            this.buttons = this._createDomButtonMap();
+            this.forms = this._createDomFormMap();
+            this.links = this._createDomLinkMap();
+            this.videos = this._createDomVideoMap();
+            // TODO: Check IFrames somehow
+            // this._createDomIFrameMap()
+            // this.iframes = domMap.iframes
+        };
+        /**
+         * @function _checkForPage
+         * @description Run sequence of checks to determine what page the user is on
+         */
+        PageIdentification.prototype._checkForPage = function () {
+            // TODO: Once page has been identified, can we stop checking?
+            this._isEcommPage();
+            this._isConfirmationPage();
+            this._isLeadGenPage();
+            this._isContactPage();
+            this._isBlogPage();
+            this._isCareersPage();
+            // General and Misc items on the page
+            this._checkGeneralProperties();
+            this._checkMiscProperties();
         };
         return PageIdentification;
     }());
@@ -3548,20 +3674,6 @@
                     // Save context and session to browser storage
                     this._setStorageContext(this.context);
                     this._setStorageSessionId(this.sessionId);
-                    return [2 /*return*/];
-                });
-            });
-        };
-        MagicPixel.prototype.init_page_identification = function () {
-            return __awaiter(this, void 0, void 0, function () {
-                var pageIdentification;
-                return __generator(this, function (_a) {
-                    console.debug('MP: Initializing Magic Pixel Page Identification');
-                    pageIdentification = new PageIdentification();
-                    if (pageIdentification) {
-                        window.MP_PAGE_ID = pageIdentification;
-                        pageIdentification.init();
-                    }
                     return [2 /*return*/];
                 });
             });
@@ -3671,6 +3783,7 @@
                 });
             });
         };
+        // TRACKERS
         MagicPixel.prototype._initTrackers = function () {
             this._trackClicks();
             this._trackLinkClicks();
@@ -3799,39 +3912,10 @@
                 } }, properties);
         };
         /**
-         * @function: identify
-         * @param {String} [distinctUserId] A string that uniquely identifies a visitor.
-         * @description: Identify a visitor with a unique ID to track their events and create a person.
-         * By default, unique visitors are tracked using a UUID generated the first time they visit the site.
-         * Should be called when you know the identity of the current visitor (i.e login or signup).
-         */
-        MagicPixel.prototype.identify = function (distinctUserId) {
-            return __awaiter(this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    try {
-                        // const body = {
-                        //   accountSiteId: this.context?.accountSiteId,
-                        //   distinctUserId: distinctUserId,
-                        //   userId: this.context?.userId,
-                        // }
-                        // await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
-                        this.context.distinctPersonId = distinctUserId;
-                        this._setStorageContext(this.context);
-                        return [2 /*return*/, true];
-                    }
-                    catch (e) {
-                        console.error('MP: Error trying to identify user.');
-                        return [2 /*return*/, false];
-                    }
-                    return [2 /*return*/];
-                });
-            });
-        };
-        /**
          * @function: track
          * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
-         * @param {Function} [callback] A string that identifies an event. Ex. "Sign Up"
          * @param {Object} [properties] A set of properties to include with the event you're sending.
+         * @param {Function} [callback] A string that identifies an event. Ex. "Sign Up"
          * These describe the details about the visitor and/or event.
          * @description: track an visitor and/or event details
          */
@@ -3967,6 +4051,53 @@
                 console.error('MP: Error trying to track event.');
                 return false;
             }
+        };
+        /**
+         * @function: identify
+         * @param {String} [distinctUserId] A string that uniquely identifies a visitor.
+         * @description: Identify a visitor with a unique ID to track their events and create a person.
+         * By default, unique visitors are tracked using a UUID generated the first time they visit the site.
+         * Should be called when you know the identity of the current visitor (i.e login or signup).
+         */
+        MagicPixel.prototype.identify = function (distinctUserId) {
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    try {
+                        // const body = {
+                        //   accountSiteId: this.context?.accountSiteId,
+                        //   distinctUserId: distinctUserId,
+                        //   userId: this.context?.userId,
+                        // }
+                        // await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
+                        this.context.distinctPersonId = distinctUserId;
+                        this._setStorageContext(this.context);
+                        return [2 /*return*/, true];
+                    }
+                    catch (e) {
+                        console.error('MP: Error trying to identify user.');
+                        return [2 /*return*/, false];
+                    }
+                    return [2 /*return*/];
+                });
+            });
+        };
+        /**
+         * @function: initPageIdentification
+         * @description: Initialize class PageIdentification to track page type and dom elements
+         */
+        MagicPixel.prototype.initPageIdentification = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var pageIdentification;
+                return __generator(this, function (_a) {
+                    console.debug('MP: Initializing Magic Pixel Page Identification');
+                    pageIdentification = new PageIdentification();
+                    if (pageIdentification) {
+                        window.MP_PAGE_ID = pageIdentification;
+                        pageIdentification.init();
+                    }
+                    return [2 /*return*/];
+                });
+            });
         };
         /**
          * @function: authenticateAccountId
@@ -4127,7 +4258,7 @@
                         newScript.async = true;
                         // insert the scribe script element into the document
                         document.head.appendChild(newScript);
-                        return [4 /*yield*/, MP.init_page_identification()];
+                        return [4 /*yield*/, MP.initPageIdentification()];
                     case 3:
                         _a.sent();
                         return [3 /*break*/, 5];

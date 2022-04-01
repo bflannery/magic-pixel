@@ -11,68 +11,49 @@ import {
 } from '../types'
 import { getAncestors } from '../dom'
 import {
-  CONFIRMATION_KEYWORDS,
+  BLOG_KEYWORDS, CAREERS_KEYWORDS,
+  CONFIRMATION_KEYWORDS, CONTACT_US_KEYWORDS,
   ECOMM_KEYWORDS, LEAD_GEN_KEYWORDS, PAGE_ID_PROPERTIES
 } from './constants'
-import {ParsedURLProps, parseLocation} from "../utils";
+import { ParsedURLProps, parseLocation } from '../utils'
 
 export default class PageIdentification {
+  pageIdProps: PageIdPropsType
+  url: ParsedURLProps | null
+  scripts: HTMLScriptElement[] | null
   elements: Element[] | null
   buttons: DomButtonMapType | null
   forms: DomFormMapType[] | null
   links: DomLinkMapType[] | null
   videos: DomVideoMapType[] | null
-  pageIdProps: PageIdPropsType
-  url: ParsedURLProps | null
 
   constructor() {
+    this.pageIdProps = PAGE_ID_PROPERTIES
+    this.url = null
+    this.scripts = null
+    this.elements = null
     this.buttons = null
     this.forms = null
     this.links = null
     this.videos = null
-    this.pageIdProps = PAGE_ID_PROPERTIES
-    this.elements = null
-    this.url = null
   }
 
   init() {
-    const domMap = this._getDomMap()
-    this.buttons = domMap.buttons
-    this.forms = domMap.forms
-    this.links = domMap.links
-    this.videos = domMap.videos
-    // Does the URL contain ecommerce keywords?
+    // Check the url
     this.url = parseLocation(document.location)
-
-    const docElements = document.querySelectorAll('*')
-    this.elements = Array.from(docElements)
-
-    // Page Checks
-    // TODO: Once page has been identified, can we stop checking?
-    this._isEcommPage()
-    this._isConfirmationPage()
-    this._isLeadGenPage()
-
-    // General and Misc items on the page
-    this._checkGeneralProperties()
-    this._checkMiscProperties()
+    // Map the Dom
+    this._mapDom()
+    // Run through page Checks
+    this._checkForPage()
 
     console.log({ initThis: this })
   }
 
-  _getDomMap(): DomMapType {
-    return {
-      forms: this._createDomFormMap(),
-      links: this._createDomLinkMap(),
-      buttons: this._createDomButtonMap(),
-      videos: this._createDomVideoMap(),
-    }
-  }
-
   /**
-   * Create an array of the attributes on an element
+   * @function _getAttributes
+   * @description Create an array of the attributes on an element
    * @param  {NamedNodeMap} attributes The attributes on an element
-   * @return {Array} sThe attributes on an element as an array of key/value pairs
+   * @return {Array} The attributes on an element as an array of key/value pairs
    */
   _getAttributes(attributes: NamedNodeMap): DomAttributeType[] {
     const allAttributes: DomAttributeType[] = []
@@ -87,7 +68,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Check if form is part of the page template. We are looking for unique elements per page
+   * @function _isTemplateElement
+   * @description Check if form is part of the page template. We are looking for unique elements per page
    * @param  {HTMLFormElement} element The attributes on an element
    * @return {Boolean}
    */
@@ -108,12 +90,13 @@ export default class PageIdentification {
   }
 
   /**
-   * Create an elements map of an HTMLElement
-   * @param  {HTMLElement} element the HTMLElement
+   * @function _createElementMap
+   * @description Create an elements map of an HTMLElement
+   * @param  {HTMLElement | Element} element the HTMLElement
    * @param  {Boolean} isSVG SVG are handled uniquely
    * @return {DomElementType[]} attributes about the HTMLFormElement
    */
-  _createElementMap(element: HTMLElement, isSVG: boolean): DomElementType[] {
+  _createElementMap(element: HTMLElement | Element, isSVG: boolean): DomElementType[] {
     let childNodes = []
     if (element.childNodes && element.childNodes.length > 0) {
       childNodes = Array.prototype.filter.call(
@@ -144,7 +127,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Create an elements map of a form HTMLFormElement
+   * @function _createFormElementsMap
+   * @description Create an elements map of a form HTMLFormElement
    * @param  {HTMLButtonElement} form the HTMLFormElement
    * @return {DomFormElementType[]} an array of form elements with attributes about the HTMLFormElement
    */
@@ -178,7 +162,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Create an attribute map of a HTMLButton element
+   * @function _createButtonElementMap
+   * @description Create an attribute map of a HTMLButton element
    * @param  {HTMLButtonElement} button: HTMLButton element
    * @return {DomButtonType} attributes about the HTMLButton
    */
@@ -194,7 +179,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Create an attribute map of a HTMLAnchorElement element
+   * @function _createLinkElementMap
+   * @description Create an attribute map of a HTMLAnchorElement element
    * @param  {HTMLAnchorElement} link: HTMLAnchorElement element
    * @param  {number} index used for reference if id is not provided
    * @return {DomLinkMapType} attributes about the HTMLAnchorElement
@@ -211,7 +197,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Create a list of attribute maps for each HTMLAnchorElement element
+   * @function _createDomLinkMap
+   * @description Create a list of attribute maps for each HTMLAnchorElement element
    * @return {DomLinkMapType[]} an array of attributes about the HTMLAnchorElement
    */
   _createDomLinkMap(): DomLinkMapType[] {
@@ -225,7 +212,8 @@ export default class PageIdentification {
   }
 
   /**
-   * Create a list of attribute maps for each HTMLFormElement element
+   * @function _createDomFormMap
+   * @description Create a list of attribute maps for each HTMLFormElement element
    * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
    */
   _createDomFormMap(): DomFormMapType[] {
@@ -242,6 +230,11 @@ export default class PageIdentification {
     return formsMap
   }
 
+  /**
+   * @function _createDomButtonMap
+   * @description Create a list of attribute maps for each HTMLFormElement element
+   * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
+   */
   _createDomButtonMap(): DomButtonMapType {
     const buttons = document.querySelectorAll('button')
     const inputButtons = document.querySelectorAll('input[type="submit"]')
@@ -256,13 +249,30 @@ export default class PageIdentification {
   }
 
   /**
-   * Create a list of attribute maps for each HTMLVideoElement element
+   * @function _createDomIFrameMap
+   * @description
+   * @return
+   */
+  _createDomIFrameMap(): void {
+    const iframes = document.querySelectorAll('iframe')
+    console.log({ iframes })
+  }
+
+  /**
+   * @function _createDomVideoMap
+   * @description Create a list of attribute maps for each HTMLVideoElement element
    * @return {DomVideoMapType[]} an array of attributes about the HTMLVideoElement
    */
   _createDomVideoMap(): DomVideoMapType[] {
+    // Search for video elements
     const videos = document.querySelectorAll('video')
+
+    // Search for external video libraries
+    const videoJsVideos = document.querySelectorAll('video-js')
+
+    const allVideoElements = [...Array.from(videos), ...Array.from(videoJsVideos)]
     const videosMap: DomVideoMapType[] = []
-    Array.from(videos).map((video, i) => {
+    allVideoElements.map((video, i) => {
       const mappedForm = {
         id: video.id || `video-id-${i}`,
         elements: this._createElementMap(video, false),
@@ -273,7 +283,7 @@ export default class PageIdentification {
   }
 
   /**
-   * @function _checkUrlForKeywords
+   * @function _checkDomElementsForKeywords
    * @description Check url object to see if it contains a keyword in the keywords array.
    * @param {Element[]} elements: an array of element from the dom
    * @param {string[]} keywords: array of keywords to search from
@@ -313,6 +323,35 @@ export default class PageIdentification {
     // Check for payment processor button
     // Determine if the JS objects, scripts or methods exist.
     // TODO: Get Clarity from Justin on this
+
+    // Is there a PayPal button on the page?
+    // Check for button element: <paypal-button-container />
+    const paypalButton = document.querySelector('#paypal-button-container')
+    if (paypalButton) {
+      this.pageIdProps.eCommerce.dom.paypal = true
+    }
+
+    // Is there a Google Pay button on the page?
+    // Check for button element: <google-pay-button />
+    const googlePayButton = document.querySelector('google-pay-button')
+    if (googlePayButton) {
+      this.pageIdProps.eCommerce.dom.google_pay = true
+    }
+
+    // Is there an Apple Pay button on the page?
+    // Check for button element: <google-pay-button />
+    const applyPayButton = document.querySelector('apple-pay-button')
+    if (applyPayButton) {
+      this.pageIdProps.eCommerce.dom.apple_pay = true
+    }
+
+    // <script src="https://js.stripe.com/v3/"></script>
+    // Is there a Stripe script on the page?
+    // Check for button element: <google-pay-button />
+    const scripts = document.querySelectorAll('script')
+    if (applyPayButton) {
+      this.pageIdProps.eCommerce.dom.apple_pay = true
+    }
 
     // Does the URL contain ecommerce keywords?
     if (this.url) {
@@ -392,22 +431,78 @@ export default class PageIdentification {
    * @description Check if page is a contact page by checking the url and dom
    * for CONTACT_KEYWORDS. If so, will set the contact page flag true
    */
-  // _isContactPage() {}
+  _isContactPage() {
+    // Does the URL contain CONTACT_US_KEYWORDS keywords?
+    if (this.url) {
+      const keyword = this._checkUrlForKeywords(this.url, CONTACT_US_KEYWORDS)
+      if (keyword) {
+        this.pageIdProps.contact_us.url[keyword] = true
+      }
+
+    }
+    // Does the DOM contain CONTACT_US_KEYWORDS keywords?
+    if (this.elements) {
+      const keywords = this._checkDomElementsForKeywords(this.elements, CONTACT_US_KEYWORDS)
+      if (keywords) {
+        keywords.forEach((keyword => this.pageIdProps.contact_us.dom[keyword] = true))
+      }
+    }
+
+    // Check if page is a contact page
+    this.pageIdProps.contact_us.isContactUsPage = (
+      Object.values(this.pageIdProps.contact_us.url).some(value => value) ||
+      Object.values(this.pageIdProps.contact_us.dom).some(value => value)
+    )
+  }
 
   /**
    * @function _isCareersPage
    * @description Check if page is a careers' page by checking the url and dom
    * for CAREERS_KEYWORDS. If so, will set the careers' page flag true
    */
-  // _isCareersPage() {}
+  _isCareersPage() {
+    // Does the URL contain CAREERS_KEYWORDS keywords?
+    if (this.url) {
+      const keyword = this._checkUrlForKeywords(this.url, CAREERS_KEYWORDS)
+      if (keyword) {
+        this.pageIdProps.careers.url[keyword] = true
+      }
+
+      // Check if page is careers page
+      this.pageIdProps.careers.isCareersPage = (
+        Object.values(this.pageIdProps.careers.url).some(value => value)
+      )
+    }
+  }
 
   /**
    * @function _isBlogPage
    * @description Check if page is a blog page by checking the url and dom
    * for BLOG_KEYWORDS. If so, will set the blog page flag true
    */
-  // _isBlogPage() {}
+  _isBlogPage() {
+    // Does the URL contain BLOG_KEYWORDS keywords?
+    if (this.url) {
+      const keyword = this._checkUrlForKeywords(this.url, BLOG_KEYWORDS)
+      if (keyword) {
+        this.pageIdProps.blog.url[keyword] = true
+      }
 
+    }
+    // Does the DOM contain BLOG_KEYWORDS keywords?
+    if (this.elements) {
+      const keywords = this._checkDomElementsForKeywords(this.elements, BLOG_KEYWORDS)
+      if (keywords) {
+        keywords.forEach((keyword => this.pageIdProps.blog.dom[keyword] = true))
+      }
+    }
+
+    // Check if page is a blog page
+    this.pageIdProps.blog.isBlogPage = (
+      Object.values(this.pageIdProps.blog.url).some(value => value) ||
+      Object.values(this.pageIdProps.blog.dom).some(value => value)
+    )
+  }
 
   /**
    * @function _checkGeneralProperties
@@ -426,7 +521,52 @@ export default class PageIdentification {
     // TODO: Get Clarity from Justin on this
   }
 
+  /**
+   * @function _checkMiscProperties
+   * @description Check page for misc page properties. Will set general attributes
+   * on misc page id properties
+   */
   _checkMiscProperties(): void {
     // What buttons are on the page?
+  }
+
+  /**
+   * @function _mapDom
+   * @description Get and set, parsed Dom scripts and elements
+   */
+  _mapDom(): void {
+    // Select all page elements
+    const docElements = document.querySelectorAll('*')
+    // Select all scripts
+    const scripts = document.querySelectorAll('script')
+    // Set DOM mapped attributes
+    this.elements = Array.from(docElements)
+    this.scripts = Array.from(scripts)
+    this.buttons = this._createDomButtonMap()
+    this.forms = this._createDomFormMap()
+    this.links = this._createDomLinkMap()
+    this.videos = this._createDomVideoMap()
+
+    // TODO: Check IFrames somehow
+    // this._createDomIFrameMap()
+    // this.iframes = domMap.iframes
+  }
+
+  /**
+   * @function _checkForPage
+   * @description Run sequence of checks to determine what page the user is on
+   */
+  _checkForPage(): void {
+    // TODO: Once page has been identified, can we stop checking?
+    this._isEcommPage()
+    this._isConfirmationPage()
+    this._isLeadGenPage()
+    this._isContactPage()
+    this._isBlogPage()
+    this._isCareersPage()
+
+    // General and Misc items on the page
+    this._checkGeneralProperties()
+    this._checkMiscProperties()
   }
 }

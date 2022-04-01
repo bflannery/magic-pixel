@@ -157,6 +157,8 @@ export interface DomVideoMapType {
 export type DomButtonMapType = Record<string, DomButtonType>
 
 export interface DomMapType {
+  scripts: HTMLScriptElement[]
+  elements: Element[]
   forms: DomFormMapType[]
   links: DomLinkMapType[]
   buttons: DomButtonMapType
@@ -246,24 +248,6 @@ interface MiscType extends Record<string, boolean>{
   has_navbar: boolean
 }
 
-
-interface PageType {
-  isEcommPage?: boolean
-  isConfirmationPage?: boolean
-  isLeadGenPage?: boolean
-  isContactUsPage?: boolean
-  isCareersPage?: boolean
-  isBlogPage?: boolean
-  dom?:
-    EcommDomType |
-    ConfirmationDomType |
-    LeadGenDomType |
-    ContactUsDomType |
-    CareersUrlType |
-    BlogDomType
-  url?: EcommUrlType | ConfirmationUrlType | ContactUsUrlType | BlogUrlType
-}
-
 export interface PageIdPropsType {
   eCommerce: {
     isEcommPage: boolean
@@ -322,36 +306,12 @@ export type EcommKeywordType =
   null
 
 export interface PageIdentificationType {
+  scripts: HTMLScriptElement[] | null
+  elements: Element[] | null
   buttons: DomButtonMapType | null
   forms: DomFormMapType[] | null
   links: DomLinkMapType[] | null
+  videos: DomVideoMapType[] | null
   pageIdProps: PageIdPropsType
+  url: ParsedURLProps | null
 }
-
-
-// export interface EventType {
-//   accountId: string | null
-//   accountSiteId: string | null
-//   accountStatus: string
-//   lastVerified: number | null
-//   distinctUserId: string | null
-//   visitorUUID: string | null
-//   eventType: string,
-//   timestamp: string,
-//   target: {
-//     url: ParsedURLProps
-//   }
-//   source: {
-//     url: ParsedURLProps
-//   }
-// }
-//
-// interface EventProps {
-//   accountId: string | null
-//   accountSiteId: string | null
-//   accountStatus: string
-//   lastVerified: number | null
-//   distinctUserId: string | null
-//   visitorUUID: string | null
-//   [key: string]: string | number | null
-// }

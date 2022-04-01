@@ -71,16 +71,6 @@ export default class MagicPixel {
     // }
   }
 
-  async init_page_identification(): Promise<void> {
-    console.debug('MP: Initializing Magic Pixel Page Identification')
-
-    const pageIdentification = new PageIdentification()
-    if (pageIdentification) {
-      window.MP_PAGE_ID = pageIdentification
-      pageIdentification.init()
-    }
-  }
-
   // Context
   _getStorageContext(): MpDataProps | null {
     const mpStorageContext = localStorage.getItem('mp')
@@ -175,6 +165,8 @@ export default class MagicPixel {
     // const fingerprintTimezone = result.components.timezone.value
     return result.visitorId
   }
+
+  // TRACKERS
 
   _initTrackers(): void {
     this._trackClicks()
@@ -291,34 +283,10 @@ export default class MagicPixel {
   }
 
   /**
-   * @function: identify
-   * @param {String} [distinctUserId] A string that uniquely identifies a visitor.
-   * @description: Identify a visitor with a unique ID to track their events and create a person.
-   * By default, unique visitors are tracked using a UUID generated the first time they visit the site.
-   * Should be called when you know the identity of the current visitor (i.e login or signup).
-   */
-  async identify(distinctUserId: string): Promise<boolean> {
-    try {
-      // const body = {
-      //   accountSiteId: this.context?.accountSiteId,
-      //   distinctUserId: distinctUserId,
-      //   userId: this.context?.userId,
-      // }
-      // await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
-      this.context.distinctPersonId = distinctUserId
-      this._setStorageContext(this.context)
-      return true
-    } catch (e) {
-      console.error('MP: Error trying to identify user.')
-      return false
-    }
-  }
-
-  /**
    * @function: track
    * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
-   * @param {Function} [callback] A string that identifies an event. Ex. "Sign Up"
    * @param {Object} [properties] A set of properties to include with the event you're sending.
+   * @param {Function} [callback] A string that identifies an event. Ex. "Sign Up"
    * These describe the details about the visitor and/or event.
    * @description: track an visitor and/or event details
    */
@@ -442,6 +410,44 @@ export default class MagicPixel {
     } catch (e) {
       console.error('MP: Error trying to track event.')
       return false
+    }
+  }
+
+  /**
+   * @function: identify
+   * @param {String} [distinctUserId] A string that uniquely identifies a visitor.
+   * @description: Identify a visitor with a unique ID to track their events and create a person.
+   * By default, unique visitors are tracked using a UUID generated the first time they visit the site.
+   * Should be called when you know the identity of the current visitor (i.e login or signup).
+   */
+  async identify(distinctUserId: string): Promise<boolean> {
+    try {
+      // const body = {
+      //   accountSiteId: this.context?.accountSiteId,
+      //   distinctUserId: distinctUserId,
+      //   userId: this.context?.userId,
+      // }
+      // await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
+      this.context.distinctPersonId = distinctUserId
+      this._setStorageContext(this.context)
+      return true
+    } catch (e) {
+      console.error('MP: Error trying to identify user.')
+      return false
+    }
+  }
+
+  /**
+   * @function: initPageIdentification
+   * @description: Initialize class PageIdentification to track page type and dom elements
+   */
+  async initPageIdentification(): Promise<void> {
+    console.debug('MP: Initializing Magic Pixel Page Identification')
+
+    const pageIdentification = new PageIdentification()
+    if (pageIdentification) {
+      window.MP_PAGE_ID = pageIdentification
+      pageIdentification.init()
     }
   }
 
