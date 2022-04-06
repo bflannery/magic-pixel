@@ -2,6 +2,7 @@ import { getSiteId } from './utils'
 import MagicPixel from './magicPixel'
 
 const script = document.currentScript
+console.log({ script })
 
 /**
  * @function: init
@@ -12,11 +13,11 @@ async function init() {
 
   // Get site id from script for validation
   const siteId = getSiteId(script)
+
   if (!siteId) {
     console.error('MP: Error verifying account. No site id provided')
     return false
   }
-
   // Create new MP class and add to window
   const MP = new MagicPixel(siteId)
   window.MP = MP
@@ -29,19 +30,21 @@ async function init() {
     // Initialize MP class
     await MP.init()
 
-    // create a new script element
-    const newScript = document.createElement('script')
-    newScript.src = `http://localhost:8081/scribe-analytics-debug.js?hid=${siteId}`
-    newScript.async = true
+    // create a new event-tracker script element
+    const eventTrackingScript = document.createElement('script')
+    eventTrackingScript.src = `http://localhost:8082/mp-event-tracker.js?sid=${siteId}`
+    eventTrackingScript.async = true
 
-    // insert the scribe-analytics script element into doc
-    document.head.appendChild(newScript)
+    // insert the event-tracker script element into doc
+    document.head.appendChild(eventTrackingScript)
 
-    // Initialize Page Identification service
-    await MP.initPageIdentification()
-
-    // Initialize Content service
-
+    // // create a new event-tracker script element
+    // const pageIdentificationScript = document.createElement('script')
+    // pageIdentificationScript.src = `http://localhost:8083/mp-page-identification.js?sid=${siteId}`
+    // pageIdentificationScript.async = true
+    //
+    // // insert the event-tracker script element into doc
+    // document.head.appendChild(eventTrackingScript)
   } else {
     console.error(`MP: Account is not active for site id ${siteId}.`)
   }

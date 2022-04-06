@@ -9,15 +9,31 @@ services:
       - "8080:80"
     volumes:
       - ./test-website/src:/var/www
-  website-tracker:
+  browser-service-magic-pixel:
     image: kyma/docker-nginx
-    container_name: website-tracker
+    container_name: browser-service-magic-pixel
     restart: "always"
     ports:
       - "8081:80"
     volumes:
-      - ./website-tracker/scribe/scribe-analytics-debug.js:/var/www/scribe-analytics-debug.js
-      - ./website-tracker/build/index.js:/var/www/mp-tracker.js
+      - ./browser-services/magic-pixel/build/index.js:/var/www/magic-pixel.js
+  browser-service-event-tracker:
+    image: kyma/docker-nginx
+    container_name: browser-service-event-tracker
+    restart: "always"
+    ports:
+      - "8082:80"
+    volumes:
+      - ./browser-services/event-tracker/scribe-analytics/scribe-analytics-debug.js:/var/www/scribe-analytics-debug.js
+      - ./browser-services/event-tracker/build/index.js:/var/www/mp-event-tracker.js
+  browser-service-page-identification:
+    image: kyma/docker-nginx
+    container_name: browser-service-page-identification
+    restart: "always"
+    ports:
+      - "8083:80"
+    volumes:
+      - ./browser-services/page-identification/build/index.js:/var/www/mp-page-identification.js
   db:
     image: postgres
     container_name: pg-docker

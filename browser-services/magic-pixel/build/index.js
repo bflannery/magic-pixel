@@ -74,16 +74,6 @@
         return r;
     }
 
-    function __spreadArray(to, from, pack) {
-        if (pack || arguments.length === 2) for (var i = 0, l = from.length, ar; i < l; i++) {
-            if (ar || !(i in from)) {
-                if (!ar) ar = Array.prototype.slice.call(from, 0, i);
-                ar[i] = from[i];
-            }
-        }
-        return to.concat(ar || Array.prototype.slice.call(from));
-    }
-
     function scriptIsHTML(script) {
         return 'src' in script;
     }
@@ -122,102 +112,6 @@
         };
         return s4() + s4() + '-' + s4() + '-' + s4() + '-' + s4() + '-' + s4() + s4() + s4();
     }
-    var isChildLink = function (ancestors) {
-        var isChildLink = false;
-        for (var i = 0; i < ancestors.length; i++) {
-            var element = ancestors[i];
-            if (element.tagName == 'A') {
-                isChildLink = true;
-            }
-        }
-        return isChildLink;
-    };
-    var toObject = function (olike) {
-        var o = {};
-        var key;
-        for (key in olike) {
-            o[key] = olike[key];
-        }
-        return o;
-    };
-    var isObject = function (object) {
-        return object != null && typeof object === 'object';
-    };
-    var deepEqual = function (object1, object2) {
-        var keys1 = Object.keys(object1);
-        var keys2 = Object.keys(object2);
-        if (keys1.length !== keys2.length) {
-            return false;
-        }
-        for (var _i = 0, keys1_1 = keys1; _i < keys1_1.length; _i++) {
-            var key = keys1_1[_i];
-            var val1 = object1[key];
-            var val2 = object2[key];
-            var areObjects = isObject(val1) && isObject(val2);
-            if ((areObjects && !deepEqual(val1, val2)) || (!areObjects && val1 !== val2)) {
-                return false;
-            }
-        }
-        return true;
-    };
-    var parseQueryString = function (qs) {
-        var pairs = {};
-        if (qs.length > 0) {
-            var query = qs.charAt(0) === '?' ? qs.substring(1) : qs;
-            if (query.length > 0) {
-                var vars = query.split('&');
-                for (var i = 0; i < vars.length; i++) {
-                    if (vars[i].length > 0) {
-                        var pair = vars[i].split('=');
-                        try {
-                            var name_1 = decodeURIComponent(pair[0]);
-                            pairs[name_1] = pair.length > 1 ? decodeURIComponent(pair[1]) : 'true';
-                        }
-                        catch (e) {
-                            console.error(e);
-                        }
-                    }
-                }
-            }
-        }
-        return pairs;
-    };
-    var parseUrl = function (url) {
-        var link = document.createElement('a');
-        link.href = url;
-        if (link.host === '') {
-            link.host = link.href;
-        }
-        return {
-            href: link.href,
-            hash: link.hash,
-            host: link.host,
-            hostname: link.hostname,
-            pathname: link.pathname,
-            protocol: link.protocol,
-            query: parseQueryString(link.search),
-        };
-    };
-    var parseLocation = function (location) {
-        return {
-            href: location.href,
-            hash: location.hash,
-            host: location.host,
-            hostname: location.hostname,
-            pathname: location.pathname,
-            protocol: location.protocol,
-            query: parseQueryString(location.search),
-        };
-    };
-    var isSamePage = function (url1, url2) {
-        var url1Object = parseUrl(url1);
-        var url2Object = parseUrl(url2);
-        // Ignore the hash when comparing to see if two pages represent the same resource:
-        return (url1Object.protocol === url2Object.protocol &&
-            url1Object.host === url2Object.host &&
-            url1Object.pathname === url2Object.pathname &&
-            deepEqual(url1Object.query, url2Object.query));
-    };
 
     /**
      * FingerprintJS v3.3.1 - Copyright (c) FingerprintJS, Inc, 2021 (https://fingerprintjs.com)
@@ -553,7 +447,7 @@
     }
 
     /*
-     * This file contains functions to work with pure data only (no browser-services features, DOM, side effects, etc).
+     * This file contains functions to work with pure data only (no browser features, DOM, side effects, etc).
      */
     /**
      * Does the same as Array.prototype.includes but has better typing
@@ -786,7 +680,7 @@
      * Functions to help with features that vary through browsers
      */
     /**
-     * Checks whether the browser-services is based on Trident (the Internet Explorer engine) without using user-agent.
+     * Checks whether the browser is based on Trident (the Internet Explorer engine) without using user-agent.
      *
      * Warning for package users:
      * This function is out of Semantic Versioning, i.e. can change unexpectedly. Usage is at your own risk.
@@ -804,7 +698,7 @@
         ]) >= 4);
     }
     /**
-     * Checks whether the browser-services is based on EdgeHTML (the pre-Chromium Edge engine) without using user-agent.
+     * Checks whether the browser is based on EdgeHTML (the pre-Chromium Edge engine) without using user-agent.
      *
      * Warning for package users:
      * This function is out of Semantic Versioning, i.e. can change unexpectedly. Usage is at your own risk.
@@ -817,7 +711,7 @@
             !isTrident());
     }
     /**
-     * Checks whether the browser-services is based on Chromium without using user-agent.
+     * Checks whether the browser is based on Chromium without using user-agent.
      *
      * Warning for package users:
      * This function is out of Semantic Versioning, i.e. can change unexpectedly. Usage is at your own risk.
@@ -837,7 +731,7 @@
         ]) >= 5);
     }
     /**
-     * Checks whether the browser-services is based on mobile or desktop Safari without using user-agent.
+     * Checks whether the browser is based on mobile or desktop Safari without using user-agent.
      * All iOS browsers use WebKit (the Safari engine).
      *
      * Warning for package users:
@@ -857,7 +751,7 @@
         ]) >= 4);
     }
     /**
-     * Checks whether the WebKit browser-services is a desktop Safari.
+     * Checks whether the WebKit browser is a desktop Safari.
      *
      * Warning for package users:
      * This function is out of Semantic Versioning, i.e. can change unexpectedly. Usage is at your own risk.
@@ -872,7 +766,7 @@
         ]) >= 3);
     }
     /**
-     * Checks whether the browser-services is based on Gecko (Firefox engine) without using user-agent.
+     * Checks whether the browser is based on Gecko (Firefox engine) without using user-agent.
      *
      * Warning for package users:
      * This function is out of Semantic Versioning, i.e. can change unexpectedly. Usage is at your own risk.
@@ -891,8 +785,8 @@
         ]) >= 4);
     }
     /**
-     * Checks whether the browser-services is based on Chromium version ≥86 without using user-agent.
-     * It doesn't check that the browser-services is based on Chromium, there is a separate function for this.
+     * Checks whether the browser is based on Chromium version ≥86 without using user-agent.
+     * It doesn't check that the browser is based on Chromium, there is a separate function for this.
      */
     function isChromium86OrNewer() {
         // Checked in Chrome 85 vs Chrome 86 both on desktop and Android
@@ -905,8 +799,8 @@
         ]) >= 3);
     }
     /**
-     * Checks whether the browser-services is based on WebKit version ≥606 (Safari ≥12) without using user-agent.
-     * It doesn't check that the browser-services is based on WebKit, there is a separate function for this.
+     * Checks whether the browser is based on WebKit version ≥606 (Safari ≥12) without using user-agent.
+     * It doesn't check that the browser is based on WebKit, there is a separate function for this.
      *
      * @link https://en.wikipedia.org/wiki/Safari_version_history#Release_history Safari-WebKit versions map
      */
@@ -965,8 +859,8 @@
     function isAndroid() {
         var isItChromium = isChromium();
         var isItGecko = isGecko();
-        // Only 2 browser-services engines are presented on Android.
-        // Actually, there is also Android 4.1 browser-services, but it's not worth detecting it at the moment.
+        // Only 2 browser engines are presented on Android.
+        // Actually, there is also Android 4.1 browser, but it's not worth detecting it at the moment.
         if (!isItChromium && !isItGecko) {
             return false;
         }
@@ -1028,7 +922,7 @@
         };
     }
     /**
-     * Checks if the current browser-services is known to always suspend audio context
+     * Checks if the current browser is known to always suspend audio context
      */
     function doesCurrentBrowserSuspendAudioContext() {
         return isWebKit() && !isDesktopSafari() && !isWebKit606OrNewer();
@@ -1062,7 +956,7 @@
                             }
                             break;
                         // Sometimes the audio context doesn't start after calling `startRendering` (in addition to the cases where
-                        // audio context doesn't start at all). A known case is starting an audio context when the browser-services tab is in
+                        // audio context doesn't start at all). A known case is starting an audio context when the browser tab is in
                         // background on iPhone. Retries usually help in this case.
                         case 'suspended':
                             // The audio context can reject starting until the tab is in foreground. Long fingerprint duration
@@ -1518,7 +1412,7 @@
         }
         if (Array.isArray(n.languages)) {
             // Starting from Chromium 86, there is only a single value in `navigator.language` in Incognito mode:
-            // the value of `navigator.language`. Therefore the value is ignored in this browser-services.
+            // the value of `navigator.language`. Therefore the value is ignored in this browser.
             if (!(isChromium() && isChromium86OrNewer())) {
                 result.push(n.languages);
             }
@@ -1544,7 +1438,7 @@
     function getScreenResolution() {
         var s = screen;
         // Some browsers return screen resolution as strings, e.g. "1200", instead of a number, e.g. 1200.
-        // I suspect it's done by certain plugins that randomize browser-services properties to prevent fingerprinting.
+        // I suspect it's done by certain plugins that randomize browser properties to prevent fingerprinting.
         // Some browsers even return  screen resolution as not numbers.
         var parseDimension = function (value) { return replaceNaN(toInt(value), null); };
         var dimensions = [parseDimension(s.width), parseDimension(s.height)];
@@ -1639,7 +1533,7 @@
     function getCurrentScreenFrame() {
         var s = screen;
         // Some browsers return screen resolution as strings, e.g. "1200", instead of a number, e.g. 1200.
-        // I suspect it's done by certain plugins that randomize browser-services properties to prevent fingerprinting.
+        // I suspect it's done by certain plugins that randomize browser properties to prevent fingerprinting.
         //
         // Some browsers (IE, Edge ≤18) don't provide `screen.availLeft` and `screen.availTop`. The property values are
         // replaced with 0 in such cases to not lose the entropy from `screen.availWidth` and `screen.availHeight`.
@@ -1753,7 +1647,7 @@
     }
 
     /**
-     * Checks for browser-services-specific (not engine specific) global variables to tell browsers with the same engine apart.
+     * Checks for browser-specific (not engine specific) global variables to tell browsers with the same engine apart.
      * Only somewhat popular browsers are considered.
      */
     function getVendorFlavors() {
@@ -2126,11 +2020,11 @@
                         d = document;
                         root = d.createElement('div');
                         elements = new Array(selectors.length);
-                        blockedSelectors = {} // Set() isn't used just in case somebody need older browser-services support
+                        blockedSelectors = {} // Set() isn't used just in case somebody need older browser support
                         ;
                         forceShow(root);
                         // First create all elements that can be blocked. If the DOM steps below are done in a single cycle,
-                        // browser-services will alternate tree modification and layout reading, that is very slow.
+                        // browser will alternate tree modification and layout reading, that is very slow.
                         for (i = 0; i < selectors.length; ++i) {
                             element = selectorToElement(selectors[i]);
                             holder = d.createElement('div') // Protects from unwanted effects of `+` and `~` selectors of filters
@@ -2234,13 +2128,13 @@
     /**
      * If the display is monochrome (e.g. black&white), the value will be ≥0 and will mean the number of bits per pixel.
      * If the display is not monochrome, the returned value will be 0.
-     * If the browser-services doesn't support this feature, the returned value will be undefined.
+     * If the browser doesn't support this feature, the returned value will be undefined.
      *
      * @see https://developer.mozilla.org/en-US/docs/Web/CSS/@media/monochrome
      */
     function getMonochromeDepth() {
         if (!matchMedia('(min-monochrome: 0)').matches) {
-            // The media feature isn't supported by the browser-services
+            // The media feature isn't supported by the browser
             return undefined;
         }
         // A variation of binary search algorithm can be used here.
@@ -2416,7 +2310,7 @@
             var elements = {};
             var sizes = {};
             // First create all elements to measure. If the DOM steps below are done in a single cycle,
-            // browser-services will alternate tree modification and layout reading, that is very slow.
+            // browser will alternate tree modification and layout reading, that is very slow.
             for (var _i = 0, _a = Object.keys(presets); _i < _a.length; _i++) {
                 var key = _a[_i];
                 var _b = presets[key], _c = _b[0], style = _c === void 0 ? {} : _c, _d = _b[1], text = _d === void 0 ? defaultText : _d;
@@ -2745,902 +2639,6 @@
 
     var FingerprintJS = index;
 
-    var EventHandler = /** @class */ (function () {
-        function EventHandler() {
-            this.handler = [];
-        }
-        EventHandler.prototype.push = function (f) {
-            this.handler.push(f);
-        };
-        EventHandler.prototype.dispatch = function (e) {
-            var args = Array.prototype.slice.call(arguments, 0);
-            for (var i = 0; i < this.handler.length; i++) {
-                try {
-                    this.handler[i].apply(null, args);
-                }
-                catch (e) {
-                    console.error(e);
-                }
-            }
-        };
-        return EventHandler;
-    }());
-
-    var getAncestors = function (node) {
-        var cur = node;
-        var result = [];
-        while (cur && cur !== document.body) {
-            result.push(cur);
-            cur = cur.parentNode;
-        }
-        return result;
-    };
-    var getDataset = function (node) {
-        if (node.dataset && typeof node.dataset !== 'undefined' && Object.keys(node).length > 0) {
-            return toObject(node.dataset);
-        }
-        else if (node.attributes) {
-            var dataset = {};
-            var attrs = node.attributes;
-            for (var i = 0; i < attrs.length; i++) {
-                var attrItem = attrs.item(i);
-                var name_1 = attrItem.name;
-                var value = attrItem.value;
-                dataset["data-" + name_1] = {
-                    name: name_1,
-                    value: value,
-                };
-            }
-            return dataset;
-        }
-        else
-            return {};
-    };
-    var genCssSelector = function (node) {
-        var sel = '';
-        while (node !== document.body) {
-            var id = node.id;
-            var classes = typeof node.className === 'string' ? node.className.trim().split(/\s+/).join('.') : '';
-            var tagName = node.nodeName.toLowerCase();
-            if (id && id !== '')
-                id = '#' + id;
-            if (classes !== '')
-                classes = '.' + classes;
-            var prefix = tagName + id + classes;
-            var parent_1 = node.parentNode;
-            var nthchild = 1;
-            for (var i = 0; i < parent_1.childNodes.length; i++) {
-                if (parent_1.childNodes[i] === node)
-                    break;
-                else {
-                    var childTagName = parent_1.childNodes[i].tagName;
-                    if (childTagName !== undefined) {
-                        nthchild = nthchild + 1;
-                    }
-                }
-            }
-            if (sel !== '')
-                sel = '>' + sel;
-            sel = prefix + ':nth-child(' + nthchild + ')' + sel;
-            node = parent_1;
-        }
-        return sel;
-    };
-    var getNodeDescriptor = function (node) {
-        return {
-            id: node.id,
-            selector: genCssSelector(node),
-            title: node.title === '' ? null : node.title,
-            data: getDataset(node),
-        };
-    };
-    var simulateMouseEvent = function (element, eventName, options) {
-        if (options === void 0) { options = {}; }
-        var eventMatchers = {
-            HTMLEvents: /^(?:load|unload|abort|error|select|change|submit|reset|focus|blur|resize|scroll)$/,
-            MouseEvents: /^(?:click|dblclick|mouse(?:down|up|over|move|out))$/,
-        };
-        var mergedOptions = __assign({ pointerX: 0, pointerY: 0, button: 0, ctrlKey: false, altKey: false, shiftKey: false, metaKey: false, bubbles: true, cancelable: true }, options);
-        var oEvent = null;
-        var eventType = null;
-        for (var name_2 in eventMatchers) {
-            if (eventMatchers[name_2].test(eventName)) {
-                eventType = name_2;
-                break;
-            }
-        }
-        if (!eventType) {
-            throw new SyntaxError('Only HTMLEvents and MouseEvents interfaces are supported');
-        }
-        var evt = eventType === 'HTMLEvents' ? new Event('HTMLEvent') : new MouseEvent('MouseEvent');
-        oEvent = __assign(__assign({}, evt), mergedOptions);
-        try {
-            element.dispatchEvent(oEvent);
-        }
-        catch (e) {
-            // IE nonsense:
-            console.error(e);
-        }
-        return element;
-    };
-    var getFormData = function (eventForm) {
-        var acc = {};
-        var setField = function (name, value) {
-            if (name === '')
-                name = 'anonymous';
-            var oldValue = acc[name];
-            if (oldValue != null) {
-                if (oldValue instanceof Array) {
-                    acc[name].push(value);
-                }
-                else {
-                    acc[name] = [oldValue, value];
-                }
-            }
-            else {
-                acc[name] = value;
-            }
-        };
-        for (var i = 0; i < eventForm.elements.length; i++) {
-            var child = eventForm.elements[i];
-            var nodeType = child.tagName.toLowerCase();
-            if (nodeType == 'input' || nodeType == 'textfield') {
-                // INPUT or TEXTFIELD element.
-                // Make sure auto-complete is not turned off for the field:
-                if ((child.getAttribute('autocomplete') || '').toLowerCase() !== 'off') {
-                    // Make sure it's not a password:
-                    if (child.type !== 'password') {
-                        // Make sure it's not a radio or it's a checked radio:
-                        if (child.type !== 'radio' || child.checked) {
-                            var childKey = '';
-                            if (child.name) {
-                                childKey = child.name;
-                            }
-                            else if (child.labels && child.labels.length > 0) {
-                                childKey = child.labels.join('');
-                            }
-                            else if (child.id) {
-                                childKey = child.id;
-                            }
-                            setField(childKey, child.value);
-                        }
-                    }
-                }
-            }
-            else if (nodeType == 'select') {
-                // SELECT element:
-                var option = child.options[child.selectedIndex];
-                setField(child.name, option.value);
-            }
-        }
-        return { formFields: acc };
-    };
-    var monitorElements = function (tagName, onNew, refresh) {
-        refresh = refresh || 50;
-        var checker = function () {
-            var curElements = document.getElementsByTagName(tagName);
-            for (var i = 0; i < curElements.length; i++) {
-                var el = curElements[i];
-                var scanned = el.getAttribute('mp_scanned');
-                if (!scanned) {
-                    el.setAttribute('mp_scanned', 'true');
-                    try {
-                        onNew(el);
-                    }
-                    catch (e) {
-                        console.error(e);
-                    }
-                }
-            }
-            setTimeout(checker, refresh);
-        };
-        setTimeout(checker, 0);
-    };
-    var onReady = function (f) {
-        if (document.body != null) {
-            return f();
-        }
-        else {
-            setTimeout(function () {
-                onReady(f);
-            }, 10);
-        }
-    };
-    var onEvent = function (el, type, capture, f_) {
-        var fixUp = function (f) { return function (e) {
-            var retVal;
-            if (!e.preventDefault) {
-                e.preventDefault = function () {
-                    retVal = false;
-                };
-            }
-            return f(e) || retVal;
-        }; };
-        var f = fixUp(f_);
-        if (el.addEventListener) {
-            el.addEventListener(type, f, capture);
-        }
-        else {
-            console.log('No Event listener');
-            // @ts-ignore
-            if (el.attachEvent) {
-                // @ts-ignore
-                el.attachEvent('on' + type, f);
-            }
-        }
-    };
-    var onSubmit = function (f_) {
-        var handler = new EventHandler();
-        onReady(function () {
-            console.log('On Submit Ready');
-            onEvent(document.body, 'submit', true, function (e) {
-                console.log('On Submit Type');
-                handler.dispatch(e);
-            });
-            // Intercept enter keypresses which will submit the form in most browsers.
-            onEvent(document.body, 'keypress', false, function (e) {
-                console.log('On Keypress Type');
-                if (e.keyCode == 13) {
-                    var target = e.target;
-                    var form = (target && target.form) || null;
-                    if (form) {
-                        e.form = form;
-                        handler.dispatch(e);
-                    }
-                }
-            });
-            // Intercept clicks on any buttons:
-            onEvent(document.body, 'click', false, function (e) {
-                var _a;
-                console.log('On Click Type');
-                var target = e.target;
-                var targetType = ((target && target.type) || '').toLowerCase();
-                if (target && target.form && (targetType === 'submit' || targetType === 'button')) {
-                    e.form = target.form;
-                    if ((_a = e.form) === null || _a === void 0 ? void 0 : _a.id) {
-                        e.form.formId = e.form.id;
-                    }
-                    else if (e.form.name) {
-                        e.form.formId = e.form.name;
-                    }
-                    handler.dispatch(e);
-                }
-            });
-        });
-        handler.push(f_);
-    };
-
-    var ECOMM_KEYWORDS = [
-        'paypal',
-        'google_pay',
-        'apple_pay',
-        'bolt_pay',
-        'stripe_for',
-        'braintree_form',
-        'square_form',
-        'checkout',
-        'purchase',
-        'order',
-        'buy',
-        'order_summary',
-        'total',
-        'subtotal',
-        'shipping',
-        'tax',
-        'payment',
-        'promo_code',
-        'coupon',
-        'shipping_address',
-        'billing_address',
-    ];
-    var CONFIRMATION_KEYWORDS = [
-        'thankyou',
-        'order',
-        'ordersummary',
-        'confirmation'
-    ];
-    var LEAD_GEN_KEYWORDS = ['email'];
-    var CONTACT_US_KEYWORDS = ['contact', 'feedback'];
-    var CAREERS_KEYWORDS = ['careers', 'jobs'];
-    var BLOG_KEYWORDS = ['blog', 'articles'];
-    var PAGE_ID_PROPERTIES = {
-        eCommerce: {
-            isEcommPage: false,
-            dom: {
-                paypal: false,
-                google_pay: false,
-                apple_pay: false,
-                bolt_pay: false,
-                stripe_for: false,
-                braintree_form: false,
-                square_form: false,
-                checkout: false,
-                purchase: false,
-                order: false,
-                buy: false,
-                order_summary: false,
-                total: false,
-                subtotal: false,
-                shipping: false,
-                tax: false,
-                payment: false,
-                promo_code: false,
-                coupon: false,
-                shipping_address: false,
-                billing_address: false,
-            },
-            url: {
-                checkout: false,
-                purchase: false,
-                order: false,
-                buy: false,
-                order_summary: false,
-            },
-        },
-        confirmation: {
-            isConfirmationPage: false,
-            url: {
-                thank_you: false,
-                order_summary: false,
-                order: false,
-                confirmation: false,
-            },
-            dom: {
-                confirmation: false,
-            },
-        },
-        lead_gen: {
-            isLeadGenPage: false,
-            dom: {
-                email: true,
-            },
-        },
-        contact_us: {
-            isContactUsPage: false,
-            dom: {
-                contact: true,
-            },
-            url: {
-                contact: false,
-                feedback: false,
-            },
-        },
-        careers: {
-            isCareersPage: false,
-            url: {
-                careers: false,
-                jobs: false,
-            },
-        },
-        blog: {
-            isBlogPage: false,
-            url: {
-                blog: false,
-                articles: false,
-            },
-            dom: {
-                list_of_articles: false,
-                list_of_links: false,
-            },
-        },
-        general: {
-            form_inputs_on_page: 0,
-            videos_on_page: 0,
-            content_on_page: 0,
-        },
-        misc: {
-            has_sidebar: false,
-            has_topbar: false,
-            has_navbar: false,
-        },
-    };
-
-    var PageIdentification = /** @class */ (function () {
-        function PageIdentification() {
-            this.pageIdProps = PAGE_ID_PROPERTIES;
-            this.url = null;
-            this.scripts = null;
-            this.elements = null;
-            this.buttons = null;
-            this.forms = null;
-            this.links = null;
-            this.videos = null;
-        }
-        PageIdentification.prototype.init = function () {
-            // Check the url
-            this.url = parseLocation(document.location);
-            // Map the Dom
-            this._mapDom();
-            // Run through page Checks
-            this._checkForPage();
-            console.log({ initThis: this });
-        };
-        /**
-         * @function _getAttributes
-         * @description Create an array of the attributes on an element
-         * @param  {NamedNodeMap} attributes The attributes on an element
-         * @return {Array} The attributes on an element as an array of key/value pairs
-         */
-        PageIdentification.prototype._getAttributes = function (attributes) {
-            var allAttributes = [];
-            Array.prototype.map.call(attributes, function (attribute) {
-                var newAttribute = {
-                    name: attribute.name,
-                    value: attribute.value,
-                };
-                allAttributes.push(newAttribute);
-            });
-            return allAttributes;
-        };
-        /**
-         * @function _isTemplateElement
-         * @description Check if form is part of the page template. We are looking for unique elements per page
-         * @param  {HTMLFormElement} element The attributes on an element
-         * @return {Boolean}
-         */
-        PageIdentification.prototype._isTemplateElement = function (element) {
-            var ancestors = getAncestors(element);
-            var isTemplateForm = false;
-            ancestors.forEach(function (ancestor) {
-                ['sidebar', 'topbar', 'nav', 'header'].forEach(function (templateKeyword) {
-                    if (ancestor.id.includes(templateKeyword)) {
-                        isTemplateForm = true;
-                    }
-                    if (ancestor.className.includes(templateKeyword)) {
-                        isTemplateForm = true;
-                    }
-                });
-            });
-            return isTemplateForm;
-        };
-        /**
-         * @function _createElementMap
-         * @description Create an elements map of an HTMLElement
-         * @param  {HTMLElement | Element} element the HTMLElement
-         * @param  {Boolean} isSVG SVG are handled uniquely
-         * @return {DomElementType[]} attributes about the HTMLFormElement
-         */
-        PageIdentification.prototype._createElementMap = function (element, isSVG) {
-            var _this = this;
-            var childNodes = [];
-            if (element.childNodes && element.childNodes.length > 0) {
-                childNodes = Array.prototype.filter.call(element.childNodes, function (node) {
-                    return (node.nodeType !== 8 && node.nodeType == 1 && node.localName !== 'br') ||
-                        (node.nodeType === 3 && node.textContent.trim() !== '');
-                });
-            }
-            return childNodes.map(function (node) {
-                var id = node.id || null;
-                var className = node.className || null;
-                var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
-                var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
-                var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
-                var children = _this._createElementMap(node, isSVG || node.type === 'svg');
-                return {
-                    id: id,
-                    className: className,
-                    content: content,
-                    attributes: attributes,
-                    type: type,
-                    node: node,
-                    children: children,
-                    isSVG: isSVG || node.type === 'svg',
-                };
-            });
-        };
-        /**
-         * @function _createFormElementsMap
-         * @description Create an elements map of a form HTMLFormElement
-         * @param  {HTMLButtonElement} form the HTMLFormElement
-         * @return {DomFormElementType[]} an array of form elements with attributes about the HTMLFormElement
-         */
-        PageIdentification.prototype._createFormElementsMap = function (form) {
-            var _this = this;
-            var childNodes = [];
-            if (form.childNodes && form.childNodes.length > 0) {
-                childNodes = Array.prototype.filter.call(form.childNodes, function (node) {
-                    return (node.nodeType !== 8 && node.nodeType == 1 && node.localName !== 'br') ||
-                        (node.nodeType === 3 && node.textContent.trim() !== '');
-                });
-            }
-            return childNodes.map(function (node) {
-                var id = node.id || null;
-                var className = node.className || null;
-                var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
-                var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
-                var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
-                var children = _this._createFormElementsMap(node);
-                return {
-                    id: id,
-                    className: className,
-                    content: content,
-                    attributes: attributes,
-                    type: type,
-                    node: node,
-                    children: children,
-                };
-            });
-        };
-        /**
-         * @function _createButtonElementMap
-         * @description Create an attribute map of a HTMLButton element
-         * @param  {HTMLButtonElement} button: HTMLButton element
-         * @return {DomButtonType} attributes about the HTMLButton
-         */
-        PageIdentification.prototype._createButtonElementMap = function (button) {
-            var _a;
-            return {
-                id: button.id,
-                className: button.className,
-                content: ((_a = button.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
-                attributes: this._getAttributes(button.attributes),
-                type: button.tagName.toLowerCase(),
-                ancestors: getAncestors(button),
-            };
-        };
-        /**
-         * @function _createLinkElementMap
-         * @description Create an attribute map of a HTMLAnchorElement element
-         * @param  {HTMLAnchorElement} link: HTMLAnchorElement element
-         * @param  {number} index used for reference if id is not provided
-         * @return {DomLinkMapType} attributes about the HTMLAnchorElement
-         */
-        PageIdentification.prototype._createLinkElementMap = function (link, index) {
-            var _a;
-            return {
-                id: link.id || "link-id-" + index,
-                isTemplateElement: this._isTemplateElement(link),
-                className: link.className,
-                content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
-                attributes: this._getAttributes(link.attributes),
-                type: link.tagName.toLowerCase(),
-            };
-        };
-        /**
-         * @function _createDomLinkMap
-         * @description Create a list of attribute maps for each HTMLAnchorElement element
-         * @return {DomLinkMapType[]} an array of attributes about the HTMLAnchorElement
-         */
-        PageIdentification.prototype._createDomLinkMap = function () {
-            var _this = this;
-            var links = document.querySelectorAll('a');
-            var linksMap = [];
-            Array.from(links).map(function (link, i) {
-                var mappedLink = _this._createLinkElementMap(link, i);
-                linksMap.push(mappedLink);
-            });
-            return linksMap;
-        };
-        /**
-         * @function _createDomFormMap
-         * @description Create a list of attribute maps for each HTMLFormElement element
-         * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
-         */
-        PageIdentification.prototype._createDomFormMap = function () {
-            var _this = this;
-            var forms = document.querySelectorAll('form');
-            var formsMap = [];
-            Array.from(forms).map(function (form, i) {
-                var mappedForm = {
-                    id: form.id || "form-id-" + i,
-                    isTemplateElement: _this._isTemplateElement(form),
-                    elements: _this._createFormElementsMap(form),
-                };
-                formsMap.push(mappedForm);
-            });
-            return formsMap;
-        };
-        /**
-         * @function _createDomButtonMap
-         * @description Create a list of attribute maps for each HTMLFormElement element
-         * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
-         */
-        PageIdentification.prototype._createDomButtonMap = function () {
-            var _this = this;
-            var buttons = document.querySelectorAll('button');
-            var inputButtons = document.querySelectorAll('input[type="submit"]');
-            var allButtons = Array.prototype.slice.call(buttons).concat(Array.prototype.slice.call(inputButtons));
-            var buttonsMap = {};
-            Array.from(allButtons).map(function (buttonNode, i) {
-                var buttonMap = _this._createButtonElementMap(buttonNode);
-                var buttonKey = buttonNode.id || "button-id-" + i;
-                buttonsMap[buttonKey] = buttonMap;
-            });
-            return buttonsMap;
-        };
-        /**
-         * @function _createDomIFrameMap
-         * @description
-         * @return
-         */
-        PageIdentification.prototype._createDomIFrameMap = function () {
-            var iframes = document.querySelectorAll('iframe');
-            console.log({ iframes: iframes });
-        };
-        /**
-         * @function _createDomVideoMap
-         * @description Create a list of attribute maps for each HTMLVideoElement element
-         * @return {DomVideoMapType[]} an array of attributes about the HTMLVideoElement
-         */
-        PageIdentification.prototype._createDomVideoMap = function () {
-            var _this = this;
-            // Search for video elements
-            var videos = document.querySelectorAll('video');
-            // Search for external video libraries
-            var videoJsVideos = document.querySelectorAll('video-js');
-            var allVideoElements = __spreadArray(__spreadArray([], Array.from(videos), true), Array.from(videoJsVideos), true);
-            var videosMap = [];
-            allVideoElements.map(function (video, i) {
-                var mappedForm = {
-                    id: video.id || "video-id-" + i,
-                    elements: _this._createElementMap(video, false),
-                };
-                videosMap.push(mappedForm);
-            });
-            return videosMap;
-        };
-        /**
-         * @function _checkDomElementsForKeywords
-         * @description Check url object to see if it contains a keyword in the keywords array.
-         * @param {Element[]} elements: an array of element from the dom
-         * @param {string[]} keywords: array of keywords to search from
-         */
-        PageIdentification.prototype._checkDomElementsForKeywords = function (elements, keywords) {
-            var keywordMatches = [];
-            elements.map(function (element) {
-                return keywords.find(function (k) {
-                    if (element.textContent) {
-                        var isMatch = element.textContent.toLowerCase().includes(k);
-                        if (isMatch) {
-                            keywordMatches.push(k);
-                        }
-                    }
-                });
-            });
-            return !!keywordMatches.length ? keywordMatches : null;
-        };
-        /**
-         * @function _checkUrlForKeywords
-         * @description Check url object for keywords
-         * @param {ParsedURLProps} url: url object
-         * @param {string[]} keywords: array of keywords to search from
-         */
-        PageIdentification.prototype._checkUrlForKeywords = function (url, keywords) {
-            var pathname = url.pathname;
-            return pathname ? (keywords.find(function (k) { return pathname.includes(k); }) || null) : null;
-        };
-        /**
-         * @function _isEcommPage
-         * @description Check if page is an ecomm page by checking the url and dom for
-         * ECOMM_KEYWORDS. If so, set the ecomm page flag true
-         */
-        PageIdentification.prototype._isEcommPage = function () {
-            // Check for payment processor button
-            // Determine if the JS objects, scripts or methods exist.
-            // TODO: Get Clarity from Justin on this
-            var _this = this;
-            // Is there a PayPal button on the page?
-            // Check for button element: <paypal-button-container />
-            var paypalButton = document.querySelector('#paypal-button-container');
-            if (paypalButton) {
-                this.pageIdProps.eCommerce.dom.paypal = true;
-            }
-            // Is there a Google Pay button on the page?
-            // Check for button element: <google-pay-button />
-            var googlePayButton = document.querySelector('google-pay-button');
-            if (googlePayButton) {
-                this.pageIdProps.eCommerce.dom.google_pay = true;
-            }
-            // Is there an Apple Pay button on the page?
-            // Check for button element: <google-pay-button />
-            var applyPayButton = document.querySelector('apple-pay-button');
-            if (applyPayButton) {
-                this.pageIdProps.eCommerce.dom.apple_pay = true;
-            }
-            // <script src="https://js.stripe.com/v3/"></script>
-            // Is there a Stripe script on the page?
-            // Check for button element: <google-pay-button />
-            document.querySelectorAll('script');
-            if (applyPayButton) {
-                this.pageIdProps.eCommerce.dom.apple_pay = true;
-            }
-            // Does the URL contain ecommerce keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, ECOMM_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.eCommerce.url[keyword] = true;
-                }
-            }
-            // Does the DOM contain ecommerce keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, ECOMM_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.eCommerce.dom[keyword] = true; }));
-                }
-            }
-            // Check if page is an ecomm page
-            this.pageIdProps.eCommerce.isEcommPage = (Object.values(this.pageIdProps.eCommerce.dom).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.eCommerce.url).some(function (value) { return value; }));
-        };
-        /**
-         * @function _isConfirmationPage
-         * @description Check if page is a confirmation page by checking the url and dom
-         * for CONFIRMATION_KEYWORDS. If so, will set the confirmation page flag true
-         */
-        PageIdentification.prototype._isConfirmationPage = function () {
-            var _this = this;
-            // Does the URL contain CONFIRMATION_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, CONFIRMATION_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.confirmation.url[keyword] = true;
-                }
-            }
-            // Does the DOM contain CONFIRMATION_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, CONFIRMATION_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.confirmation.dom[keyword] = true; }));
-                }
-            }
-            // Check if page is a confirmation page
-            this.pageIdProps.confirmation.isConfirmationPage = (Object.values(this.pageIdProps.confirmation.dom).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.confirmation.url).some(function (value) { return value; }));
-        };
-        /**
-         * @function _isLeadGenPage
-         * @description Check if page is a lead gen page by checking the url and dom
-         * for LEAD_GEN_KEYWORDS. If so, will set the lead gen page flag true
-         */
-        PageIdentification.prototype._isLeadGenPage = function () {
-            var _this = this;
-            // Does the DOM contain LEAD_GEN_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, LEAD_GEN_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.lead_gen.dom[keyword] = true; }));
-                }
-            }
-            // Check if page is a lead gen page
-            this.pageIdProps.lead_gen.isLeadGenPage = (Object.values(this.pageIdProps.lead_gen.dom).some(function (value) { return value; }));
-        };
-        /**
-         * @function _isContactPage
-         * @description Check if page is a contact page by checking the url and dom
-         * for CONTACT_KEYWORDS. If so, will set the contact page flag true
-         */
-        PageIdentification.prototype._isContactPage = function () {
-            var _this = this;
-            // Does the URL contain CONTACT_US_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, CONTACT_US_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.contact_us.url[keyword] = true;
-                }
-            }
-            // Does the DOM contain CONTACT_US_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, CONTACT_US_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.contact_us.dom[keyword] = true; }));
-                }
-            }
-            // Check if page is a contact page
-            this.pageIdProps.contact_us.isContactUsPage = (Object.values(this.pageIdProps.contact_us.url).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.contact_us.dom).some(function (value) { return value; }));
-        };
-        /**
-         * @function _isCareersPage
-         * @description Check if page is a careers' page by checking the url and dom
-         * for CAREERS_KEYWORDS. If so, will set the careers' page flag true
-         */
-        PageIdentification.prototype._isCareersPage = function () {
-            // Does the URL contain CAREERS_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, CAREERS_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.careers.url[keyword] = true;
-                }
-                // Check if page is careers page
-                this.pageIdProps.careers.isCareersPage = (Object.values(this.pageIdProps.careers.url).some(function (value) { return value; }));
-            }
-        };
-        /**
-         * @function _isBlogPage
-         * @description Check if page is a blog page by checking the url and dom
-         * for BLOG_KEYWORDS. If so, will set the blog page flag true
-         */
-        PageIdentification.prototype._isBlogPage = function () {
-            var _this = this;
-            // Does the URL contain BLOG_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, BLOG_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.blog.url[keyword] = true;
-                }
-            }
-            // Does the DOM contain BLOG_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, BLOG_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.blog.dom[keyword] = true; }));
-                }
-            }
-            // Check if page is a blog page
-            this.pageIdProps.blog.isBlogPage = (Object.values(this.pageIdProps.blog.url).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.blog.dom).some(function (value) { return value; }));
-        };
-        /**
-         * @function _checkGeneralProperties
-         * @description Check page for general page properties. Will set general attributes
-         * on general page id properties
-         */
-        PageIdentification.prototype._checkGeneralProperties = function () {
-            var _a;
-            // How many form inputs are on the page?
-            var pageForms = this.forms && this.forms.filter(function (f) { return !f.isTemplateElement; });
-            this.pageIdProps.general.form_inputs_on_page = (pageForms === null || pageForms === void 0 ? void 0 : pageForms.length) || 0;
-            // How many videos are on the page?
-            this.pageIdProps.general.videos_on_page = ((_a = this.videos) === null || _a === void 0 ? void 0 : _a.length) || 0;
-            // How much content is on the page?
-            // TODO: Get Clarity from Justin on this
-        };
-        /**
-         * @function _checkMiscProperties
-         * @description Check page for misc page properties. Will set general attributes
-         * on misc page id properties
-         */
-        PageIdentification.prototype._checkMiscProperties = function () {
-            // What buttons are on the page?
-        };
-        /**
-         * @function _mapDom
-         * @description Get and set, parsed Dom scripts and elements
-         */
-        PageIdentification.prototype._mapDom = function () {
-            // Select all page elements
-            var docElements = document.querySelectorAll('*');
-            // Select all scripts
-            var scripts = document.querySelectorAll('script');
-            // Set DOM mapped attributes
-            this.elements = Array.from(docElements);
-            this.scripts = Array.from(scripts);
-            this.buttons = this._createDomButtonMap();
-            this.forms = this._createDomFormMap();
-            this.links = this._createDomLinkMap();
-            this.videos = this._createDomVideoMap();
-            // TODO: Check IFrames somehow
-            // this._createDomIFrameMap()
-            // this.iframes = domMap.iframes
-        };
-        /**
-         * @function _checkForPage
-         * @description Run sequence of checks to determine what page the user is on
-         */
-        PageIdentification.prototype._checkForPage = function () {
-            // TODO: Once page has been identified, can we stop checking?
-            this._isEcommPage();
-            this._isConfirmationPage();
-            this._isLeadGenPage();
-            this._isContactPage();
-            this._isBlogPage();
-            this._isCareersPage();
-            // General and Misc items on the page
-            this._checkGeneralProperties();
-            this._checkMiscProperties();
-        };
-        return PageIdentification;
-    }());
-
-    var defaultURLProps = {
-        href: null,
-        hash: null,
-        host: null,
-        hostname: null,
-        pathname: null,
-        protocol: null,
-        query: {},
-    };
     // Initialize an agent at application startup.
     var fpPromise = FingerprintJS.load();
     var MagicPixel = /** @class */ (function () {
@@ -3655,10 +2653,6 @@
                 visitorUUID: null,
                 distinctPersonId: null,
             };
-            this.javascriptRedirect = true;
-            this.oldHash = document.location.hash;
-            this.queue = [];
-            this.handlers = [];
         }
         MagicPixel.prototype.init = function () {
             return __awaiter(this, void 0, void 0, function () {
@@ -3673,7 +2667,9 @@
                     this.sessionId = sessionId || uuidv4();
                     // Save context and session to browser-services storage
                     this._setStorageContext(this.context);
-                    this._setStorageSessionId(this.sessionId);
+                    if (this.sessionId) {
+                        this._setStorageSessionId(this.sessionId);
+                    }
                     return [2 /*return*/];
                 });
             });
@@ -3702,67 +2698,6 @@
         MagicPixel.prototype._removeStorageSessionId = function () {
             sessionStorage.removeItem('mp_sid');
         };
-        MagicPixel.prototype._getStorageQueue = function () {
-            var mpEventsQueue = localStorage.getItem('mp_events_queue');
-            return mpEventsQueue ? JSON.parse(mpEventsQueue) : [];
-        };
-        MagicPixel.prototype._loadQueue = function () {
-            this.queue = this._getStorageQueue();
-        };
-        MagicPixel.prototype._addToQueue = function (event) {
-            this.queue = __spreadArray(__spreadArray([], this.queue, true), [event], false);
-        };
-        MagicPixel.prototype._saveQueue = function () {
-            localStorage.setItem('mp_events_queue', JSON.stringify(this.queue));
-        };
-        MagicPixel.prototype._clearQueue = function () {
-            this.queue = [];
-        };
-        MagicPixel.prototype._dispatch = function () {
-            var args = Array.prototype.slice.call(arguments, 0);
-            console.log({ dispatchArgs: args, handlers: this.handlers });
-            for (var i = 0; i < this.handlers.length; i++) {
-                try {
-                    this.handlers[i].apply(null, args);
-                }
-                catch (e) {
-                    console.error(e);
-                }
-            }
-            console.log({ handlers: this.handlers });
-        };
-        MagicPixel.prototype._apiRequest = function (method, endpoint, body) {
-            var _a;
-            return __awaiter(this, void 0, void 0, function () {
-                var jsonBody, response, e_1;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
-                        case 0:
-                            _b.trys.push([0, 2, , 3]);
-                            if (!((_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId)) {
-                                console.warn('MP: Error: Missing ids, cannot track event');
-                                return [2 /*return*/, false];
-                            }
-                            jsonBody = JSON.stringify(body);
-                            return [4 /*yield*/, fetch(endpoint, {
-                                    method: method,
-                                    headers: {
-                                        'Content-Type': 'application/json',
-                                    },
-                                    body: jsonBody,
-                                })];
-                        case 1:
-                            response = _b.sent();
-                            return [2 /*return*/, response.json()];
-                        case 2:
-                            e_1 = _b.sent();
-                            console.error(e_1);
-                            return [2 /*return*/, e_1];
-                        case 3: return [2 /*return*/];
-                    }
-                });
-            });
-        };
         // Fingerprint
         MagicPixel.prototype._fingerprint = function () {
             return __awaiter(this, void 0, void 0, function () {
@@ -3783,319 +2718,40 @@
                 });
             });
         };
-        // TRACKERS
-        MagicPixel.prototype._initTrackers = function () {
-            this._trackClicks();
-            this._trackLinkClicks();
-            this._trackFormSubmits();
+        MagicPixel.prototype.setIdentifiedUser = function (distinctUserId) {
+            this.context.distinctPersonId = distinctUserId;
+            this._setStorageContext(this.context);
         };
-        // Track all clicks to the document
-        MagicPixel.prototype._trackClicks = function () {
-            var _this = this;
-            onReady(function () {
-                return onEvent(document.body, 'click', true, function (e) { return __awaiter(_this, void 0, void 0, function () {
-                    var ancestors;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                ancestors = getAncestors(e.target);
-                                if (!!isChildLink(ancestors)) return [3 /*break*/, 2];
-                                return [4 /*yield*/, this.track('click', {
-                                        target: getNodeDescriptor(e.target),
-                                    })];
-                            case 1:
-                                _a.sent();
-                                _a.label = 2;
-                            case 2: return [2 /*return*/];
-                        }
-                    });
-                }); });
-            });
-        };
-        // Track all link clicks on the document
-        MagicPixel.prototype._trackLinkClicks = function () {
-            var _this = this;
-            monitorElements('a', function (el) {
-                return onEvent(el, 'click', true, function (e) { return __awaiter(_this, void 0, void 0, function () {
-                    var target, parsedUrl, value;
-                    var _this = this;
-                    return __generator(this, function (_a) {
-                        switch (_a.label) {
-                            case 0:
-                                //return if this click it created with createEvent and not by a real click
-                                if (!e.isTrusted) {
-                                    return [2 /*return*/];
-                                }
-                                target = e.target;
-                                // TODO: Make sure the link is actually to a pageIdentification.
-                                // It's a click, not a Javascript redirect:
-                                this.javascriptRedirect = false;
-                                setTimeout(function () {
-                                    _this.javascriptRedirect = true;
-                                }, 500);
-                                parsedUrl = parseUrl(el.href);
-                                value = {
-                                    target: __assign({ url: parsedUrl }, getNodeDescriptor(target)),
-                                };
-                                if (!isSamePage(parsedUrl.href, document.location.href)) return [3 /*break*/, 1];
-                                console.log('User is jumping around the same pageIdentification');
-                                // User is jumping around the same pageIdentification. Track here in case the
-                                // client prevents the default action and the hash doesn't change
-                                // (otherwise it would be tracked by onhashchange):
-                                this.oldHash = null;
-                                return [3 /*break*/, 5];
-                            case 1:
-                                if (!(parsedUrl.hostname === document.location.hostname)) return [3 /*break*/, 3];
-                                // We are linking to a pageIdentification on the same site. There's no need to send
-                                // the event now, we can safely send it later:
-                                console.log('We are linking to a pageIdentification on the same site.');
-                                return [4 /*yield*/, this.trackLater('click', value)];
-                            case 2:
-                                _a.sent();
-                                return [3 /*break*/, 5];
-                            case 3:
-                                e.preventDefault();
-                                console.log('We are linking to a pageIdentification that is not on this site.');
-                                // We are linking to a pageIdentification that is not on this site. So we first
-                                // wait to send the event before simulating a different click
-                                // on the link. This ensures we don't lose the event if the user
-                                // does not return to this site ever again.
-                                return [4 /*yield*/, this.track('click', value, function () {
-                                        // It's a click, not a Javascript redirect:
-                                        _this.javascriptRedirect = false;
-                                        if (target) {
-                                            // Simulate a click to the original element if we were waiting on the tracker:
-                                            simulateMouseEvent(target, 'click');
-                                        }
-                                    })];
-                            case 4:
-                                // We are linking to a pageIdentification that is not on this site. So we first
-                                // wait to send the event before simulating a different click
-                                // on the link. This ensures we don't lose the event if the user
-                                // does not return to this site ever again.
-                                _a.sent();
-                                _a.label = 5;
-                            case 5: return [2 /*return*/];
-                        }
-                    });
-                }); });
-            });
-        };
-        // Track all form submissions
-        MagicPixel.prototype._trackFormSubmits = function () {
-            var _this = this;
-            onSubmit(function (e) { return __awaiter(_this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
-                        case 0:
-                            if (!e.form) return [3 /*break*/, 2];
-                            if (!e.form.id) {
-                                e.form.id = uuidv4();
-                            }
-                            return [4 /*yield*/, this.trackLater('form_submit', {
-                                    form: __assign(__assign({}, getFormData(e.form)), { formId: e.form.id }),
-                                })];
-                        case 1:
-                            _a.sent();
-                            _a.label = 2;
-                        case 2: return [2 /*return*/];
-                    }
-                });
-            }); });
-        };
-        MagicPixel.prototype._createEvent = function (eventType, properties) {
-            console.log({ eventType: eventType, properties: properties });
-            return __assign({ eventType: eventType, timestamp: new Date().toISOString(), source: {
-                    url: parseLocation(document.location),
-                }, target: {
-                    url: defaultURLProps,
-                } }, properties);
-        };
-        /**
-         * @function: track
-         * @param {String} [eventName] A string that identifies an event. Ex. "Sign Up"
-         * @param {Object} [properties] A set of properties to include with the event you're sending.
-         * @param {Function} [callback] A string that identifies an event. Ex. "Sign Up"
-         * These describe the details about the visitor and/or event.
-         * @description: track an visitor and/or event details
-         */
-        MagicPixel.prototype.track = function (eventName, properties, callback) {
+        // TODO: Define return type
+        MagicPixel.prototype.apiRequest = function (method, endpoint, body) {
+            var _a, _b, _c, _d;
             return __awaiter(this, void 0, void 0, function () {
-                var eventProps, mpEvent;
-                return __generator(this, function (_a) {
-                    switch (_a.label) {
+                var accountBody, response, e_1;
+                return __generator(this, function (_e) {
+                    switch (_e.label) {
                         case 0:
-                            console.log('Tracking Event: ', { eventName: eventName, properties: properties });
-                            _a.label = 1;
-                        case 1:
-                            _a.trys.push([1, 3, , 4]);
-                            eventProps = __assign(__assign({}, this.context), properties);
-                            mpEvent = this._createEvent(eventName, eventProps);
-                            console.log('Customer Tracking Event: ', { mpEvent: mpEvent });
-                            return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/collection", mpEvent)];
-                        case 2:
-                            _a.sent();
-                            return [2 /*return*/, true];
-                        case 3:
-                            _a.sent();
-                            console.error('MP: Error trying to track event.');
-                            return [2 /*return*/, false];
-                        case 4: return [2 /*return*/];
-                    }
-                });
-            });
-        };
-        /**
-         * @function: trackScribeEvent
-         * @param {ScribeEventType} [scribeEvent] A scribe-analytics event object
-         * @description: internal method to track an visitor and/or event details via scribe-analytics
-         */
-        MagicPixel.prototype.trackScribeEvent = function (scribeEvent) {
-            var _a, _b, _c;
-            return __awaiter(this, void 0, void 0, function () {
-                var event_1, accountEvent, response;
-                return __generator(this, function (_d) {
-                    switch (_d.label) {
-                        case 0:
-                            _d.trys.push([0, 2, , 3]);
-                            event_1 = scribeEvent.value;
-                            accountEvent = __assign(__assign({}, event_1), { type: event_1.event, accountSiteId: (_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId, fingerprint: this.fingerprint, visitorUUID: (_b = this.context) === null || _b === void 0 ? void 0 : _b.visitorUUID, distinctPersonId: (_c = this.context) === null || _c === void 0 ? void 0 : _c.distinctPersonId, sessionId: this.sessionId });
-                            console.log({ scribeAccountEvent: accountEvent });
-                            return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/collection", accountEvent)];
-                        case 1:
-                            response = _d.sent();
-                            if (response.status === '403') {
-                                console.warn('MP: Unauthorized');
-                                // TODO: Invalidate local storage data
+                            _e.trys.push([0, 2, , 3]);
+                            if (!((_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId)) {
+                                console.warn('MP: Error: Missing ids, cannot track event');
                                 return [2 /*return*/, false];
                             }
-                            return [2 /*return*/, true];
+                            accountBody = __assign(__assign({}, body), { accountSiteId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.accountSiteId, fingerprint: this.fingerprint, visitorUUID: (_c = this.context) === null || _c === void 0 ? void 0 : _c.visitorUUID, distinctPersonId: (_d = this.context) === null || _d === void 0 ? void 0 : _d.distinctPersonId, sessionId: this.sessionId });
+                            return [4 /*yield*/, fetch(this.apiDomain + "/" + endpoint, {
+                                    method: method,
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(accountBody),
+                                })];
+                        case 1:
+                            response = _e.sent();
+                            return [2 /*return*/, response.json()];
                         case 2:
-                            _d.sent();
-                            console.error('MP: Error sending scribe-analytics event to MP server.');
-                            // TODO: Retry or invalidate local storage data
+                            e_1 = _e.sent();
+                            console.error(e_1);
                             return [2 /*return*/, false];
                         case 3: return [2 /*return*/];
                     }
-                });
-            });
-        };
-        /**
-         * @function: trackLater
-         * @param {String} eventName A string that identifies an event. Ex. "Sign Up"
-         * @param {Object | null} properties A key/pair object of custom event properties
-         * @description: track an visitor and/or event details at a later time
-         */
-        MagicPixel.prototype.trackLater = function (eventName, properties) {
-            return __awaiter(this, void 0, void 0, function () {
-                var eventProps, mpEvent;
-                return __generator(this, function (_a) {
-                    try {
-                        eventProps = __assign(__assign({}, this.context), properties);
-                        mpEvent = this._createEvent(eventName, eventProps);
-                        this._addToQueue(mpEvent);
-                        this._saveQueue();
-                        return [2 /*return*/, true];
-                    }
-                    catch (e) {
-                        console.error('MP: Error trying to track event.');
-                        return [2 /*return*/, false];
-                    }
-                    return [2 /*return*/];
-                });
-            });
-        };
-        /**
-         * @function: trackQueueEvents
-         * @param {MPEventType[]} [events] A string that identifies an event. Ex. "Sign Up"
-         * @description: track an visitor and/or event details
-         */
-        MagicPixel.prototype.trackQueueEvents = function (events) {
-            var _this = this;
-            console.log('Track Queue Event');
-            try {
-                events.forEach(function (event) { return __awaiter(_this, void 0, void 0, function () {
-                    var eventType, sourceUrl, targetUrl;
-                    return __generator(this, function (_a) {
-                        console.log({ event: event });
-                        eventType = event.eventType;
-                        // Specially modify redirect, formSubmit events to save the new URL,
-                        // because the URL is not known at the time of the event:
-                        if (['redirect', 'formSubmit'].includes(eventType)) {
-                            event.target = __assign(__assign({}, event.target), { url: parseLocation(document.location) });
-                        }
-                        // If source and target urls are the same, change redirect events
-                        // to reload events:
-                        if (eventType === 'redirect') {
-                            try {
-                                sourceUrl = event.source.url.href;
-                                targetUrl = event.target.url.href;
-                                if (sourceUrl === targetUrl) {
-                                    // It's a reload:
-                                    event.eventType = 'reload';
-                                }
-                            }
-                            catch (e) {
-                                console.error(e);
-                            }
-                        }
-                        console.log({ eventType: eventType, event: event });
-                        return [2 /*return*/];
-                    });
-                }); });
-                // this._clearQueue()
-                // this._saveQueue()
-                return true;
-            }
-            catch (e) {
-                console.error('MP: Error trying to track event.');
-                return false;
-            }
-        };
-        /**
-         * @function: identify
-         * @param {String} [distinctUserId] A string that uniquely identifies a visitor.
-         * @description: Identify a visitor with a unique ID to track their events and create a person.
-         * By default, unique visitors are tracked using a UUID generated the first time they visit the site.
-         * Should be called when you know the identity of the current visitor (i.e login or signup).
-         */
-        MagicPixel.prototype.identify = function (distinctUserId) {
-            return __awaiter(this, void 0, void 0, function () {
-                return __generator(this, function (_a) {
-                    try {
-                        // const body = {
-                        //   accountSiteId: this.context?.accountSiteId,
-                        //   distinctUserId: distinctUserId,
-                        //   userId: this.context?.userId,
-                        // }
-                        // await this._apiRequest('POST', `${this.apiDomain}/identify`, body)
-                        this.context.distinctPersonId = distinctUserId;
-                        this._setStorageContext(this.context);
-                        return [2 /*return*/, true];
-                    }
-                    catch (e) {
-                        console.error('MP: Error trying to identify user.');
-                        return [2 /*return*/, false];
-                    }
-                    return [2 /*return*/];
-                });
-            });
-        };
-        /**
-         * @function: initPageIdentification
-         * @description: Initialize class PageIdentification to track page type and dom elements
-         */
-        MagicPixel.prototype.initPageIdentification = function () {
-            return __awaiter(this, void 0, void 0, function () {
-                var pageIdentification;
-                return __generator(this, function (_a) {
-                    console.debug('MP: Initializing Magic Pixel Page Identification');
-                    pageIdentification = new PageIdentification();
-                    if (pageIdentification) {
-                        window.MP_PAGE_ID = pageIdentification;
-                        pageIdentification.init();
-                    }
-                    return [2 /*return*/];
                 });
             });
         };
@@ -4124,7 +2780,7 @@
                             authBody = {
                                 accountSiteId: this.context.accountSiteId,
                             };
-                            return [4 /*yield*/, this._apiRequest('POST', this.apiDomain + "/authentication", authBody)];
+                            return [4 /*yield*/, this.apiRequest('POST', "authentication", authBody)];
                         case 4:
                             response = _b.sent();
                             mpContext = __assign(__assign({}, this.context), { accountSiteId: this.context.accountSiteId, accountStatus: response.accountStatus, lastVerified: Date.now() });
@@ -4152,7 +2808,7 @@
          */
         MagicPixel.prototype.authenticateHostData = function (mpStorageContext) {
             return __awaiter(this, void 0, void 0, function () {
-                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, _a, e_5;
+                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, _a, e_3;
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
@@ -4192,8 +2848,8 @@
                             return [2 /*return*/, true];
                         case 10: return [2 /*return*/, false];
                         case 11:
-                            e_5 = _b.sent();
-                            console.error(e_5);
+                            e_3 = _b.sent();
+                            console.error(e_3);
                             return [2 /*return*/, false];
                         case 12: return [2 /*return*/];
                     }
@@ -4213,7 +2869,7 @@
                         case 0:
                             mpStorageContext = this._getStorageContext();
                             if (!!mpStorageContext) return [3 /*break*/, 2];
-                            console.debug("MP: Invalid browser-services data. Authenticating account site id " + this.context.accountSiteId);
+                            console.debug("MP: Invalid browser data. Authenticating account site id " + this.context.accountSiteId);
                             return [4 /*yield*/, this.authenticateAccountId()];
                         case 1: 
                         // Call verification service to check account status and other data
@@ -4230,9 +2886,15 @@
     }());
 
     var script = document.currentScript;
+    console.log({ script: script });
+    /**
+     * @function: init
+     * @description: When page is ready, validates script and account status
+     * before loading scribe-analytics tracking and page identification services
+     */
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var siteId, MP, accountIsActive, newScript;
+            var siteId, MP, accountIsActive, eventTrackingScript;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -4246,26 +2908,25 @@
                         return [4 /*yield*/, MP.authenticateAccount()];
                     case 1:
                         accountIsActive = _a.sent();
-                        if (!accountIsActive) return [3 /*break*/, 4];
+                        if (!accountIsActive) return [3 /*break*/, 3];
                         console.debug('MP: Account is active.');
+                        // Initialize MP class
                         return [4 /*yield*/, MP.init()
-                            // create a new script element
+                            // create a new event-tracker script element
                         ];
                     case 2:
+                        // Initialize MP class
                         _a.sent();
-                        newScript = document.createElement('script');
-                        newScript.src = "http://localhost:8081/scribe-analytics-debug.js?hid=" + siteId;
-                        newScript.async = true;
-                        // insert the scribe-analytics script element into the document
-                        document.head.appendChild(newScript);
-                        return [4 /*yield*/, MP.initPageIdentification()];
+                        eventTrackingScript = document.createElement('script');
+                        eventTrackingScript.src = "http://localhost:8082/mp-event-tracker.js?sid=" + siteId;
+                        eventTrackingScript.async = true;
+                        // insert the event-tracker script element into doc
+                        document.head.appendChild(eventTrackingScript);
+                        return [3 /*break*/, 4];
                     case 3:
-                        _a.sent();
-                        return [3 /*break*/, 5];
-                    case 4:
                         console.error("MP: Account is not active for site id " + siteId + ".");
-                        _a.label = 5;
-                    case 5: return [2 /*return*/];
+                        _a.label = 4;
+                    case 4: return [2 /*return*/];
                 }
             });
         });

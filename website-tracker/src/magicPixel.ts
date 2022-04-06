@@ -55,7 +55,7 @@ export default class MagicPixel {
     this.context.lastVerified = mpContext?.lastVerified || null
     this.sessionId = sessionId || uuidv4()
 
-    // Save context and session to browser storage
+    // Save context and session to browser-services storage
     this._setStorageContext(this.context)
     this._setStorageSessionId(this.sessionId)
 
@@ -310,8 +310,8 @@ export default class MagicPixel {
 
   /**
    * @function: trackScribeEvent
-   * @param {ScribeEventType} [scribeEvent] A scribe event object
-   * @description: internal method to track an visitor and/or event details via scribe
+   * @param {ScribeEventType} [scribeEvent] A scribe-analytics event object
+   * @description: internal method to track an visitor and/or event details via scribe-analytics
    */
 
   async trackScribeEvent(scribeEvent: ScribeEventType): Promise<boolean> {
@@ -337,7 +337,7 @@ export default class MagicPixel {
       }
       return true
     } catch (e) {
-      console.error('MP: Error sending scribe event to MP server.')
+      console.error('MP: Error sending scribe-analytics event to MP server.')
       // TODO: Retry or invalidate local storage data
       return false
     }
@@ -444,11 +444,7 @@ export default class MagicPixel {
   async initPageIdentification(): Promise<void> {
     console.debug('MP: Initializing Magic Pixel Page Identification')
 
-    const pageIdentification = new PageIdentification()
-    if (pageIdentification) {
-      window.MP_PAGE_ID = pageIdentification
-      pageIdentification.init()
-    }
+
   }
 
   /**

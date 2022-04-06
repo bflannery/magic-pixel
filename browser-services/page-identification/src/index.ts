@@ -1,5 +1,5 @@
 import { getSiteId } from './utils'
-import MagicPixel from './magicPixel'
+import PageIdentification from './pageIdentification'
 
 const script = document.currentScript
 
@@ -17,9 +17,15 @@ async function init() {
     return false
   }
 
+  const MP = window.MP
+  if (!MP) {
+    console.error('MP: No MP object found on window')
+    return false
+  }
+
   // Create new MP class and add to window
-  const MP = new MagicPixel(siteId)
-  window.MP = MP
+  const PageID = new PageIdentification(siteId)
+  window.MP_PageIdentification = PageID
 
   // Check if account is active
   const accountIsActive = await MP.authenticateAccount()
@@ -27,21 +33,7 @@ async function init() {
     console.debug('MP: Account is active.')
 
     // Initialize MP class
-    await MP.init()
-
-    // create a new script element
-    const newScript = document.createElement('script')
-    newScript.src = `http://localhost:8081/scribe-analytics-debug.js?hid=${siteId}`
-    newScript.async = true
-
-    // insert the scribe-analytics script element into doc
-    document.head.appendChild(newScript)
-
-    // Initialize Page Identification service
-    await MP.initPageIdentification()
-
-    // Initialize Content service
-
+    await PageID.init()
   } else {
     console.error(`MP: Account is not active for site id ${siteId}.`)
   }

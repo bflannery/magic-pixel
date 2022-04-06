@@ -2252,17 +2252,16 @@ var ScribeEventPublicTracker = function (config) {
 }
 
 ScribeEventPublicTracker.prototype.tracker = function (info) {
-  MP.trackScribeEvent(info)
+  EventTracker.trackScribeEvent(info)
 }
 
 // Initialize the tracker
 console.debug('Scribe: Initializing Scribe')
 
-var MP = window.MP
+var EventTracker = window.MP_EventTracker
 
-// console.log({ MP })
 
-if (MP) {
+if (EventTracker) {
   var scribe = new Scribe({
     tracker: new ScribeEventPublicTracker(),
     trackPageViews: true,
@@ -2275,5 +2274,5 @@ if (MP) {
     console: false,
   })
 } else {
-  console.error('Scribe: No MP window object. Stopping scribe-analytics initialization.')
+  console.error('Scribe: No EventTracker window object. Stopping scribe-analytics initialization.')
 }
