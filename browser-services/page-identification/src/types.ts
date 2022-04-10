@@ -1,25 +1,10 @@
 import { ParsedURLProps } from './utils'
 
-export interface MpDataProps {
-  accountSiteId: string | null
-  accountStatus: string
-  lastVerified: number | null
-  visitorUUID: string | null
-  distinctPersonId: string | null
-}
 
 export interface MagicPixelType {
-  apiDomain: string
-  fingerprint: string | null
-  context: MpDataProps
-  init: (accountId: string | null, accountSiteId: string | null) => Promise<void>
-  setIdentifiedUser: (distinctUserId: string) => void
-  apiRequest: (method: string, endpoint: string, body: object) => Promise<any | Boolean>
-  authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
-  authenticateAccountId: () => Promise<boolean>
+  apiRequest: (method: string, endpoint: string, body: object | PageType) => Promise<any | Boolean>
   authenticateAccount: () => Promise<boolean>
 }
-
 
 export interface DomAttributeType {
   name: string
@@ -87,120 +72,62 @@ export interface DomMapType {
   videos: DomVideoMapType[]
 }
 
-interface EcommDomType extends Record<string, boolean>{
-  paypal: boolean
-  google_pay: boolean
-  apple_pay: boolean
-  bolt_pay: boolean
-  stripe_for: boolean
-  braintree_form: boolean
-  square_form: boolean
-  checkout: boolean
-  purchase: boolean
-  order: boolean
-  buy: boolean
-  order_summary: boolean
-  total: boolean
-  subtotal: boolean
-  shipping: boolean
-  tax: boolean
-  payment: boolean
-  promo_code: boolean
-  coupon: boolean
-  shipping_address: boolean
-  billing_address: boolean
+interface MiscPageAttributesType {
+  formInputsOnPage: number
+  videosOnPage: number
+  contentOnPage: number
+  hasSidebar: boolean
+  hasTopbar: boolean
+  hasNavbar: boolean
 }
 
-interface EcommUrlType extends Record<string, boolean>{
-  checkout: boolean
-  purchase: boolean
-  order: boolean
-  buy: boolean
-  order_summary: boolean
+export interface PaymentProcessorType {
+  "name": string,
+  "identifier": {
+    "type": "element" | "script"
+    "query": string
+    "selector": "id" | "class" | "all"
+  }
 }
 
-interface ConfirmationDomType extends Record<string, boolean>{
-  confirmation: boolean
+interface PageAttributesType extends MiscPageAttributesType {
+  domKeywords: string[]
+  urlKeywords: string[]
+  type:
+    'ecomm' |
+    'lead_gen' |
+    'confirmation' |
+    'contact_us' |
+    'careers' |
+    'blog'
 }
 
-interface ConfirmationUrlType extends Record<string, boolean>{
-  thank_you: boolean
-  order_summary: boolean
-  order: boolean
-  confirmation: boolean
+
+interface EcommPageType extends PageAttributesType {
+  paymentProcessor: PaymentProcessorType
 }
 
-interface LeadGenDomType extends Record<string, boolean>{
-  email: boolean
-}
-
-interface ContactUsDomType extends Record<string, boolean>{
-  contact: boolean
-}
-
-interface ContactUsUrlType extends Record<string, boolean>{
-  contact: boolean
-  feedback: boolean
-}
-
-interface CareersUrlType extends Record<string, boolean>{
-  careers: boolean
-  jobs: boolean
-}
-
-interface BlogDomType extends Record<string, boolean>{
-  list_of_articles: boolean
-  list_of_links: boolean
-}
-
-interface BlogUrlType extends Record<string, boolean>{
-  blog: boolean
-  articles: boolean
-}
-
-interface GeneralType extends Record<string, boolean | number>{
-  form_inputs_on_page: number
-  videos_on_page: number
-  content_on_page: number
-}
-
-interface MiscType extends Record<string, boolean>{
-  has_sidebar: boolean
-  has_topbar: boolean
-  has_navbar: boolean
-}
+export type PageType = EcommPageType | null
+type IdentifiedPage = EcommPageType | null
 
 export interface PageIdPropsType {
   eCommerce: {
-    isEcommPage: boolean
-    dom: EcommDomType
-    url: EcommUrlType
+    paymentProcessors: PaymentProcessorType[] | null
+    keywords: string[]
   }
   confirmation: {
-    isConfirmationPage: boolean
-    url: ConfirmationUrlType
-    dom: ConfirmationDomType
+    keywords: string[]
   }
-  lead_gen: {
-    isLeadGenPage: boolean
-    dom: LeadGenDomType
-  }
-  contact_us: {
-    isContactUsPage: boolean
-    dom: ContactUsDomType
-    url: ContactUsUrlType
+  contactUs: {
+    keywords: string[]
   }
   careers: {
-    isCareersPage: boolean
-    url: CareersUrlType
+    keywords: string[]
   }
   blog: {
-    isBlogPage: boolean
-    url: BlogUrlType
-    dom: BlogDomType
+    keywords: string[]
   }
-  general: GeneralType
-  misc: MiscType
+  misc: MiscPageAttributesType
 }
 
 export type EcommKeywordType =
@@ -228,12 +155,13 @@ export type EcommKeywordType =
   null
 
 export interface PageIdentificationType {
+  pageType: PageType
+  pageIdProps: PageIdPropsType | null
   scripts: HTMLScriptElement[] | null
   elements: Element[] | null
   buttons: DomButtonMapType | null
   forms: DomFormMapType[] | null
   links: DomLinkMapType[] | null
   videos: DomVideoMapType[] | null
-  pageIdProps: PageIdPropsType
   url: ParsedURLProps | null
 }

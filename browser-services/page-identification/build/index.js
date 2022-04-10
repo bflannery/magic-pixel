@@ -16,6 +16,17 @@
     PERFORMANCE OF THIS SOFTWARE.
     ***************************************************************************** */
 
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
+
     function __awaiter(thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
         return new (P || (P = Promise))(function (resolve, reject) {
@@ -126,141 +137,19 @@
         return result;
     };
 
-    var ECOMM_KEYWORDS = [
-        'paypal',
-        'google_pay',
-        'apple_pay',
-        'bolt_pay',
-        'stripe_for',
-        'braintree_form',
-        'square_form',
-        'checkout',
-        'purchase',
-        'order',
-        'buy',
-        'order_summary',
-        'total',
-        'subtotal',
-        'shipping',
-        'tax',
-        'payment',
-        'promo_code',
-        'coupon',
-        'shipping_address',
-        'billing_address',
-    ];
-    var CONFIRMATION_KEYWORDS = [
-        'thankyou',
-        'order',
-        'ordersummary',
-        'confirmation'
-    ];
-    var LEAD_GEN_KEYWORDS = ['email'];
-    var CONTACT_US_KEYWORDS = ['contact', 'feedback'];
-    var CAREERS_KEYWORDS = ['careers', 'jobs'];
-    var BLOG_KEYWORDS = ['blog', 'articles'];
-    var PAGE_ID_PROPERTIES = {
-        eCommerce: {
-            isEcommPage: false,
-            dom: {
-                paypal: false,
-                google_pay: false,
-                apple_pay: false,
-                bolt_pay: false,
-                stripe_for: false,
-                braintree_form: false,
-                square_form: false,
-                checkout: false,
-                purchase: false,
-                order: false,
-                buy: false,
-                order_summary: false,
-                total: false,
-                subtotal: false,
-                shipping: false,
-                tax: false,
-                payment: false,
-                promo_code: false,
-                coupon: false,
-                shipping_address: false,
-                billing_address: false,
-            },
-            url: {
-                checkout: false,
-                purchase: false,
-                order: false,
-                buy: false,
-                order_summary: false,
-            },
-        },
-        confirmation: {
-            isConfirmationPage: false,
-            url: {
-                thank_you: false,
-                order_summary: false,
-                order: false,
-                confirmation: false,
-            },
-            dom: {
-                confirmation: false,
-            },
-        },
-        lead_gen: {
-            isLeadGenPage: false,
-            dom: {
-                email: true,
-            },
-        },
-        contact_us: {
-            isContactUsPage: false,
-            dom: {
-                contact: true,
-            },
-            url: {
-                contact: false,
-                feedback: false,
-            },
-        },
-        careers: {
-            isCareersPage: false,
-            url: {
-                careers: false,
-                jobs: false,
-            },
-        },
-        blog: {
-            isBlogPage: false,
-            url: {
-                blog: false,
-                articles: false,
-            },
-            dom: {
-                list_of_articles: false,
-                list_of_links: false,
-            },
-        },
-        general: {
-            form_inputs_on_page: 0,
-            videos_on_page: 0,
-            content_on_page: 0,
-        },
-        misc: {
-            has_sidebar: false,
-            has_topbar: false,
-            has_navbar: false,
-        },
+    var MISC_PAGE_PROPS = {
+        formInputsOnPage: 0,
+        videosOnPage: 0,
+        contentOnPage: 0,
+        hasSidebar: false,
+        hasTopbar: false,
+        hasNavbar: false,
     };
 
     var PageIdentification = /** @class */ (function () {
-        function PageIdentification(accountSiteId) {
-            this.pageIdProps = PAGE_ID_PROPERTIES;
-            this.context = {
-                accountSiteId: accountSiteId,
-                accountStatus: 'inactive',
-                lastVerified: null,
-                visitorUUID: null,
-                distinctPersonId: null,
-            };
+        function PageIdentification() {
+            this.pageType = null;
+            this.pageIdProps = null;
             this.url = null;
             this.scripts = null;
             this.elements = null;
@@ -270,21 +159,63 @@
             this.videos = null;
         }
         PageIdentification.prototype.init = function () {
-            // Check the url
-            this.url = parseLocation(document.location);
-            // Map the Dom
-            this._mapDom();
-            // Run through page Checks
-            this._checkForPage();
-            console.log({ initThis: this });
+            return __awaiter(this, void 0, void 0, function () {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            console.debug('MP: Initializing Page Identification');
+                            // Get page id props from S3
+                            return [4 /*yield*/, this.getPageIdPropsFromS3()
+                                // Check the url
+                            ];
+                        case 1:
+                            // Get page id props from S3
+                            _a.sent();
+                            // Check the url
+                            this.url = parseLocation(document.location);
+                            // Map the Dom
+                            this.mapDom();
+                            console.log({ PageIdentification: this });
+                            return [2 /*return*/];
+                    }
+                });
+            });
         };
         /**
-         * @function _getAttributes
+         * @function getKeywordsFromS3
+         * @description Get json object of page identification keywords and identifiers
+         */
+        PageIdentification.prototype.getPageIdPropsFromS3 = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var response, s3JsonData, e_1;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 3, , 4]);
+                            return [4 /*yield*/, fetch("https://magic-pixel-public.s3.amazonaws.com/pageidproperties.json")];
+                        case 1:
+                            response = _a.sent();
+                            return [4 /*yield*/, response.json()];
+                        case 2:
+                            s3JsonData = _a.sent();
+                            this.pageIdProps = __assign(__assign({}, MISC_PAGE_PROPS), s3JsonData);
+                            return [3 /*break*/, 4];
+                        case 3:
+                            e_1 = _a.sent();
+                            console.error("Error fetching mp keywords: " + e_1);
+                            return [3 /*break*/, 4];
+                        case 4: return [2 /*return*/];
+                    }
+                });
+            });
+        };
+        /**
+         * @function getAttributes
          * @description Create an array of the attributes on an element
          * @param  {NamedNodeMap} attributes The attributes on an element
          * @return {Array} The attributes on an element as an array of key/value pairs
          */
-        PageIdentification.prototype._getAttributes = function (attributes) {
+        PageIdentification.prototype.getAttributes = function (attributes) {
             var allAttributes = [];
             Array.prototype.map.call(attributes, function (attribute) {
                 var newAttribute = {
@@ -296,12 +227,12 @@
             return allAttributes;
         };
         /**
-         * @function _isTemplateElement
+         * @function isTemplateElement
          * @description Check if form is part of the page template. We are looking for unique elements per page
          * @param  {HTMLFormElement} element The attributes on an element
          * @return {Boolean}
          */
-        PageIdentification.prototype._isTemplateElement = function (element) {
+        PageIdentification.prototype.isTemplateElement = function (element) {
             var ancestors = getAncestors(element);
             var isTemplateForm = false;
             ancestors.forEach(function (ancestor) {
@@ -317,13 +248,13 @@
             return isTemplateForm;
         };
         /**
-         * @function _createElementMap
+         * @function createElementMap
          * @description Create an elements map of an HTMLElement
          * @param  {HTMLElement | Element} element the HTMLElement
          * @param  {Boolean} isSVG SVG are handled uniquely
          * @return {DomElementType[]} attributes about the HTMLFormElement
          */
-        PageIdentification.prototype._createElementMap = function (element, isSVG) {
+        PageIdentification.prototype.createElementMap = function (element, isSVG) {
             var _this = this;
             var childNodes = [];
             if (element.childNodes && element.childNodes.length > 0) {
@@ -335,10 +266,10 @@
             return childNodes.map(function (node) {
                 var id = node.id || null;
                 var className = node.className || null;
-                var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
+                var attributes = node.nodeType !== 1 ? [] : _this.getAttributes(node.attributes);
                 var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
                 var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
-                var children = _this._createElementMap(node, isSVG || node.type === 'svg');
+                var children = _this.createElementMap(node, isSVG || node.type === 'svg');
                 return {
                     id: id,
                     className: className,
@@ -352,12 +283,12 @@
             });
         };
         /**
-         * @function _createFormElementsMap
+         * @function createFormElementsMap
          * @description Create an elements map of a form HTMLFormElement
          * @param  {HTMLButtonElement} form the HTMLFormElement
          * @return {DomFormElementType[]} an array of form elements with attributes about the HTMLFormElement
          */
-        PageIdentification.prototype._createFormElementsMap = function (form) {
+        PageIdentification.prototype.createFormElementsMap = function (form) {
             var _this = this;
             var childNodes = [];
             if (form.childNodes && form.childNodes.length > 0) {
@@ -369,10 +300,10 @@
             return childNodes.map(function (node) {
                 var id = node.id || null;
                 var className = node.className || null;
-                var attributes = node.nodeType !== 1 ? [] : _this._getAttributes(node.attributes);
+                var attributes = node.nodeType !== 1 ? [] : _this.getAttributes(node.attributes);
                 var content = node.childNodes && node.childNodes.length > 0 ? null : node.textContent.trim();
                 var type = node.nodeType === 3 ? 'text' : node.tagName.toLowerCase();
-                var children = _this._createFormElementsMap(node);
+                var children = _this.createFormElementsMap(node);
                 return {
                     id: id,
                     className: className,
@@ -385,107 +316,107 @@
             });
         };
         /**
-         * @function _createButtonElementMap
+         * @function createButtonElementMap
          * @description Create an attribute map of a HTMLButton element
          * @param  {HTMLButtonElement} button: HTMLButton element
          * @return {DomButtonType} attributes about the HTMLButton
          */
-        PageIdentification.prototype._createButtonElementMap = function (button) {
+        PageIdentification.prototype.createButtonElementMap = function (button) {
             var _a;
             return {
                 id: button.id,
                 className: button.className,
                 content: ((_a = button.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
-                attributes: this._getAttributes(button.attributes),
+                attributes: this.getAttributes(button.attributes),
                 type: button.tagName.toLowerCase(),
                 ancestors: getAncestors(button),
             };
         };
         /**
-         * @function _createLinkElementMap
+         * @function createLinkElementMap
          * @description Create an attribute map of a HTMLAnchorElement element
          * @param  {HTMLAnchorElement} link: HTMLAnchorElement element
          * @param  {number} index used for reference if id is not provided
          * @return {DomLinkMapType} attributes about the HTMLAnchorElement
          */
-        PageIdentification.prototype._createLinkElementMap = function (link, index) {
+        PageIdentification.prototype.createLinkElementMap = function (link, index) {
             var _a;
             return {
                 id: link.id || "link-id-" + index,
-                isTemplateElement: this._isTemplateElement(link),
+                isTemplateElement: this.isTemplateElement(link),
                 className: link.className,
                 content: ((_a = link.textContent) === null || _a === void 0 ? void 0 : _a.trim()) || null,
-                attributes: this._getAttributes(link.attributes),
+                attributes: this.getAttributes(link.attributes),
                 type: link.tagName.toLowerCase(),
             };
         };
         /**
-         * @function _createDomLinkMap
+         * @function createDomLinkMap
          * @description Create a list of attribute maps for each HTMLAnchorElement element
          * @return {DomLinkMapType[]} an array of attributes about the HTMLAnchorElement
          */
-        PageIdentification.prototype._createDomLinkMap = function () {
+        PageIdentification.prototype.createDomLinkMap = function () {
             var _this = this;
             var links = document.querySelectorAll('a');
             var linksMap = [];
             Array.from(links).map(function (link, i) {
-                var mappedLink = _this._createLinkElementMap(link, i);
+                var mappedLink = _this.createLinkElementMap(link, i);
                 linksMap.push(mappedLink);
             });
             return linksMap;
         };
         /**
-         * @function _createDomFormMap
+         * @function createDomFormMap
          * @description Create a list of attribute maps for each HTMLFormElement element
          * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
          */
-        PageIdentification.prototype._createDomFormMap = function () {
+        PageIdentification.prototype.createDomFormMap = function () {
             var _this = this;
             var forms = document.querySelectorAll('form');
             var formsMap = [];
             Array.from(forms).map(function (form, i) {
                 var mappedForm = {
                     id: form.id || "form-id-" + i,
-                    isTemplateElement: _this._isTemplateElement(form),
-                    elements: _this._createFormElementsMap(form),
+                    isTemplateElement: _this.isTemplateElement(form),
+                    elements: _this.createFormElementsMap(form),
                 };
                 formsMap.push(mappedForm);
             });
             return formsMap;
         };
         /**
-         * @function _createDomButtonMap
+         * @function createDomButtonMap
          * @description Create a list of attribute maps for each HTMLFormElement element
          * @return {DomLinkMapType[]} an array of attributes about the HTMLFormElement
          */
-        PageIdentification.prototype._createDomButtonMap = function () {
+        PageIdentification.prototype.createDomButtonMap = function () {
             var _this = this;
             var buttons = document.querySelectorAll('button');
             var inputButtons = document.querySelectorAll('input[type="submit"]');
             var allButtons = Array.prototype.slice.call(buttons).concat(Array.prototype.slice.call(inputButtons));
             var buttonsMap = {};
             Array.from(allButtons).map(function (buttonNode, i) {
-                var buttonMap = _this._createButtonElementMap(buttonNode);
+                var buttonMap = _this.createButtonElementMap(buttonNode);
                 var buttonKey = buttonNode.id || "button-id-" + i;
                 buttonsMap[buttonKey] = buttonMap;
             });
             return buttonsMap;
         };
         /**
-         * @function _createDomIFrameMap
+         * @function createDomIFrameMap
          * @description
          * @return
          */
-        PageIdentification.prototype._createDomIFrameMap = function () {
+        PageIdentification.prototype.createDomIFrameMap = function () {
             var iframes = document.querySelectorAll('iframe');
             console.log({ iframes: iframes });
         };
         /**
-         * @function _createDomVideoMap
+         * @function createDomVideoMap
          * @description Create a list of attribute maps for each HTMLVideoElement element
          * @return {DomVideoMapType[]} an array of attributes about the HTMLVideoElement
          */
-        PageIdentification.prototype._createDomVideoMap = function () {
+        PageIdentification.prototype.createDomVideoMap = function () {
             var _this = this;
             // Search for video elements
             var videos = document.querySelectorAll('video');
@@ -496,19 +427,19 @@
             allVideoElements.map(function (video, i) {
                 var mappedForm = {
                     id: video.id || "video-id-" + i,
-                    elements: _this._createElementMap(video, false),
+                    elements: _this.createElementMap(video, false),
                 };
                 videosMap.push(mappedForm);
             });
             return videosMap;
         };
         /**
-         * @function _checkDomElementsForKeywords
+         * @function checkDomElementsForKeywords
          * @description Check url object to see if it contains a keyword in the keywords array.
          * @param {Element[]} elements: an array of element from the dom
          * @param {string[]} keywords: array of keywords to search from
          */
-        PageIdentification.prototype._checkDomElementsForKeywords = function (elements, keywords) {
+        PageIdentification.prototype.checkDomElementsForKeywords = function (elements, keywords) {
             var keywordMatches = [];
             elements.map(function (element) {
                 return keywords.find(function (k) {
@@ -520,207 +451,229 @@
                     }
                 });
             });
-            return !!keywordMatches.length ? keywordMatches : null;
+            return !!keywordMatches.length ? keywordMatches : [];
         };
         /**
-         * @function _checkUrlForKeywords
+         * @function checkUrlForKeywords
          * @description Check url object for keywords
-         * @param {ParsedURLProps} url: url object
+         * @param {string} url: url string
          * @param {string[]} keywords: array of keywords to search from
+         * @return {string[] | null}
          */
-        PageIdentification.prototype._checkUrlForKeywords = function (url, keywords) {
-            var pathname = url.pathname;
-            return pathname ? (keywords.find(function (k) { return pathname.includes(k); }) || null) : null;
+        PageIdentification.prototype.checkUrlForKeywords = function (url, keywords) {
+            return keywords.filter(function (k) { return url.includes(k); });
         };
         /**
-         * @function _isEcommPage
+         * @function checkForPaymentProcessorButton
+         * @description Check dom for payment processor button elements
+         */
+        PageIdentification.prototype.checkForPaymentProcessorButton = function () {
+            var _this = this;
+            var _a;
+            var paymentProcessors = (_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.eCommerce.paymentProcessors;
+            if (paymentProcessors) {
+                paymentProcessors.forEach(function (paymentProcessor) {
+                    if (paymentProcessor.identifier.selector == 'id') {
+                        var idButton = document.getElementById(paymentProcessor.identifier.query);
+                        if (idButton && _this.pageType) {
+                            _this.pageType.paymentProcessor = paymentProcessor;
+                        }
+                    }
+                    else if (paymentProcessor.identifier.selector == 'all') {
+                        var elementButton = document.querySelector(paymentProcessor.identifier.query);
+                        if (elementButton && _this.pageType) {
+                            _this.pageType.paymentProcessor = paymentProcessor;
+                        }
+                    }
+                });
+            }
+        };
+        PageIdentification.prototype.checkForPaymentProcessorScript = function () {
+            // TODO: Check for scripts
+        };
+        PageIdentification.prototype.checkForPaymentProcessor = function () {
+            this.checkForPaymentProcessorButton();
+            this.checkForPaymentProcessorScript();
+        };
+        /**
+         * @function isEcommPage
          * @description Check if page is an ecomm page by checking the url and dom for
          * ECOMM_KEYWORDS. If so, set the ecomm page flag true
          */
-        PageIdentification.prototype._isEcommPage = function () {
+        PageIdentification.prototype.isEcommPage = function () {
+            var _a, _b, _c;
             // Check for payment processor button
             // Determine if the JS objects, scripts or methods exist.
             // TODO: Get Clarity from Justin on this
-            var _this = this;
-            // Is there a PayPal button on the page?
-            // Check for button element: <paypal-button-container />
-            var paypalButton = document.querySelector('#paypal-button-container');
-            if (paypalButton) {
-                this.pageIdProps.eCommerce.dom.paypal = true;
-            }
-            // Is there a Google Pay button on the page?
-            // Check for button element: <google-pay-button />
-            var googlePayButton = document.querySelector('google-pay-button');
-            if (googlePayButton) {
-                this.pageIdProps.eCommerce.dom.google_pay = true;
-            }
-            // Is there an Apple Pay button on the page?
-            // Check for button element: <google-pay-button />
-            var applyPayButton = document.querySelector('apple-pay-button');
-            if (applyPayButton) {
-                this.pageIdProps.eCommerce.dom.apple_pay = true;
-            }
-            // <script src="https://js.stripe.com/v3/"></script>
-            // Is there a Stripe script on the page?
-            // Check for button element: <google-pay-button />
-            document.querySelectorAll('script');
-            if (applyPayButton) {
-                this.pageIdProps.eCommerce.dom.apple_pay = true;
-            }
-            // Does the URL contain ecommerce keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, ECOMM_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.eCommerce.url[keyword] = true;
+            this.checkForPaymentProcessor();
+            if (((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.eCommerce.keywords) && this.pageType) {
+                var keywords = this.pageIdProps.eCommerce.keywords;
+                // Does the URL contain ecommerce keywords?
+                if ((_b = this.url) === null || _b === void 0 ? void 0 : _b.pathname) {
+                    this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
                 }
-            }
-            // Does the DOM contain ecommerce keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, ECOMM_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.eCommerce.dom[keyword] = true; }));
+                // Does the DOM contain ecommerce keywords?
+                if (this.elements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
                 }
             }
             // Check if page is an ecomm page
-            this.pageIdProps.eCommerce.isEcommPage = (Object.values(this.pageIdProps.eCommerce.dom).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.eCommerce.url).some(function (value) { return value; }));
+            if (this.pageType && (this.pageType.paymentProcessor || this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
+                this.pageType.type = 'ecomm';
+                return true;
+            }
+            else {
+                this.pageType = null;
+                return false;
+            }
         };
         /**
-         * @function _isConfirmationPage
+         * @function isConfirmationPage
          * @description Check if page is a confirmation page by checking the url and dom
          * for CONFIRMATION_KEYWORDS. If so, will set the confirmation page flag true
          */
-        PageIdentification.prototype._isConfirmationPage = function () {
-            var _this = this;
-            // Does the URL contain CONFIRMATION_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, CONFIRMATION_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.confirmation.url[keyword] = true;
+        PageIdentification.prototype.isConfirmationPage = function () {
+            var _a, _b, _c;
+            if (((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.confirmation.keywords) && this.pageType) {
+                var keywords = this.pageIdProps.confirmation.keywords;
+                // Does the URL contain confirmation keywords?
+                if ((_b = this.url) === null || _b === void 0 ? void 0 : _b.pathname) {
+                    this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
                 }
-            }
-            // Does the DOM contain CONFIRMATION_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, CONFIRMATION_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.confirmation.dom[keyword] = true; }));
+                // Does the DOM contain confirmation keywords?
+                if (this.elements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
                 }
             }
             // Check if page is a confirmation page
-            this.pageIdProps.confirmation.isConfirmationPage = (Object.values(this.pageIdProps.confirmation.dom).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.confirmation.url).some(function (value) { return value; }));
+            if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
+                this.pageType.type = 'confirmation';
+                return true;
+            }
+            else {
+                this.pageType = null;
+                return false;
+            }
         };
         /**
-         * @function _isLeadGenPage
-         * @description Check if page is a lead gen page by checking the url and dom
-         * for LEAD_GEN_KEYWORDS. If so, will set the lead gen page flag true
+         * @function isLeadGenPage
+         * @description Check if page is a lead gen page by for form email input. If so, will set the lead gen page flag true
          */
-        PageIdentification.prototype._isLeadGenPage = function () {
-            var _this = this;
-            // Does the DOM contain LEAD_GEN_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, LEAD_GEN_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.lead_gen.dom[keyword] = true; }));
-                }
-            }
+        PageIdentification.prototype.isLeadGenPage = function () {
             // Check if page is a lead gen page
-            this.pageIdProps.lead_gen.isLeadGenPage = (Object.values(this.pageIdProps.lead_gen.dom).some(function (value) { return value; }));
+            var emailInput = document.querySelector('input[type="email"]');
+            if (this.pageType && emailInput) {
+                this.pageType.type = 'lead_gen';
+                return true;
+            }
+            else {
+                this.pageType = null;
+                return false;
+            }
         };
         /**
-         * @function _isContactPage
+         * @function isContactUsPage
          * @description Check if page is a contact page by checking the url and dom
-         * for CONTACT_KEYWORDS. If so, will set the contact page flag true
+         * for CONTACT_US_KEYWORDS. If so, will set the contact page flag true
          */
-        PageIdentification.prototype._isContactPage = function () {
-            var _this = this;
-            // Does the URL contain CONTACT_US_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, CONTACT_US_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.contact_us.url[keyword] = true;
+        PageIdentification.prototype.isContactUsPage = function () {
+            var _a, _b, _c;
+            if (((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.contactUs.keywords) && this.pageType) {
+                var keywords = this.pageIdProps.contactUs.keywords;
+                // Does the URL contain contact us keywords?
+                if ((_b = this.url) === null || _b === void 0 ? void 0 : _b.pathname) {
+                    this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
+                }
+                // Does the DOM contain contact us keywords?
+                if (this.elements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
                 }
             }
-            // Does the DOM contain CONTACT_US_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, CONTACT_US_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.contact_us.dom[keyword] = true; }));
-                }
+            // Check if page is a contact us page
+            if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
+                this.pageType.type = 'contact_us';
+                return true;
             }
-            // Check if page is a contact page
-            this.pageIdProps.contact_us.isContactUsPage = (Object.values(this.pageIdProps.contact_us.url).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.contact_us.dom).some(function (value) { return value; }));
+            else {
+                this.pageType = null;
+                return false;
+            }
         };
         /**
-         * @function _isCareersPage
+         * @function isCareersPage
          * @description Check if page is a careers' page by checking the url and dom
          * for CAREERS_KEYWORDS. If so, will set the careers' page flag true
          */
-        PageIdentification.prototype._isCareersPage = function () {
-            // Does the URL contain CAREERS_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, CAREERS_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.careers.url[keyword] = true;
+        PageIdentification.prototype.isCareersPage = function () {
+            var _a, _b, _c;
+            if (((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.careers.keywords) && this.pageType) {
+                var keywords = this.pageIdProps.careers.keywords;
+                // Does the URL contain careers keywords?
+                if ((_b = this.url) === null || _b === void 0 ? void 0 : _b.pathname) {
+                    this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
                 }
-                // Check if page is careers page
-                this.pageIdProps.careers.isCareersPage = (Object.values(this.pageIdProps.careers.url).some(function (value) { return value; }));
+            }
+            // Check if page is a contact us page
+            if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
+                this.pageType.type = 'careers';
+                return true;
+            }
+            else {
+                this.pageType = null;
+                return false;
             }
         };
         /**
-         * @function _isBlogPage
+         * @function isBlogPage
          * @description Check if page is a blog page by checking the url and dom
          * for BLOG_KEYWORDS. If so, will set the blog page flag true
          */
-        PageIdentification.prototype._isBlogPage = function () {
-            var _this = this;
-            // Does the URL contain BLOG_KEYWORDS keywords?
-            if (this.url) {
-                var keyword = this._checkUrlForKeywords(this.url, BLOG_KEYWORDS);
-                if (keyword) {
-                    this.pageIdProps.blog.url[keyword] = true;
+        PageIdentification.prototype.isBlogPage = function () {
+            var _a, _b, _c;
+            if (((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.blog.keywords) && this.pageType) {
+                var keywords = this.pageIdProps.blog.keywords;
+                // Does the URL contain blog keywords?
+                if ((_b = this.url) === null || _b === void 0 ? void 0 : _b.pathname) {
+                    this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
                 }
-            }
-            // Does the DOM contain BLOG_KEYWORDS keywords?
-            if (this.elements) {
-                var keywords = this._checkDomElementsForKeywords(this.elements, BLOG_KEYWORDS);
-                if (keywords) {
-                    keywords.forEach((function (keyword) { return _this.pageIdProps.blog.dom[keyword] = true; }));
+                // Does the DOM contain contact us keywords?
+                if (this.elements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
                 }
             }
             // Check if page is a blog page
-            this.pageIdProps.blog.isBlogPage = (Object.values(this.pageIdProps.blog.url).some(function (value) { return value; }) ||
-                Object.values(this.pageIdProps.blog.dom).some(function (value) { return value; }));
+            if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
+                this.pageType.type = 'blog';
+                return true;
+            }
+            else {
+                this.pageType = null;
+                return false;
+            }
         };
         /**
-         * @function _checkGeneralProperties
-         * @description Check page for general page properties. Will set general attributes
-         * on general page id properties
-         */
-        PageIdentification.prototype._checkGeneralProperties = function () {
-            var _a;
-            // How many form inputs are on the page?
-            var pageForms = this.forms && this.forms.filter(function (f) { return !f.isTemplateElement; });
-            this.pageIdProps.general.form_inputs_on_page = (pageForms === null || pageForms === void 0 ? void 0 : pageForms.length) || 0;
-            // How many videos are on the page?
-            this.pageIdProps.general.videos_on_page = ((_a = this.videos) === null || _a === void 0 ? void 0 : _a.length) || 0;
-            // How much content is on the page?
-            // TODO: Get Clarity from Justin on this
-        };
-        /**
-         * @function _checkMiscProperties
+         * @function checkMiscProperties
          * @description Check page for misc page properties. Will set general attributes
          * on misc page id properties
          */
-        PageIdentification.prototype._checkMiscProperties = function () {
-            // What buttons are on the page?
+        PageIdentification.prototype.checkMiscProperties = function () {
+            var _a;
+            if (this.pageType) {
+                // How many form inputs are on the page?
+                var pageForms = this.forms && this.forms.filter(function (f) { return !f.isTemplateElement; });
+                this.pageType.formInputsOnPage = (pageForms === null || pageForms === void 0 ? void 0 : pageForms.length) || 0;
+                // How many videos are on the page?
+                this.pageType.videosOnPage = ((_a = this.videos) === null || _a === void 0 ? void 0 : _a.length) || 0;
+                // How much content is on the page?
+                // TODO: Get Clarity from Justin on this
+                // What buttons are on the page?
+            }
         };
         /**
-         * @function _mapDom
+         * @function mapDom
          * @description Get and set, parsed Dom scripts and elements
          */
-        PageIdentification.prototype._mapDom = function () {
+        PageIdentification.prototype.mapDom = function () {
             // Select all page elements
             var docElements = document.querySelectorAll('*');
             // Select all scripts
@@ -728,29 +681,62 @@
             // Set DOM mapped attributes
             this.elements = Array.from(docElements);
             this.scripts = Array.from(scripts);
-            this.buttons = this._createDomButtonMap();
-            this.forms = this._createDomFormMap();
-            this.links = this._createDomLinkMap();
-            this.videos = this._createDomVideoMap();
+            this.buttons = this.createDomButtonMap();
+            this.forms = this.createDomFormMap();
+            this.links = this.createDomLinkMap();
+            this.videos = this.createDomVideoMap();
             // TODO: Check IFrames somehow
-            // this._createDomIFrameMap()
+            // this.createDomIFrameMap()
             // this.iframes = domMap.iframes
         };
+        PageIdentification.prototype.trackPage = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var MP, e_2;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
+                            MP = window.MP;
+                            if (!MP) {
+                                console.error('MP: No MP instance exists.');
+                                return [2 /*return*/, false];
+                            }
+                            console.log("Track Page Request Body:", { pageType: this.pageType });
+                            return [4 /*yield*/, MP.apiRequest('POST', 'track-page', this.pageType)];
+                        case 1:
+                            _a.sent();
+                            return [2 /*return*/, true];
+                        case 2:
+                            e_2 = _a.sent();
+                            console.error("Error tracking page: " + e_2);
+                            return [2 /*return*/, false];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        };
         /**
-         * @function _checkForPage
-         * @description Run sequence of checks to determine what page the user is on
+         * @function identifyPage
+         * @description Run sequence of checks to determine what page the user is on.
+         * Once identified, will call the track-page api
          */
-        PageIdentification.prototype._checkForPage = function () {
-            // TODO: Once page has been identified, can we stop checking?
-            this._isEcommPage();
-            this._isConfirmationPage();
-            this._isLeadGenPage();
-            this._isContactPage();
-            this._isBlogPage();
-            this._isCareersPage();
-            // General and Misc items on the page
-            this._checkGeneralProperties();
-            this._checkMiscProperties();
+        PageIdentification.prototype.identifyPage = function () {
+            // Check for misc items on the page first
+            // These are included in every api call
+            this.checkMiscProperties();
+            // Check for page type
+            // Stop checking once a page has been identified
+            // TODO: Implement breakout from page check
+            var isEcommPage = this.isEcommPage();
+            if (isEcommPage) {
+                this.trackPage();
+                return;
+            }
+            this.isConfirmationPage();
+            this.isLeadGenPage();
+            this.isContactUsPage();
+            this.isBlogPage();
+            this.isCareersPage();
         };
         return PageIdentification;
     }());
@@ -763,7 +749,7 @@
      */
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var siteId, MP, PageID, accountIsActive;
+            var siteId, MP, accountIsActive, PageId;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -777,18 +763,22 @@
                             console.error('MP: No MP object found on window');
                             return [2 /*return*/, false];
                         }
-                        PageID = new PageIdentification(siteId);
-                        window.MP_PageIdentification = PageID;
                         return [4 /*yield*/, MP.authenticateAccount()];
                     case 1:
                         accountIsActive = _a.sent();
                         if (!accountIsActive) return [3 /*break*/, 3];
                         console.debug('MP: Account is active.');
+                        PageId = new PageIdentification();
+                        window.MP_PageIdentification = PageId;
                         // Initialize MP class
-                        return [4 /*yield*/, PageID.init()];
+                        return [4 /*yield*/, PageId.init()
+                            // Identify the page
+                        ];
                     case 2:
                         // Initialize MP class
                         _a.sent();
+                        // Identify the page
+                        PageId.identifyPage();
                         return [3 /*break*/, 4];
                     case 3:
                         console.error("MP: Account is not active for site id " + siteId + ".");

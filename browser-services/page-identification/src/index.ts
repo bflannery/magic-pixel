@@ -23,17 +23,20 @@ async function init() {
     return false
   }
 
-  // Create new MP class and add to window
-  const PageID = new PageIdentification(siteId)
-  window.MP_PageIdentification = PageID
-
   // Check if account is active
   const accountIsActive = await MP.authenticateAccount()
   if (accountIsActive) {
     console.debug('MP: Account is active.')
 
+    // Create new MP class and add to window
+    const PageId = new PageIdentification()
+    window.MP_PageIdentification = PageId
+
     // Initialize MP class
-    await PageID.init()
+    await PageId.init()
+
+    // Identify the page
+    PageId.identifyPage()
   } else {
     console.error(`MP: Account is not active for site id ${siteId}.`)
   }

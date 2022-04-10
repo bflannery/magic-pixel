@@ -36,7 +36,6 @@ export default class MagicPixel {
 
   async init(): Promise<void> {
     console.debug('MP: Initializing Magic Pixel')
-    console.log({ MP: this })
 
     const mpContext = this._getStorageContext()
     const sessionId = this._getStorageSessionId()
@@ -50,6 +49,8 @@ export default class MagicPixel {
     if (this.sessionId) {
       this._setStorageSessionId(this.sessionId)
     }
+
+    console.log({ MagicPixel: this })
   }
 
   // Context
@@ -98,6 +99,8 @@ export default class MagicPixel {
 
   // TODO: Define return type
   async apiRequest(method: string, endpoint: string, body: object): Promise<any | boolean> {
+
+    // TODO: Add better verification and validation before api requests get sent
     try {
       if (!this.context?.accountSiteId) {
         console.warn('MP: Error: Missing ids, cannot track event')

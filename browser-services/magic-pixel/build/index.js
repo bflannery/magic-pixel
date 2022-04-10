@@ -2659,7 +2659,6 @@
                 var mpContext, sessionId;
                 return __generator(this, function (_a) {
                     console.debug('MP: Initializing Magic Pixel');
-                    console.log({ MP: this });
                     mpContext = this._getStorageContext();
                     sessionId = this._getStorageSessionId();
                     this.context.visitorUUID = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.visitorUUID) || uuidv4();
@@ -2670,6 +2669,7 @@
                     if (this.sessionId) {
                         this._setStorageSessionId(this.sessionId);
                     }
+                    console.log({ MagicPixel: this });
                     return [2 /*return*/];
                 });
             });
@@ -2894,7 +2894,7 @@
      */
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var siteId, MP, accountIsActive, eventTrackingScript;
+            var siteId, MP, accountIsActive, eventTrackingScript, pageIdentificationScript;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -2910,18 +2910,23 @@
                         accountIsActive = _a.sent();
                         if (!accountIsActive) return [3 /*break*/, 3];
                         console.debug('MP: Account is active.');
-                        // Initialize MP class
+                        // initialize MP class
                         return [4 /*yield*/, MP.init()
                             // create a new event-tracker script element
                         ];
                     case 2:
-                        // Initialize MP class
+                        // initialize MP class
                         _a.sent();
                         eventTrackingScript = document.createElement('script');
                         eventTrackingScript.src = "http://localhost:8082/mp-event-tracker.js?sid=" + siteId;
                         eventTrackingScript.async = true;
                         // insert the event-tracker script element into doc
                         document.head.appendChild(eventTrackingScript);
+                        pageIdentificationScript = document.createElement('script');
+                        pageIdentificationScript.src = "http://localhost:8083/mp-page-identification.js?sid=" + siteId;
+                        pageIdentificationScript.async = true;
+                        // insert the page-identification script element into doc
+                        document.head.appendChild(pageIdentificationScript);
                         return [3 /*break*/, 4];
                     case 3:
                         console.error("MP: Account is not active for site id " + siteId + ".");
@@ -2931,7 +2936,7 @@
             });
         });
     }
-    // Wait until all elements are on the pageIdentification from initial load
+    // wait until all elements are on the pageIdentification from initial load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     }
