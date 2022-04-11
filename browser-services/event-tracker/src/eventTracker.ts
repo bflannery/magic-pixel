@@ -227,7 +227,7 @@ export default class EventTracker {
         return false
       }
 
-      const response = await MP.apiRequest('POST', 'collection', event)
+      const response = await MP.apiRequest('POST', 'event/collection', event)
       if (response.status === '403') {
         console.warn('MP: Unauthorized')
         // TODO: Invalidate local storage data
@@ -262,7 +262,7 @@ export default class EventTracker {
       const mpEvent = this._createEvent(eventName, properties)
 
       console.log('Customer Tracking Event: ', { mpEvent })
-      await MP.apiRequest('POST', 'collection', mpEvent)
+      await MP.apiRequest('POST', 'event/collection', mpEvent)
       return true
     } catch (e) {
       console.error('MP: Error trying to track event.')
@@ -343,6 +343,7 @@ export default class EventTracker {
    * By default, unique visitors are tracked using a UUID generated the first time they visit the site.
    * Should be called when you know the identity of the current visitor (i.e login or signup).
    */
+
   async identify(distinctUserId: string): Promise<boolean> {
     try {
       const MP = window.MP
@@ -350,12 +351,6 @@ export default class EventTracker {
         console.error('MP: No MP instance exists.')
         return false
       }
-
-      const body = {
-        distinctUserId: distinctUserId,
-      }
-
-      await MP.apiRequest('POST', 'identify', body)
       await MP.setIdentifiedUser(distinctUserId)
       return true
     } catch (e) {

@@ -1,7 +1,7 @@
 from magic_pixel import logger
 from magic_pixel.constants import AttributeTypeEnum
 from magic_pixel.db import db
-from magic_pixel.lib.aws_sqs import identity_queue
+from magic_pixel.lib.aws_sqs import event_identity_queue
 from magic_pixel.models import Visitor, VisitorPerson, Person, PersonAlias, Alias
 from magic_pixel.services.event import parse_event
 from magic_pixel.services.event_form import build_form_field_map
@@ -106,7 +106,7 @@ def identify_alias(distinct_person_id: str, visitor_uuid: str):
     return alias
 
 
-def ingest_identity_message(event) -> bool:
+def ingest_event_identity_message(event) -> bool:
     logger.log_info(f"ingest identity message: {event}")
     try:
         # Parse event
@@ -148,5 +148,5 @@ def ingest_identity_message(event) -> bool:
         return False
 
 
-def queue_identity_service(event: dict) -> bool:
-    return identity_queue.send_message(event)
+def queue_event_identity_service(event: dict) -> bool:
+    return event_identity_queue.send_message(event)

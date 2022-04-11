@@ -46,4 +46,5 @@ class Queue:
 
 
 event_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_EVENT_QUEUE_NAME")))
-identity_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_IDENTITY_QUEUE_NAME")))
+event_identity_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_EVENT_IDENTITY_QUEUE_NAME")))
+page_identification_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_PAGE_IDENTIFICATION_QUEUE_NAME")))

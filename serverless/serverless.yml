@@ -52,7 +52,8 @@ provider:
     SQS_REGION: ${self:custom.sqs.region}
     SQS_ENDPOINT_URL: ${self:custom.sqs.endpointUrl}
     SQS_EVENT_QUEUE_NAME: ${self:custom.sqs.eventQueueName}
-    SQS_IDENTITY_QUEUE_NAME: ${self:custom.sqs.identityQueueName}
+    SQS_EVENT_IDENTITY_QUEUE_NAME: ${self:custom.sqs.eventIdentityQueueName}
+    SQS_PAGE_IDENTIFICATION_QUEUE_NAME: ${self:custom.sqs.pageIdentificationQueueName}
     SECRET_KEY: ${self:custom.flask.secretKey}
     POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
     POSTGRES_PW: ${self:custom.postgres.${opt:stage, 'dev'}.pw}
@@ -100,7 +101,8 @@ custom:
     region: 'us-east-1'
     endpointUrl: ''
     eventQueueName: ${opt:stage, 'dev'}-event-queue
-    identityQueueName: ${opt:stage, 'dev'}-identity-queue
+    eventIdentityQueueName: ${opt:stage, 'dev'}-event-identity-queue
+    pageIdentificationQueueName: ${opt:stage, 'dev'}-page-identification-queue
   postgres:
     local:
       user: 'postgres'
@@ -175,31 +177,40 @@ functions:
             allowCredentials: true
             maxAge: 86400
   authentication:
-    handler: lambdas.authentication
+    handler: ./lambdas/authentication.authentication
     timeout: 30
     memorySize: 512
     events:
       - http:
           path: /authentication
           method: post
-  identify:
-    handler: lambdas.identify
+  identify-page:
+    handler: ./lambdas/page_identification.identify_page
     timeout: 30
     memorySize: 512
     events:
       - http:
-          path: /identify
+          path: identify/page
           method: post
-  collection:
-    handler: lambdas.collection
+  page-identification:
+    handler: ./lambdas/page_identification.page_identification
+    timeout: 60
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - PageIdentificationQueue
+              - Arn
+  event-collection:
+    handler: ./lambdas/events.event_collection
     timeout: 30
     memorySize: 512
     events:
       - http:
-          path: /collection
+          path: event/collection
           method: post
-  ingestion:
-    handler: lambdas.ingestion
+  event-ingestion:
+    handler: ./lambdas/events.event_ingestion
     timeout: 60
     events:
       - sqs:
@@ -207,14 +218,14 @@ functions:
             Fn::GetAtt:
               - EventQueue
               - Arn
-  identity:
-    handler: lambdas.identity
+  event-identity:
+    handler: ./lambdas/events.event_identity
     timeout: 60
     events:
       - sqs:
           arn:
             Fn::GetAtt:
-              - IdentityQueue
+              - EventIdentityQueue
               - Arn
 
 resources:
@@ -235,20 +246,35 @@ resources:
       Properties:
         QueueName: ${self:custom.sqs.eventQueueName}-deadletter
         MessageRetentionPeriod: 604800
-    IdentityQueue:
+    EventIdentityQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:custom.sqs.identityQueueName}
+        QueueName: ${self:custom.sqs.eventIdentityQueueName}
         VisibilityTimeout: 300
         RedrivePolicy:
           maxReceiveCount: 5
           deadLetterTargetArn:
             Fn::GetAtt:
-              - IdentityDLQueue
+              - EventIdentityDLQueue
               - Arn
-    IdentityDLQueue:
+    EventIdentityDLQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:custom.sqs.identityQueueName}-deadletter
+        QueueName: ${self:custom.sqs.eventIdentityQueueName}-deadletter
         MessageRetentionPeriod: 604800
-
+    PageIdentificationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqs.pageIdentificationQueueName}
+        VisibilityTimeout: 300
+        RedrivePolicy:
+          maxReceiveCount: 5
+          deadLetterTargetArn:
+            Fn::GetAtt:
+              - PageIdentificationQueueDLQueue
+              - Arn
+    PageIdentificationQueueDLQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqs.pageIdentificationQueueName}-deadletter
+        MessageRetentionPeriod: 604800

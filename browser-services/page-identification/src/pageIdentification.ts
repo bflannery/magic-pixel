@@ -10,11 +10,20 @@ import {
   PageIdPropsType, PageType, PaymentProcessorType,
 } from './types'
 import { getAncestors } from './dom'
-import { MISC_PAGE_PROPS } from './constants'
+import {MISC_PAGE_PROPS, PageCategoryEnum} from './constants'
 import { ParsedURLProps, parseLocation } from './utils'
 
+const DEFAULT_PAGE = {
+  domKeywords: [],
+  urlKeywords: [],
+  category: PageCategoryEnum.GENERAL,
+  formInputsOnPage: 0,
+  videosOnPage: 0,
+  contentOnPage: 0
+}
+
 export default class PageIdentification {
-  pageType: PageType | null
+  pageType: PageType
   pageIdProps: PageIdPropsType | null
   url: ParsedURLProps | null
   scripts: HTMLScriptElement[] | null
@@ -25,7 +34,7 @@ export default class PageIdentification {
   videos: DomVideoMapType[] | null
 
   constructor() {
-    this.pageType = null
+    this.pageType = DEFAULT_PAGE
     this.pageIdProps = null
     this.url = null
     this.scripts = null
@@ -55,7 +64,7 @@ export default class PageIdentification {
    */
   async getPageIdPropsFromS3() {
     try {
-      const response = await fetch("https://magic-pixel-public.s3.amazonaws.com/pageidproperties.json")
+      const response = await fetch("https://magic-pixel-public.s3.amazonaws.com/page_id_properties.json")
       const s3JsonData = await response.json()
       this.pageIdProps = {
         ...MISC_PAGE_PROPS,
@@ -389,10 +398,10 @@ export default class PageIdentification {
 
     // Check if page is an ecomm page
     if (this.pageType && (this.pageType.paymentProcessor || this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-      this.pageType.type = 'ecomm'
+      this.pageType.category = 'ecomm'
       return true
     } else {
-      this.pageType = null
+      this.pageType = DEFAULT_PAGE
       return false
     }
   }
@@ -403,7 +412,7 @@ export default class PageIdentification {
    * for CONFIRMATION_KEYWORDS. If so, will set the confirmation page flag true
    */
   isConfirmationPage(): boolean {
-    if (this.pageIdProps?.confirmation.keywords && this.pageType) {
+    if (this.pageIdProps?.confirmation.keywords) {
       const keywords =  this.pageIdProps.confirmation.keywords
       // Does the URL contain confirmation keywords?
       if (this.url?.pathname) {
@@ -416,12 +425,14 @@ export default class PageIdentification {
       }
     }
 
+    console.log({ pageType: this.pageType})
+
     // Check if page is a confirmation page
     if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-      this.pageType.type = 'confirmation'
+      this.pageType.category = 'confirmation'
       return true
     } else {
-      this.pageType = null
+      this.pageType = DEFAULT_PAGE
       return false
     }
   }
@@ -434,10 +445,10 @@ export default class PageIdentification {
     // Check if page is a lead gen page
     const emailInput = document.querySelector('input[type="email"]')
     if (this.pageType && emailInput) {
-      this.pageType.type = 'lead_gen'
+      this.pageType.category = 'lead_gen'
       return true
     } else {
-      this.pageType = null
+      this.pageType = DEFAULT_PAGE
       return false
     }
   }
@@ -463,10 +474,10 @@ export default class PageIdentification {
 
     // Check if page is a contact us page
     if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-      this.pageType.type = 'contact_us'
+      this.pageType.category = 'contact_us'
       return true
     } else {
-      this.pageType = null
+      this.pageType = DEFAULT_PAGE
       return false
     }
   }
@@ -487,10 +498,10 @@ export default class PageIdentification {
 
     // Check if page is a contact us page
     if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-      this.pageType.type = 'careers'
+      this.pageType.category = 'careers'
       return true
     } else {
-      this.pageType = null
+      this.pageType = DEFAULT_PAGE
       return false
     }
   }
@@ -516,10 +527,10 @@ export default class PageIdentification {
 
     // Check if page is a blog page
     if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-      this.pageType.type = 'blog'
+      this.pageType.category = 'blog'
       return true
     } else {
-      this.pageType = null
+      this.pageType = DEFAULT_PAGE
       return false
     }
   }
@@ -567,15 +578,15 @@ export default class PageIdentification {
     // this.iframes = domMap.iframes
   }
 
-  async trackPage(): Promise<boolean> {
+  async trackIdentifiedPage(): Promise<boolean> {
     try {
       const MP = window.MP
       if (!MP) {
         console.error('MP: No MP instance exists.')
         return false
       }
-      console.log(`Track Page Request Body:`, { pageType: this.pageType })
-      await MP.apiRequest('POST', 'track-page', this.pageType)
+      console.log(`Track Identified Page Request Body:`, { pageType: this.pageType })
+      await MP.apiRequest('POST', 'identify/page', this.pageType)
       return true
     } catch(e) {
       console.error(`Error tracking page: ${e}`)
@@ -597,8 +608,9 @@ export default class PageIdentification {
     // Stop checking once a page has been identified
     // TODO: Implement breakout from page check
     const isEcommPage = this.isEcommPage()
+    console.log({ isEcommPage })
     if (isEcommPage) {
-      this.trackPage()
+      this.trackIdentifiedPage()
       return
     }
     this.isConfirmationPage()

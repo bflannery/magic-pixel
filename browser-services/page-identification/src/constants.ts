@@ -6,3 +6,12 @@ export const MISC_PAGE_PROPS = {
   hasTopbar: false,
   hasNavbar: false,
 }
+
+export const PageCategoryEnum = {
+  ECOMM: 'ecomm',
+  LEAD: 'lead_gen',
+  CONTACT: 'contact_us',
+  CAREERS: 'careers',
+  BLOG: 'blog',
+  GENERAL: 'general',
+}

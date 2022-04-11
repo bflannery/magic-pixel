@@ -76,9 +76,6 @@ interface MiscPageAttributesType {
   formInputsOnPage: number
   videosOnPage: number
   contentOnPage: number
-  hasSidebar: boolean
-  hasTopbar: boolean
-  hasNavbar: boolean
 }
 
 export interface PaymentProcessorType {
@@ -90,25 +87,14 @@ export interface PaymentProcessorType {
   }
 }
 
-interface PageAttributesType extends MiscPageAttributesType {
+
+export interface PageType extends MiscPageAttributesType {
+  paymentProcessor?: PaymentProcessorType
   domKeywords: string[]
   urlKeywords: string[]
-  type:
-    'ecomm' |
-    'lead_gen' |
-    'confirmation' |
-    'contact_us' |
-    'careers' |
-    'blog'
+  category: string
 }
 
-
-interface EcommPageType extends PageAttributesType {
-  paymentProcessor: PaymentProcessorType
-}
-
-export type PageType = EcommPageType | null
-type IdentifiedPage = EcommPageType | null
 
 export interface PageIdPropsType {
   eCommerce: {

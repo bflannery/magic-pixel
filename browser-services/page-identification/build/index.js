@@ -145,10 +145,26 @@
         hasTopbar: false,
         hasNavbar: false,
     };
+    var PageCategoryEnum = {
+        ECOMM: 'ecomm',
+        LEAD: 'lead_gen',
+        CONTACT: 'contact_us',
+        CAREERS: 'careers',
+        BLOG: 'blog',
+        GENERAL: 'general',
+    };
 
+    var DEFAULT_PAGE = {
+        domKeywords: [],
+        urlKeywords: [],
+        category: PageCategoryEnum.GENERAL,
+        formInputsOnPage: 0,
+        videosOnPage: 0,
+        contentOnPage: 0
+    };
     var PageIdentification = /** @class */ (function () {
         function PageIdentification() {
-            this.pageType = null;
+            this.pageType = DEFAULT_PAGE;
             this.pageIdProps = null;
             this.url = null;
             this.scripts = null;
@@ -192,7 +208,7 @@
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 3, , 4]);
-                            return [4 /*yield*/, fetch("https://magic-pixel-public.s3.amazonaws.com/pageidproperties.json")];
+                            return [4 /*yield*/, fetch("https://magic-pixel-public.s3.amazonaws.com/page_id_properties.json")];
                         case 1:
                             response = _a.sent();
                             return [4 /*yield*/, response.json()];
@@ -519,11 +535,11 @@
             }
             // Check if page is an ecomm page
             if (this.pageType && (this.pageType.paymentProcessor || this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-                this.pageType.type = 'ecomm';
+                this.pageType.category = 'ecomm';
                 return true;
             }
             else {
-                this.pageType = null;
+                this.pageType = DEFAULT_PAGE;
                 return false;
             }
         };
@@ -534,7 +550,7 @@
          */
         PageIdentification.prototype.isConfirmationPage = function () {
             var _a, _b, _c;
-            if (((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.confirmation.keywords) && this.pageType) {
+            if ((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.confirmation.keywords) {
                 var keywords = this.pageIdProps.confirmation.keywords;
                 // Does the URL contain confirmation keywords?
                 if ((_b = this.url) === null || _b === void 0 ? void 0 : _b.pathname) {
@@ -545,13 +561,14 @@
                     this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
                 }
             }
+            console.log({ pageType: this.pageType });
             // Check if page is a confirmation page
             if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-                this.pageType.type = 'confirmation';
+                this.pageType.category = 'confirmation';
                 return true;
             }
             else {
-                this.pageType = null;
+                this.pageType = DEFAULT_PAGE;
                 return false;
             }
         };
@@ -563,11 +580,11 @@
             // Check if page is a lead gen page
             var emailInput = document.querySelector('input[type="email"]');
             if (this.pageType && emailInput) {
-                this.pageType.type = 'lead_gen';
+                this.pageType.category = 'lead_gen';
                 return true;
             }
             else {
-                this.pageType = null;
+                this.pageType = DEFAULT_PAGE;
                 return false;
             }
         };
@@ -591,11 +608,11 @@
             }
             // Check if page is a contact us page
             if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-                this.pageType.type = 'contact_us';
+                this.pageType.category = 'contact_us';
                 return true;
             }
             else {
-                this.pageType = null;
+                this.pageType = DEFAULT_PAGE;
                 return false;
             }
         };
@@ -615,11 +632,11 @@
             }
             // Check if page is a contact us page
             if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-                this.pageType.type = 'careers';
+                this.pageType.category = 'careers';
                 return true;
             }
             else {
-                this.pageType = null;
+                this.pageType = DEFAULT_PAGE;
                 return false;
             }
         };
@@ -643,11 +660,11 @@
             }
             // Check if page is a blog page
             if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
-                this.pageType.type = 'blog';
+                this.pageType.category = 'blog';
                 return true;
             }
             else {
-                this.pageType = null;
+                this.pageType = DEFAULT_PAGE;
                 return false;
             }
         };
@@ -689,7 +706,7 @@
             // this.createDomIFrameMap()
             // this.iframes = domMap.iframes
         };
-        PageIdentification.prototype.trackPage = function () {
+        PageIdentification.prototype.trackIdentifiedPage = function () {
             return __awaiter(this, void 0, void 0, function () {
                 var MP, e_2;
                 return __generator(this, function (_a) {
@@ -701,8 +718,8 @@
                                 console.error('MP: No MP instance exists.');
                                 return [2 /*return*/, false];
                             }
-                            console.log("Track Page Request Body:", { pageType: this.pageType });
-                            return [4 /*yield*/, MP.apiRequest('POST', 'track-page', this.pageType)];
+                            console.log("Track Identified Page Request Body:", { pageType: this.pageType });
+                            return [4 /*yield*/, MP.apiRequest('POST', 'identify/page', this.pageType)];
                         case 1:
                             _a.sent();
                             return [2 /*return*/, true];
@@ -728,8 +745,9 @@
             // Stop checking once a page has been identified
             // TODO: Implement breakout from page check
             var isEcommPage = this.isEcommPage();
+            console.log({ isEcommPage: isEcommPage });
             if (isEcommPage) {
-                this.trackPage();
+                this.trackIdentifiedPage();
                 return;
             }
             this.isConfirmationPage();

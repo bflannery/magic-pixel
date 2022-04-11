@@ -687,7 +687,7 @@
                                 console.error('MP: No MP instance exists.');
                                 return [2 /*return*/, false];
                             }
-                            return [4 /*yield*/, MP.apiRequest('POST', 'collection', event_1)];
+                            return [4 /*yield*/, MP.apiRequest('POST', 'event/collection', event_1)];
                         case 2:
                             response = _a.sent();
                             if (response.status === '403') {
@@ -731,7 +731,7 @@
                             }
                             mpEvent = this._createEvent(eventName, properties);
                             console.log('Customer Tracking Event: ', { mpEvent: mpEvent });
-                            return [4 /*yield*/, MP.apiRequest('POST', 'collection', mpEvent)];
+                            return [4 /*yield*/, MP.apiRequest('POST', 'event/collection', mpEvent)];
                         case 2:
                             _a.sent();
                             return [2 /*return*/, true];
@@ -824,31 +824,25 @@
          */
         EventTracker.prototype.identify = function (distinctUserId) {
             return __awaiter(this, void 0, void 0, function () {
-                var MP, body;
+                var MP;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            _a.trys.push([0, 3, , 4]);
+                            _a.trys.push([0, 2, , 3]);
                             MP = window.MP;
                             if (!MP) {
                                 console.error('MP: No MP instance exists.');
                                 return [2 /*return*/, false];
                             }
-                            body = {
-                                distinctUserId: distinctUserId,
-                            };
-                            return [4 /*yield*/, MP.apiRequest('POST', 'identify', body)];
+                            return [4 /*yield*/, MP.setIdentifiedUser(distinctUserId)];
                         case 1:
                             _a.sent();
-                            return [4 /*yield*/, MP.setIdentifiedUser(distinctUserId)];
-                        case 2:
-                            _a.sent();
                             return [2 /*return*/, true];
-                        case 3:
+                        case 2:
                             _a.sent();
                             console.error('MP: Error trying to identify user.');
                             return [2 /*return*/, false];
-                        case 4: return [2 /*return*/];
+                        case 3: return [2 /*return*/];
                     }
                 });
             });
