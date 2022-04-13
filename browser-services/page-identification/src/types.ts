@@ -144,7 +144,7 @@ export interface PageIdentificationType {
   pageType: PageType
   pageIdProps: PageIdPropsType | null
   scripts: HTMLScriptElement[] | null
-  elements: Element[] | null
+  bodyElements: Element[] | null
   buttons: DomButtonMapType | null
   forms: DomFormMapType[] | null
   links: DomLinkMapType[] | null

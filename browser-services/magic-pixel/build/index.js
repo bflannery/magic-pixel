@@ -2894,7 +2894,7 @@
      */
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var siteId, MP, accountIsActive, eventTrackingScript, pageIdentificationScript;
+            var siteId, MP, accountIsActive, pageIdentificationScript;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -2912,16 +2912,18 @@
                         console.debug('MP: Account is active.');
                         // initialize MP class
                         return [4 /*yield*/, MP.init()
-                            // create a new event-tracker script element
+                            // // create a new event-tracker script element
+                            // const eventTrackingScript = document.createElement('script')
+                            // eventTrackingScript.src = `http://localhost:8082/mp-event-tracker.js?sid=${siteId}`
+                            // eventTrackingScript.async = true
+                            //
+                            // // insert the event-tracker script element into doc
+                            // document.head.appendChild(eventTrackingScript)
+                            // create a new page-identification script element
                         ];
                     case 2:
                         // initialize MP class
                         _a.sent();
-                        eventTrackingScript = document.createElement('script');
-                        eventTrackingScript.src = "http://localhost:8082/mp-event-tracker.js?sid=" + siteId;
-                        eventTrackingScript.async = true;
-                        // insert the event-tracker script element into doc
-                        document.head.appendChild(eventTrackingScript);
                         pageIdentificationScript = document.createElement('script');
                         pageIdentificationScript.src = "http://localhost:8083/mp-page-identification.js?sid=" + siteId;
                         pageIdentificationScript.async = true;

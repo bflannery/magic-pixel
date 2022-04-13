@@ -168,7 +168,7 @@
             this.pageIdProps = null;
             this.url = null;
             this.scripts = null;
-            this.elements = null;
+            this.bodyElements = null;
             this.buttons = null;
             this.forms = null;
             this.links = null;
@@ -462,6 +462,7 @@
                     if (element.textContent) {
                         var isMatch = element.textContent.toLowerCase().includes(k);
                         if (isMatch) {
+                            console.log({ element: element, k: k });
                             keywordMatches.push(k);
                         }
                     }
@@ -477,15 +478,25 @@
          * @return {string[] | null}
          */
         PageIdentification.prototype.checkUrlForKeywords = function (url, keywords) {
-            return keywords.filter(function (k) { return url.includes(k); });
+            var foundKeywords = [];
+            keywords.forEach(function (keyword) {
+                if (url.includes(keyword)) {
+                    foundKeywords.push(keyword);
+                }
+            });
+            return foundKeywords;
         };
         /**
-         * @function checkForPaymentProcessorButton
-         * @description Check dom for payment processor button elements
+         * @function isEcommPage
+         * @description Check if page is an ecomm page by checking the url and dom for
+         * ECOMM_KEYWORDS. If so, set the ecomm page flag true
          */
-        PageIdentification.prototype.checkForPaymentProcessorButton = function () {
+        PageIdentification.prototype.isEcommPage = function () {
             var _this = this;
-            var _a;
+            var _a, _b, _c, _d;
+            // Check for payment processor button
+            // Determine if the JS objects, scripts or methods exist.
+            // TODO: Get Clarity from Justin on this
             var paymentProcessors = (_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.eCommerce.paymentProcessors;
             if (paymentProcessors) {
                 paymentProcessors.forEach(function (paymentProcessor) {
@@ -503,36 +514,18 @@
                     }
                 });
             }
-        };
-        PageIdentification.prototype.checkForPaymentProcessorScript = function () {
-            // TODO: Check for scripts
-        };
-        PageIdentification.prototype.checkForPaymentProcessor = function () {
-            this.checkForPaymentProcessorButton();
-            this.checkForPaymentProcessorScript();
-        };
-        /**
-         * @function isEcommPage
-         * @description Check if page is an ecomm page by checking the url and dom for
-         * ECOMM_KEYWORDS. If so, set the ecomm page flag true
-         */
-        PageIdentification.prototype.isEcommPage = function () {
-            var _a, _b, _c;
-            // Check for payment processor button
-            // Determine if the JS objects, scripts or methods exist.
-            // TODO: Get Clarity from Justin on this
-            this.checkForPaymentProcessor();
-            if (((_a = this.pageIdProps) === null || _a === void 0 ? void 0 : _a.eCommerce.keywords) && this.pageType) {
+            if (((_b = this.pageIdProps) === null || _b === void 0 ? void 0 : _b.eCommerce.keywords) && this.pageType) {
                 var keywords = this.pageIdProps.eCommerce.keywords;
                 // Does the URL contain ecommerce keywords?
-                if ((_b = this.url) === null || _b === void 0 ? void 0 : _b.pathname) {
-                    this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
+                if ((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname) {
+                    this.pageType.urlKeywords = this.checkUrlForKeywords((_d = this.url) === null || _d === void 0 ? void 0 : _d.pathname, keywords);
                 }
                 // Does the DOM contain ecommerce keywords?
-                if (this.elements) {
-                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
+                if (this.bodyElements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords);
                 }
             }
+            console.log({ pageType: this.pageType });
             // Check if page is an ecomm page
             if (this.pageType && (this.pageType.paymentProcessor || this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
                 this.pageType.category = 'ecomm';
@@ -557,11 +550,10 @@
                     this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
                 }
                 // Does the DOM contain confirmation keywords?
-                if (this.elements) {
-                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
+                if (this.bodyElements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords);
                 }
             }
-            console.log({ pageType: this.pageType });
             // Check if page is a confirmation page
             if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
                 this.pageType.category = 'confirmation';
@@ -602,8 +594,8 @@
                     this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
                 }
                 // Does the DOM contain contact us keywords?
-                if (this.elements) {
-                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
+                if (this.bodyElements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords);
                 }
             }
             // Check if page is a contact us page
@@ -654,8 +646,8 @@
                     this.pageType.urlKeywords = this.checkUrlForKeywords((_c = this.url) === null || _c === void 0 ? void 0 : _c.pathname, keywords);
                 }
                 // Does the DOM contain contact us keywords?
-                if (this.elements) {
-                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords);
+                if (this.bodyElements) {
+                    this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords);
                 }
             }
             // Check if page is a blog page
@@ -692,11 +684,11 @@
          */
         PageIdentification.prototype.mapDom = function () {
             // Select all page elements
-            var docElements = document.querySelectorAll('*');
+            var docBodyElements = document.body.querySelectorAll('*');
             // Select all scripts
             var scripts = document.querySelectorAll('script');
             // Set DOM mapped attributes
-            this.elements = Array.from(docElements);
+            this.bodyElements = Array.from(docBodyElements);
             this.scripts = Array.from(scripts);
             this.buttons = this.createDomButtonMap();
             this.forms = this.createDomFormMap();

@@ -27,7 +27,7 @@ export default class PageIdentification {
   pageIdProps: PageIdPropsType | null
   url: ParsedURLProps | null
   scripts: HTMLScriptElement[] | null
-  elements: Element[] | null
+  bodyElements: Element[] | null
   buttons: DomButtonMapType | null
   forms: DomFormMapType[] | null
   links: DomLinkMapType[] | null
@@ -38,7 +38,7 @@ export default class PageIdentification {
     this.pageIdProps = null
     this.url = null
     this.scripts = null
-    this.elements = null
+    this.bodyElements = null
     this.buttons = null
     this.forms = null
     this.links = null
@@ -321,6 +321,7 @@ export default class PageIdentification {
         if (element.textContent) {
           const isMatch = element.textContent.toLowerCase().includes(k)
           if (isMatch) {
+            console.log({ element, k })
             keywordMatches.push(k)
           }
         }
@@ -337,14 +338,24 @@ export default class PageIdentification {
    * @return {string[] | null}
    */
   checkUrlForKeywords(url: string, keywords: string[]): string[] {
-    return keywords.filter(k => url.includes(k))
+    let foundKeywords: string[] = []
+    keywords.forEach(keyword => {
+      if (url.includes(keyword)) {
+        foundKeywords.push(keyword)
+      }
+    })
+    return foundKeywords
   }
 
   /**
-   * @function checkForPaymentProcessorButton
-   * @description Check dom for payment processor button elements
+   * @function isEcommPage
+   * @description Check if page is an ecomm page by checking the url and dom for
+   * ECOMM_KEYWORDS. If so, set the ecomm page flag true
    */
-  checkForPaymentProcessorButton(): void {
+  isEcommPage(): boolean {
+    // Check for payment processor button
+    // Determine if the JS objects, scripts or methods exist.
+    // TODO: Get Clarity from Justin on this
     const paymentProcessors = this.pageIdProps?.eCommerce.paymentProcessors
     if (paymentProcessors) {
       paymentProcessors.forEach((paymentProcessor: PaymentProcessorType) => {
@@ -361,27 +372,6 @@ export default class PageIdentification {
         }
       })
     }
-  }
-
-  checkForPaymentProcessorScript(): void {
-    // TODO: Check for scripts
-  }
-
-  checkForPaymentProcessor(): void {
-    this.checkForPaymentProcessorButton()
-    this.checkForPaymentProcessorScript()
-  }
-
-  /**
-   * @function isEcommPage
-   * @description Check if page is an ecomm page by checking the url and dom for
-   * ECOMM_KEYWORDS. If so, set the ecomm page flag true
-   */
-  isEcommPage(): boolean {
-    // Check for payment processor button
-    // Determine if the JS objects, scripts or methods exist.
-    // TODO: Get Clarity from Justin on this
-    this.checkForPaymentProcessor()
 
     if (this.pageIdProps?.eCommerce.keywords && this.pageType) {
       const keywords =  this.pageIdProps.eCommerce.keywords
@@ -391,10 +381,12 @@ export default class PageIdentification {
       }
 
       // Does the DOM contain ecommerce keywords?
-      if (this.elements) {
-        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords)
+      if (this.bodyElements) {
+        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords)
       }
     }
+
+    console.log({ pageType: this.pageType})
 
     // Check if page is an ecomm page
     if (this.pageType && (this.pageType.paymentProcessor || this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
@@ -420,12 +412,10 @@ export default class PageIdentification {
       }
 
       // Does the DOM contain confirmation keywords?
-      if (this.elements) {
-        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords)
+      if (this.bodyElements) {
+        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords)
       }
     }
-
-    console.log({ pageType: this.pageType})
 
     // Check if page is a confirmation page
     if (this.pageType && (this.pageType.urlKeywords.length > 0 || this.pageType.domKeywords.length > 0)) {
@@ -467,8 +457,8 @@ export default class PageIdentification {
       }
 
       // Does the DOM contain contact us keywords?
-      if (this.elements) {
-        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords)
+      if (this.bodyElements) {
+        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords)
       }
     }
 
@@ -520,8 +510,8 @@ export default class PageIdentification {
       }
 
       // Does the DOM contain contact us keywords?
-      if (this.elements) {
-        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.elements, keywords)
+      if (this.bodyElements) {
+        this.pageType.domKeywords = this.checkDomElementsForKeywords(this.bodyElements, keywords)
       }
     }
 
@@ -562,11 +552,11 @@ export default class PageIdentification {
    */
   mapDom(): void {
     // Select all page elements
-    const docElements = document.querySelectorAll('*')
+    const docBodyElements = document.body.querySelectorAll('*')
     // Select all scripts
     const scripts = document.querySelectorAll('script')
     // Set DOM mapped attributes
-    this.elements = Array.from(docElements)
+    this.bodyElements = Array.from(docBodyElements)
     this.scripts = Array.from(scripts)
     this.buttons = this.createDomButtonMap()
     this.forms = this.createDomFormMap()

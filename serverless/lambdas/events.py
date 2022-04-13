@@ -61,9 +61,8 @@ def event_collection(event, context):
 @serverless_function
 def event_ingestion(event, context):
     logger.log_info("Consuming event messages on the event queue.")
-    # logger.log_info(f"Ingestion Event: {event}")
     records = event.get("Records", [])
-    logger.log_info(f"{len(records)} in message batch.")
+
     has_failed = False
     for record in records:
         message_id = record.get("messageId")
@@ -101,7 +100,6 @@ def event_identity(event, context):
     logger.log_info("Consuming event messages on the identity queue.")
     # logger.log_info(f"Identity Event {event}")
     records = event.get("Records", [])
-    logger.log_info(f"{len(records)} in message batch.")
     has_failed = False
     for record in records:
         message_id = record.get("messageId")

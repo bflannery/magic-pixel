@@ -30,13 +30,13 @@ async function init() {
     // initialize MP class
     await MP.init()
 
-    // create a new event-tracker script element
-    const eventTrackingScript = document.createElement('script')
-    eventTrackingScript.src = `http://localhost:8082/mp-event-tracker.js?sid=${siteId}`
-    eventTrackingScript.async = true
-
-    // insert the event-tracker script element into doc
-    document.head.appendChild(eventTrackingScript)
+    // // create a new event-tracker script element
+    // const eventTrackingScript = document.createElement('script')
+    // eventTrackingScript.src = `http://localhost:8082/mp-event-tracker.js?sid=${siteId}`
+    // eventTrackingScript.async = true
+    //
+    // // insert the event-tracker script element into doc
+    // document.head.appendChild(eventTrackingScript)
 
     // create a new page-identification script element
     const pageIdentificationScript = document.createElement('script')

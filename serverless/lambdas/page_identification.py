@@ -13,7 +13,7 @@ from magic_pixel.services.identify_page import (
 
 @serverless_function
 def identify_page(event, context):
-    logger.log_info(f"Identify Page")
+    logger.log_info("Page Identification API ingestion.")
 
     try:
         body = event.get("body")
@@ -34,8 +34,8 @@ def identify_page(event, context):
                     }
                 ),
             }
-
         queue_page_identification(event)
+
         return {
             "statusCode": 200,
             "headers": {"Content-Type": "application/json"},
@@ -66,11 +66,10 @@ def page_identification(event, context):
     logger.log_info("Consuming page identification messages on the identify page queue.")
     # logger.log_info(f"Page Identification Event: {event}")
     records = event.get("Records", [])
-    logger.log_info(f"{len(records)} in message batch.")
     has_failed = False
     for record in records:
         message_id = record.get("messageId")
-        # logger.log_info(f"consuming lambda record message: {message_id}")
+        logger.log_info(f"Page Identification Lambda message id: {message_id}")
         try:
             lambda_body_string = record.get("body")
             lambda_message = json.loads(lambda_body_string)
