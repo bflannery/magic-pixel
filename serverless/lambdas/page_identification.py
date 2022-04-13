@@ -6,7 +6,7 @@ from magic_pixel.lib.aws_sqs import RetryException
 from magic_pixel.services.account import (
     verify_account_status,
 )
-from magic_pixel.services.identify_page import (
+from magic_pixel.services.page_identification import (
     queue_page_identification, ingest_page_identification_message
 )
 
@@ -42,7 +42,7 @@ def identify_page(event, context):
             "body": json.dumps(
                 {
                     "status": "success",
-                    "description": f"Messages successfully sent to event queue.",
+                    "description": f"Messages successfully sent to the page identification queue.",
                 }
             ),
         }
@@ -54,7 +54,7 @@ def identify_page(event, context):
             "body": json.dumps(
                 {
                     "status": "error",
-                    "description": f"Server error. Messages failed to make it to event queue.",
+                    "description": f"Server error. Messages failed to make it to page identification queue.",
                 }
             ),
         }
@@ -63,7 +63,7 @@ def identify_page(event, context):
 
 @serverless_function
 def page_identification(event, context):
-    logger.log_info("Consuming page identification messages on the identify page queue.")
+    logger.log_info("Consuming page identification messages on the page identification queue.")
     # logger.log_info(f"Page Identification Event: {event}")
     records = event.get("Records", [])
     has_failed = False
@@ -85,15 +85,5 @@ def page_identification(event, context):
     if has_failed:
         raise RetryException()
     else:
-        logger.log_info("Messages successfully consumed from the event queue.")
-        return {
-            "statusCode": 200,
-            "headers": {"Content-Type": "application/json"},
-            "body": json.dumps(
-                {
-                    "status": "success",
-                    "description": f"Messages successfully consumed from event queue.",
-                }
-            ),
-        }
+        logger.log_info("Messages successfully consumed from the page identification queue.")
 

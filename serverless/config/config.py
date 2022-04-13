@@ -19,8 +19,15 @@ SQLALCHEMY_TRACK_MODIFICATIONS = False
 
 # SQS
 SQS_EVENT_QUEUE_NAME = os.environ.get("SQS_EVENT_QUEUE_NAME", default="__fake__")
-SQS_EVENT_IDENTITY_QUEUE_NAME = os.environ.get("SQS_EVENT_IDENTITY_QUEUE_NAME", default="__fake__")
-SQS_PAGE_IDENTIFICATION_QUEUE_NAME = os.environ.get("SQS_PAGE_IDENTIFICATION_QUEUE_NAME", default="__fake__")
+SQS_EVENT_IDENTITY_QUEUE_NAME = os.environ.get(
+    "SQS_EVENT_IDENTITY_QUEUE_NAME", default="__fake__"
+)
+SQS_PAGE_IDENTIFICATION_QUEUE_NAME = os.environ.get(
+    "SQS_PAGE_IDENTIFICATION_QUEUE_NAME", default="__fake__"
+)
+SQS_CONTENT_IDENTIFICATION_QUEUE_NAME = os.environ.get(
+    "SQS_CONTENT_IDENTIFICATION_QUEUE_NAME", default="__fake__"
+)
 
 SQS_REGION = os.environ.get("SQS_REGION", default="__fake__")
 SQS_ENDPOINT_URL = os.environ.get("SQS_ENDPOINT_URL", default="__fake__")

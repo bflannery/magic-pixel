@@ -9,7 +9,6 @@ DB_URL = "postgresql+psycopg2://{user}:{pw}@{url}/{db}".format(
 
 # Sqlalchemy
 SQLALCHEMY_DATABASE_URI = DB_URL
-S3_TRACKER_SCRIPT = "http://localhost:8081/mp-tracker.js"
 
 # SQS
 SQS_REGION = "elasticmq"

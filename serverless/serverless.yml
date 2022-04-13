@@ -33,6 +33,12 @@ provider:
         - Fn::GetAtt:
             - IdentityQueue
             - Arn
+        - Fn::GetAtt:
+            - PageIdentificationQueue
+            - Arn
+        - Fn::GetAtt:
+            - ContentIdentificationQueue
+            - Arn
   environment:
     NODE_ENV: 'test'
     ENV: ${opt:stage, 'local'}
@@ -54,6 +60,7 @@ provider:
     SQS_EVENT_QUEUE_NAME: ${self:custom.sqs.eventQueueName}
     SQS_EVENT_IDENTITY_QUEUE_NAME: ${self:custom.sqs.eventIdentityQueueName}
     SQS_PAGE_IDENTIFICATION_QUEUE_NAME: ${self:custom.sqs.pageIdentificationQueueName}
+    SQS_CONTENT_IDENTIFICATION_QUEUE_NAME: ${self:custom.sqs.contentIdentificationQueueName}
     SECRET_KEY: ${self:custom.flask.secretKey}
     POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
     POSTGRES_PW: ${self:custom.postgres.${opt:stage, 'dev'}.pw}
@@ -103,6 +110,7 @@ custom:
     eventQueueName: ${opt:stage, 'dev'}-event-queue
     eventIdentityQueueName: ${opt:stage, 'dev'}-event-identity-queue
     pageIdentificationQueueName: ${opt:stage, 'dev'}-page-identification-queue
+    contentIdentificationQueueName: ${opt:stage, 'dev'}-content-identification-queue
   postgres:
     local:
       user: 'postgres'
@@ -190,10 +198,27 @@ functions:
     memorySize: 512
     events:
       - http:
-          path: identify/page
+          path: identification/page
           method: post
   page-identification:
     handler: ./lambdas/page_identification.page_identification
+    timeout: 60
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - PageIdentificationQueue
+              - Arn
+  identify-content:
+    handler: ./lambdas/content_identification.identify_content
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: identification/content
+          method: post
+  content-identification:
+    handler: ./lambdas/content_identification.content_identification
     timeout: 60
     events:
       - sqs:
