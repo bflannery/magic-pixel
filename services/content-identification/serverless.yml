@@ -1,0 +1,166 @@
+service: magicPixel
+
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  runtime: python3.9
+  versionFunctions: false
+  region: us-east-1
+  tracing:
+    apiGateway: true
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - cloudwatch:PutMetricData
+      Resource: "*"
+    - Effect: Allow
+      Action:
+        - "s3:GetObject"
+        - "s3:PutObject"
+        - "s3:PutObjectAcl"
+      Resource:
+        - arn:aws:s3:::${self:custom.s3.magicPixelBucket}/*
+    - Effect: Allow
+      Action:
+        - sqs:SendMessage
+        - sqs:GetQueueUrl
+      Resource:
+        - Fn::GetAtt:
+            - ContentIdentificationQueue
+            - Arn
+  environment:
+    ENV: ${opt:stage, 'local'}
+    SQS_REGION: ${self:custom.sqs.region}
+    SQS_ENDPOINT_URL: ${self:custom.sqs.endpointUrl}
+    SQS_CONTENT_IDENTIFICATION_QUEUE_NAME: ${self:custom.sqs.contentIdentificationQueueName}
+    SECRET_KEY: ${self:custom.flask.secretKey}
+    POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
+    POSTGRES_PW: ${self:custom.postgres.${opt:stage, 'dev'}.pw}
+    POSTGRES_URL: ${self:custom.postgres.${opt:stage, 'dev'}.url}
+    POSTGRES_DB: ${self:custom.postgres.${opt:stage, 'dev'}.db}
+    MAGIC_PIXEL_BUCKET: ${self:custom.s3.magicPixelBucket}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi
+  - serverless-finch
+  - serverless-offline-sqs
+  - serverless-offline
+
+custom:
+  flask:
+    secretKey: 'c0cbf5992af08ede97e11a3e'
+  s3:
+    magicPixelBucket: ${opt:stage, 'dev'}-magic-pixel
+  sqs:
+    region: 'us-east-1'
+    endpointUrl: ''
+    contentIdentificationQueueName: ${opt:stage, 'dev'}-content-identification-queue
+  postgres:
+    local:
+      user: 'postgres'
+      pw: 'docker'
+      url: 'localhost'
+      db: 'postgres'
+    dev:
+      user: 'root'
+      pw: 'password'
+      url: 'url'
+      db: 'db'
+  wsgi:
+    app: app.app
+    packRequirements: false
+    pythonBin: python
+    pythonRequirements:
+      dockerizePip: "non-linux"
+  serverless-offline:
+    httpPort: 5000
+  serverless-offline-sqs:
+    autoCreate: false                 # create queue if not exists
+    apiVersion: '2012-11-05'
+    endpoint: http://0.0.0.0:9324
+    region: us-east-1
+    accessKeyId: root
+    secretAccessKey: root
+    skipCacheInvalidation: false
+
+
+package:
+  exclude:
+    - venv/**
+    - .venv/**
+    - package.json
+    - package-lock.json
+    - .pytest_cache/**
+    - README.md
+
+  include:
+    - content-identification/**
+
+functions:
+  app:
+    handler: wsgi_handler.handler
+    timeout: 30
+    memorySize: 512
+#    vpc:
+#      securityGroupIds:
+#        - sg-0ca7e29791a26efe7 # lambda sg
+#      subnetIds:
+#        - subnet-01d66241214a2f8f0
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: "/{proxy+}"
+          method: ANY
+          cors:
+            origins:
+              - "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+            maxAge: 86400
+  identify-content:
+    handler: ./lambdas/content_identification.identify_content
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: identification/content
+          method: post
+  content-identification:
+    handler: ./lambdas/content_identification.content_identification
+    timeout: 60
+    events:
+      - sqs:
+          arn:
+            Fn::GetAtt:
+              - ContentIdentificationQueue
+              - Arn
+
+resources:
+  Resources:
+    ContentIdentificationQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqs.contentIdentificationQueueName}
+        VisibilityTimeout: 300
+        RedrivePolicy:
+          maxReceiveCount: 5
+          deadLetterTargetArn:
+            Fn::GetAtt:
+              - ContentIdentificationQueueDLQueue
+              - Arn
+    ContentIdentificationQueueDLQueue:
+      Type: AWS::SQS::Queue
+      Properties:
+        QueueName: ${self:custom.sqs.contentIdentificationQueueName}-deadletter
+        MessageRetentionPeriod: 604800

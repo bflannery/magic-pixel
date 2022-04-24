@@ -14,7 +14,7 @@ Data is stored in a postgres db.
 Cloud configuration and deployment is managed by [The Serverless Framework](https://www.serverless.com/)
 
 ### Basic System Requirements:
-- `python3.7` (backend runs on it)
+- `python3.9` (backend runs on it)
 - `pip` (python dependency management)
 - `nodejs` (most tooling and FE build)
 - `npm` (node dependency management, installed w/ node)
@@ -25,7 +25,7 @@ Cloud configuration and deployment is managed by [The Serverless Framework](http
 
 #### Python Env
 
-All our lambda's run python 3.7, most OS's come with a version of python, but it is important to install
+All our lambda's run python 3.9, most OS's come with a version of python, but it is important to install
 this specific version. Since you probably don't want to override the global version of python3 to python3.7
 you will have to be able to support more than one python3 on your computer.
 

@@ -1,0 +1,16 @@
+query AccountUsers($accountId: ID!) {
+  account(id: $accountId) {
+    id
+    name
+    users {
+      id
+      email
+      createdAt
+      roles {
+        id
+        name
+      }
+      lastLoginAt
+    }
+  }
+}

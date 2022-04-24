@@ -1,0 +1,10 @@
+type UserPreferences {
+  id: ID!
+}
+
+extend type UserType {
+  preferences: UserPreferences!
+}
+
+#extend type Mutations {
+#}

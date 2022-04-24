@@ -1,0 +1,13 @@
+query AuthUserInfo {
+  whoami {
+    id
+    email
+    roles {
+      id
+      name
+    }
+    account {
+      id
+    }
+  }
+}

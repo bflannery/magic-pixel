@@ -9,51 +9,69 @@ services:
       - "8080:80"
     volumes:
       - ./test-website/src:/var/www
-  browser-service-magic-pixel:
+  browser-magic-pixel:
     image: kyma/docker-nginx
-    container_name: browser-service-magic-pixel
+    container_name: browser-magic-pixel
     restart: "always"
     ports:
       - "8081:80"
     volumes:
-      - ./browser-services/magic-pixel/build/index.js:/var/www/magic-pixel.js
-  browser-service-event-tracker:
+      - ./browser/magic-pixel/build/index.js:/var/www/magic-pixel.js
+  browser-event-tracker:
     image: kyma/docker-nginx
-    container_name: browser-service-event-tracker
+    container_name: browser-event-tracker
     restart: "always"
     ports:
       - "8082:80"
     volumes:
-      - ./browser-services/event-tracker/scribe-analytics/scribe-analytics-debug.js:/var/www/scribe-analytics-debug.js
-      - ./browser-services/event-tracker/build/index.js:/var/www/mp-event-tracker.js
-  browser-service-page-identification:
+      - ./browser/event-tracker/scribe-analytics/scribe-analytics-debug.js:/var/www/scribe-analytics-debug.js
+      - ./browser/event-tracker/build/index.js:/var/www/mp-event-tracker.js
+  browser-page-identification:
     image: kyma/docker-nginx
-    container_name: browser-service-page-identification
+    container_name: browser-page-identification
     restart: "always"
     ports:
       - "8083:80"
     volumes:
-      - ./browser-services/page-identification/build/index.js:/var/www/mp-page-identification.js
-  db:
+      - ./browser/page-identification/build/index.js:/var/www/mp-page-identification.js
+  browser-content-page-identification:
+    image: kyma/docker-nginx
+    container_name: browser-content-page-identification
+    restart: "always"
+    ports:
+      - "8084:80"
+    volumes:
+      - ./browser/content-identification/build/index.js:/var/www/mp-content-identification.js
+  events-db:
     image: postgres
-    container_name: pg-docker
+    container_name: pg-events-db
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: password
     ports:
       - 5432:5432
     volumes:
-      - $HOME/docker/volumes/postgres/mp:/var/lib/postgresql/data
-  test-db:
+      - $HOME/docker/volumes/postgres/event-db:/var/lib/postgresql/data
+  page-identification-db:
     image: postgres
-    container_name: pg-test
+    container_name: pg-page-identification-db
     restart: unless-stopped
     environment:
       POSTGRES_PASSWORD: password
     ports:
       - 5433:5432
     volumes:
-      - $HOME/docker/volumes/postgres/mp-test:/var/lib/postgresql/data
+      - $HOME/docker/volumes/postgres/page-identification-db:/var/lib/postgresql/data
+  content-identification-db:
+    image: postgres
+    container_name: pg-content-identification-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5434:5432
+    volumes:
+      - $HOME/docker/volumes/postgres/content-identification-db:/var/lib/postgresql/data
   fake-sqs:
     container_name: fake-sqs
     image: softwaremill/elasticmq-native
@@ -61,4 +79,4 @@ services:
       - "9324:9324"
       - "9325:9325"
     volumes:
-      - ./serverless/config/elasticmq.conf:/opt/elasticmq.conf
+      - ./config/elasticmq.conf:/opt/elasticmq.conf
