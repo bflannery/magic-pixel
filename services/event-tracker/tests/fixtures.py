@@ -5,8 +5,8 @@ from sqlalchemy.schema import DropConstraint, DropTable, MetaData, Table
 import pytest
 from os import path
 from app import app as _app
-from magic_pixel.constants import UserRoleType
-from magic_pixel.db import db as _db
+from server.constants import UserRoleType
+from server.db import db as _db
 from flask_migrate import upgrade
 
 from tests.factories import (

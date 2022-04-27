@@ -1,6 +1,6 @@
 from factory import Faker, post_generation, SubFactory
 
-from magic_pixel.models import User
+from server.models import User
 from .meta import BaseFactory
 from .account_factory import AccountFactory
 

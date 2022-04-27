@@ -2644,11 +2644,11 @@
     var MagicPixel = /** @class */ (function () {
         function MagicPixel(accountSiteId) {
             this.apiDomain = 'http://localhost:5000/dev';
-            this.fingerprint = null;
-            this.sessionId = null;
-            this.context = {
+            this.userContext = {
                 accountSiteId: accountSiteId,
                 accountStatus: 'inactive',
+                fingerprint: null,
+                sessionId: null,
                 lastVerified: null,
                 visitorUUID: null,
                 distinctPersonId: null,
@@ -2656,50 +2656,60 @@
         }
         MagicPixel.prototype.init = function () {
             return __awaiter(this, void 0, void 0, function () {
-                var mpContext, sessionId;
-                return __generator(this, function (_a) {
-                    console.debug('MP: Initializing Magic Pixel');
-                    mpContext = this._getStorageContext();
-                    sessionId = this._getStorageSessionId();
-                    this.context.visitorUUID = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.visitorUUID) || uuidv4();
-                    this.context.lastVerified = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.lastVerified) || null;
-                    this.sessionId = sessionId || uuidv4();
-                    // Save context and session to browser-services storage
-                    this._setStorageContext(this.context);
-                    if (this.sessionId) {
-                        this._setStorageSessionId(this.sessionId);
+                var mpContext, sessionId, _a;
+                return __generator(this, function (_b) {
+                    switch (_b.label) {
+                        case 0:
+                            console.debug('MP: Initializing Magic Pixel');
+                            mpContext = this.getStorageContext();
+                            sessionId = this.getStorageSessionId();
+                            this.userContext.visitorUUID = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.visitorUUID) || uuidv4();
+                            this.userContext.lastVerified = (mpContext === null || mpContext === void 0 ? void 0 : mpContext.lastVerified) || null;
+                            this.userContext.sessionId = sessionId || uuidv4();
+                            if (!!(mpContext === null || mpContext === void 0 ? void 0 : mpContext.fingerprint)) return [3 /*break*/, 2];
+                            _a = this.userContext;
+                            return [4 /*yield*/, this.fingerprint()];
+                        case 1:
+                            _a.fingerprint = _b.sent();
+                            _b.label = 2;
+                        case 2:
+                            // Save context and session to browser-services storage
+                            this.setStorageContext(this.userContext);
+                            if (this.userContext.sessionId) {
+                                this.setStorageSessionId(this.userContext.sessionId);
+                            }
+                            console.log({ MagicPixel: this });
+                            return [2 /*return*/];
                     }
-                    console.log({ MagicPixel: this });
-                    return [2 /*return*/];
                 });
             });
         };
         // Context
-        MagicPixel.prototype._getStorageContext = function () {
+        MagicPixel.prototype.getStorageContext = function () {
             var mpStorageContext = localStorage.getItem('mp');
             if (!mpStorageContext) {
                 return null;
             }
             return JSON.parse(mpStorageContext);
         };
-        MagicPixel.prototype._setStorageContext = function (data) {
+        MagicPixel.prototype.setStorageContext = function (data) {
             localStorage.setItem('mp', JSON.stringify(data));
         };
-        MagicPixel.prototype._removeStorageContext = function () {
+        MagicPixel.prototype.removeStorageContext = function () {
             localStorage.removeItem('mp');
         };
         // Session
-        MagicPixel.prototype._getStorageSessionId = function () {
+        MagicPixel.prototype.getStorageSessionId = function () {
             return sessionStorage.getItem('mp_sid');
         };
-        MagicPixel.prototype._setStorageSessionId = function (sid) {
+        MagicPixel.prototype.setStorageSessionId = function (sid) {
             sessionStorage.setItem('mp_sid', sid);
         };
-        MagicPixel.prototype._removeStorageSessionId = function () {
+        MagicPixel.prototype.removeStorageSessionId = function () {
             sessionStorage.removeItem('mp_sid');
         };
         // Fingerprint
-        MagicPixel.prototype._fingerprint = function () {
+        MagicPixel.prototype.fingerprint = function () {
             return __awaiter(this, void 0, void 0, function () {
                 var fp, result;
                 return __generator(this, function (_a) {
@@ -2719,23 +2729,22 @@
             });
         };
         MagicPixel.prototype.setIdentifiedUser = function (distinctUserId) {
-            this.context.distinctPersonId = distinctUserId;
-            this._setStorageContext(this.context);
+            this.userContext.distinctPersonId = distinctUserId;
+            this.setStorageContext(this.userContext);
         };
         // TODO: Define return type
         MagicPixel.prototype.apiRequest = function (method, endpoint, body) {
-            var _a, _b, _c, _d;
             return __awaiter(this, void 0, void 0, function () {
                 var accountBody, response, e_1;
-                return __generator(this, function (_e) {
-                    switch (_e.label) {
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
-                            _e.trys.push([0, 2, , 3]);
-                            if (!((_a = this.context) === null || _a === void 0 ? void 0 : _a.accountSiteId)) {
+                            _a.trys.push([0, 2, , 3]);
+                            if (!this.userContext.accountSiteId) {
                                 console.warn('MP: Error: Missing ids, cannot track event');
                                 return [2 /*return*/, false];
                             }
-                            accountBody = __assign(__assign({}, body), { accountSiteId: (_b = this.context) === null || _b === void 0 ? void 0 : _b.accountSiteId, fingerprint: this.fingerprint, visitorUUID: (_c = this.context) === null || _c === void 0 ? void 0 : _c.visitorUUID, distinctPersonId: (_d = this.context) === null || _d === void 0 ? void 0 : _d.distinctPersonId, sessionId: this.sessionId });
+                            accountBody = __assign(__assign({}, body), this.userContext);
                             return [4 /*yield*/, fetch(this.apiDomain + "/" + endpoint, {
                                     method: method,
                                     headers: {
@@ -2744,10 +2753,10 @@
                                     body: JSON.stringify(accountBody),
                                 })];
                         case 1:
-                            response = _e.sent();
+                            response = _a.sent();
                             return [2 /*return*/, response.json()];
                         case 2:
-                            e_1 = _e.sent();
+                            e_1 = _a.sent();
                             console.error(e_1);
                             return [2 /*return*/, false];
                         case 3: return [2 /*return*/];
@@ -2766,27 +2775,27 @@
                 return __generator(this, function (_b) {
                     switch (_b.label) {
                         case 0:
-                            if (!!this.fingerprint) return [3 /*break*/, 2];
-                            _a = this;
-                            return [4 /*yield*/, this._fingerprint()];
+                            if (!!this.userContext.fingerprint) return [3 /*break*/, 2];
+                            _a = this.userContext;
+                            return [4 /*yield*/, this.fingerprint()];
                         case 1:
                             _a.fingerprint = _b.sent();
                             _b.label = 2;
                         case 2:
-                            if (!this.context.accountSiteId) return [3 /*break*/, 6];
+                            if (!this.userContext.accountSiteId) return [3 /*break*/, 6];
                             _b.label = 3;
                         case 3:
                             _b.trys.push([3, 5, , 6]);
                             authBody = {
-                                accountSiteId: this.context.accountSiteId,
+                                accountSiteId: this.userContext.accountSiteId,
                             };
                             return [4 /*yield*/, this.apiRequest('POST', "authentication", authBody)];
                         case 4:
                             response = _b.sent();
-                            mpContext = __assign(__assign({}, this.context), { accountSiteId: this.context.accountSiteId, accountStatus: response.accountStatus, lastVerified: Date.now() });
+                            mpContext = __assign(__assign({}, this.userContext), { accountSiteId: this.userContext.accountSiteId, accountStatus: response.accountStatus, lastVerified: Date.now() });
                             if (mpContext.accountStatus === 'active') {
-                                this.context = mpContext;
-                                this._setStorageContext(mpContext);
+                                this.userContext = mpContext;
+                                this.setStorageContext(mpContext);
                                 return [2 /*return*/, true];
                             }
                             return [2 /*return*/, false];
@@ -2808,18 +2817,18 @@
          */
         MagicPixel.prototype.authenticateHostData = function (mpStorageContext) {
             return __awaiter(this, void 0, void 0, function () {
-                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, _a, e_3;
-                return __generator(this, function (_b) {
-                    switch (_b.label) {
+                var lastVerified, accountStatus, now, lastVerifiedTimeStamp, lastVerifiedHours, e_3;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
                         case 0:
-                            _b.trys.push([0, 11, , 12]);
+                            _a.trys.push([0, 9, , 10]);
                             // If no mpData kill it
-                            if (!this.context) {
+                            if (!this.userContext) {
                                 return [2 /*return*/, false];
                             }
-                            if (!(this.context.accountSiteId !== mpStorageContext.accountSiteId)) return [3 /*break*/, 2];
+                            if (!(this.userContext.accountSiteId !== mpStorageContext.accountSiteId)) return [3 /*break*/, 2];
                             return [4 /*yield*/, this.authenticateAccountId()];
-                        case 1: return [2 /*return*/, _b.sent()];
+                        case 1: return [2 /*return*/, _a.sent()];
                         case 2:
                             lastVerified = mpStorageContext.lastVerified, accountStatus = mpStorageContext.accountStatus;
                             now = new Date().getTime();
@@ -2829,29 +2838,20 @@
                             if (!(lastVerifiedHours < 1)) return [3 /*break*/, 3];
                             return [2 /*return*/, false];
                         case 3: return [4 /*yield*/, this.authenticateAccountId()];
-                        case 4: return [2 /*return*/, _b.sent()];
+                        case 4: return [2 /*return*/, _a.sent()];
                         case 5:
-                            if (!(accountStatus === 'active')) return [3 /*break*/, 10];
+                            if (!(accountStatus === 'active')) return [3 /*break*/, 8];
                             if (!(lastVerifiedHours >= 1)) return [3 /*break*/, 7];
-                            console.debug("MP: Re-authenticating account id " + this.context.accountSiteId);
+                            console.debug("MP: Re-authenticating account id " + this.userContext.accountSiteId);
                             return [4 /*yield*/, this.authenticateAccountId()];
-                        case 6: return [2 /*return*/, _b.sent()];
-                        case 7:
-                            if (!!this.fingerprint) return [3 /*break*/, 9];
-                            _a = this;
-                            return [4 /*yield*/, this._fingerprint()];
-                        case 8:
-                            _a.fingerprint = _b.sent();
-                            _b.label = 9;
+                        case 6: return [2 /*return*/, _a.sent()];
+                        case 7: return [2 /*return*/, true];
+                        case 8: return [2 /*return*/, false];
                         case 9:
-                            this.context = __assign(__assign({}, this.context), mpStorageContext);
-                            return [2 /*return*/, true];
-                        case 10: return [2 /*return*/, false];
-                        case 11:
-                            e_3 = _b.sent();
+                            e_3 = _a.sent();
                             console.error(e_3);
                             return [2 /*return*/, false];
-                        case 12: return [2 /*return*/];
+                        case 10: return [2 /*return*/];
                     }
                 });
             });
@@ -2867,15 +2867,15 @@
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
-                            mpStorageContext = this._getStorageContext();
+                            mpStorageContext = this.getStorageContext();
                             if (!!mpStorageContext) return [3 /*break*/, 2];
-                            console.debug("MP: Invalid browser data. Authenticating account site id " + this.context.accountSiteId);
+                            console.debug("MP: Invalid browser data. Authenticating account site id " + this.userContext.accountSiteId);
                             return [4 /*yield*/, this.authenticateAccountId()];
                         case 1: 
                         // Call verification service to check account status and other data
                         return [2 /*return*/, _a.sent()];
                         case 2:
-                            console.debug("MP: Authenticating host storage data for account site id " + this.context.accountSiteId);
+                            console.debug("MP: Authenticating host storage data for account site id " + this.userContext.accountSiteId);
                             return [4 /*yield*/, this.authenticateHostData(mpStorageContext)];
                         case 3: return [2 /*return*/, _a.sent()];
                     }
@@ -2886,7 +2886,6 @@
     }());
 
     var script = document.currentScript;
-    console.log({ script: script });
     /**
      * @function: init
      * @description: When page is ready, validates script and account status

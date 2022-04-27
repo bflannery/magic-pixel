@@ -1,8 +1,8 @@
 import pytest
 from graphene.test import Client
-from magic_pixel.graphql.schema import schema
+from server.graphql.schema import schema
 from tests.factories import AccountFactory
-from magic_pixel.services.user import create_new_user
+from server.services.user import create_new_user
 
 
 def test_create_new_user(roles):

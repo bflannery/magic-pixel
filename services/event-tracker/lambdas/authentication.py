@@ -1,8 +1,8 @@
 import json
 
 from lambdas import serverless_function
-from magic_pixel import logger
-from magic_pixel.services.account import verify_account_status
+from server import logger
+from server.services.account import verify_account_status
 
 
 @serverless_function

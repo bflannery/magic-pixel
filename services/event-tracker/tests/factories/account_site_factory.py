@@ -1,5 +1,5 @@
 from factory import Faker, SubFactory
-from magic_pixel.models import AccountSite
+from server.models import AccountSite
 from tests.factories.meta import BaseFactory
 
 

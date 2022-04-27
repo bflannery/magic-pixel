@@ -1,0 +1,68 @@
+{
+  "name": "mp-tracker",
+  "version": "1.0.0",
+  "description": "",
+  "scripts": {
+    "start:watch": "rollup -c rollup.config.js --watch",
+    "serve": "python -m http.server 8083",
+    "build": "rollup -c rollup.config.js"
+  },
+  "author": "",
+  "license": "ISC",
+  "dependencies": {
+    "@aws-sdk/client-cloudfront": "^3.34.0",
+    "@aws-sdk/client-s3": "^3.34.0",
+    "cheerio": "^1.0.0-rc.10",
+    "eslint": "^7.32.0",
+    "eslint-config-prettier": "^8.3.0",
+    "eslint-plugin-prettier": "^4.0.0",
+    "prettier": "^2.4.1"
+  },
+  "devDependencies": {
+    "@rollup/plugin-commonjs": "^21.0.0",
+    "@rollup/plugin-image": "^2.1.1",
+    "@rollup/plugin-inject": "^4.0.2",
+    "@rollup/plugin-json": "^4.1.0",
+    "@rollup/plugin-node-resolve": "^13.0.5",
+    "@rollup/plugin-typescript": "^8.2.5",
+    "@types/node": "^16.10.2",
+    "@typescript-eslint/eslint-plugin": "^4.32.0",
+    "@typescript-eslint/parser": "^4.32.0",
+    "autoprefixer": "^10.3.6",
+    "postcss": "^8.3.8",
+    "rollup": "^2.58.0",
+    "rollup-plugin-postcss-modules": "^2.0.2",
+    "rollup-plugin-size-snapshot": "^0.12.0",
+    "rollup-plugin-terser": "^7.0.2",
+    "typescript": "^4.4.3"
+  },
+  "eslintConfig": {
+    "extends": [
+      "plugin:@typescript-eslint/recommended",
+      "prettier/@typescript-eslint",
+      "plugin:prettier/recommended"
+    ],
+    "overrides": [
+      {
+        "files": [
+          "**/*.ts?(x)"
+        ],
+        "rules": {
+          "@typescript-eslint/no-empty-function": "warn"
+        }
+      }
+    ]
+  },
+  "browserslist": {
+    "production": [
+      ">0.2%",
+      "not dead",
+      "not op_mini all"
+    ],
+    "development": [
+      "last 1 chrome version",
+      "last 1 firefox version",
+      "last 1 safari version"
+    ]
+  }
+}

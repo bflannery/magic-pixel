@@ -1,6 +1,6 @@
 import json
 
-from magic_pixel.models import EventBrowser
+from server.models import EventBrowser
 from .meta import BaseFactory
 
 

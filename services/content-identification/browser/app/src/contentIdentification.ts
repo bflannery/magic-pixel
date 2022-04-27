@@ -1,6 +1,4 @@
-import { getAncestors } from './dom'
 import { ParsedURLProps, parseLocation } from './utils'
-
 
 export default class ContentIdentification {
   url: ParsedURLProps | null

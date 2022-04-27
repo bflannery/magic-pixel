@@ -1,8 +1,8 @@
 from faker import Faker, providers
 from datetime import timezone
 
-from magic_pixel import utility
-from magic_pixel.constants import FilterEntity
+from server import utility
+from server.constants import FilterEntity
 
 Faker.seed("test_seed")
 fake = Faker()

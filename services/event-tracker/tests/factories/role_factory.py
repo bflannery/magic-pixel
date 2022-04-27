@@ -1,6 +1,6 @@
 from factory import Sequence, Faker, post_generation
 
-from magic_pixel.models import Role
+from server.models import Role
 from .meta import BaseFactory
 
 

@@ -1,7 +1,7 @@
 import pytest
 
-from magic_pixel.models import Event, EventForm
-from magic_pixel.services.event import (
+from server.models import Event, EventForm
+from server.services.event import (
     ingest_event_message,
 )
 from tests.mocks import MOCK_CLICK_EVENT, MOCK_PAGE_VIEW_EVENT, MOCK_FORM_SUBMIT_EVENT

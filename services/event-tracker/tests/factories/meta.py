@@ -1,5 +1,5 @@
 from factory.alchemy import SQLAlchemyModelFactory
-from magic_pixel.db import db
+from server.db import db
 
 
 class BaseFactory(SQLAlchemyModelFactory):

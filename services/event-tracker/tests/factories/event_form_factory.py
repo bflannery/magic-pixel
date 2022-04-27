@@ -1,4 +1,4 @@
-from magic_pixel.models import EventForm
+from server.models import EventForm
 from .meta import BaseFactory
 
 

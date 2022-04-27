@@ -1,33 +1,21 @@
 import { getDiffFromTimestamp, uuidv4 } from './utils'
 import FingerprintJS from '@fingerprintjs/fingerprintjs'
-import { MpDataProps } from './types'
-
-const defaultURLProps = {
-  href: null,
-  hash: null,
-  host: null,
-  hostname: null,
-  pathname: null,
-  protocol: null,
-  query: {},
-}
+import { MpUserProps } from './types'
 
 // Initialize an agent at application startup.
 const fpPromise = FingerprintJS.load()
 
 export default class MagicPixel {
   apiDomain: string
-  fingerprint: string | null
-  sessionId: string | null
-  context: MpDataProps
+  userContext: MpUserProps
 
   constructor(accountSiteId: string | null) {
     this.apiDomain = 'http://localhost:5000/dev'
-    this.fingerprint = null
-    this.sessionId = null
-    this.context = {
+    this.userContext = {
       accountSiteId: accountSiteId,
       accountStatus: 'inactive',
+      fingerprint: null,
+      sessionId: null,
       lastVerified: null,
       visitorUUID: null,
       distinctPersonId: null,
@@ -37,24 +25,28 @@ export default class MagicPixel {
   async init(): Promise<void> {
     console.debug('MP: Initializing Magic Pixel')
 
-    const mpContext = this._getStorageContext()
-    const sessionId = this._getStorageSessionId()
-    this.context.visitorUUID = mpContext?.visitorUUID || uuidv4()
-    this.context.lastVerified = mpContext?.lastVerified || null
-    this.sessionId = sessionId || uuidv4()
+    const mpContext = this.getStorageContext()
+    const sessionId = this.getStorageSessionId()
 
+    this.userContext.visitorUUID = mpContext?.visitorUUID || uuidv4()
+    this.userContext.lastVerified = mpContext?.lastVerified || null
+    this.userContext.sessionId = sessionId || uuidv4()
+
+    if (!mpContext?.fingerprint) {
+      this.userContext.fingerprint = await this.fingerprint()
+    }
     // Save context and session to browser-services storage
-    this._setStorageContext(this.context)
+    this.setStorageContext(this.userContext)
 
-    if (this.sessionId) {
-      this._setStorageSessionId(this.sessionId)
+    if (this.userContext.sessionId) {
+      this.setStorageSessionId(this.userContext.sessionId)
     }
 
     console.log({ MagicPixel: this })
   }
 
   // Context
-  _getStorageContext(): MpDataProps | null {
+  getStorageContext(): MpUserProps | null {
     const mpStorageContext = localStorage.getItem('mp')
     if (!mpStorageContext) {
       return null
@@ -62,30 +54,30 @@ export default class MagicPixel {
     return JSON.parse(mpStorageContext)
   }
 
-  _setStorageContext(data: MpDataProps): void {
+  setStorageContext(data: MpUserProps): void {
     localStorage.setItem('mp', JSON.stringify(data))
   }
 
-  _removeStorageContext(): void {
+  removeStorageContext(): void {
     localStorage.removeItem('mp')
   }
 
   // Session
-  _getStorageSessionId(): string | null {
+  getStorageSessionId(): string | null {
     return sessionStorage.getItem('mp_sid')
   }
 
-  _setStorageSessionId(sid: string): void {
+  setStorageSessionId(sid: string): void {
     sessionStorage.setItem('mp_sid', sid)
   }
 
-  _removeStorageSessionId(): void {
+  removeStorageSessionId(): void {
     sessionStorage.removeItem('mp_sid')
   }
 
 
   // Fingerprint
-  async _fingerprint() {
+  async fingerprint() {
     const fp = await fpPromise
     const result = await fp.get()
     // const fingerprintTimezone = result.components.timezone.value
@@ -93,8 +85,8 @@ export default class MagicPixel {
   }
 
   setIdentifiedUser(distinctUserId: string): void {
-    this.context.distinctPersonId = distinctUserId
-    this._setStorageContext(this.context)
+    this.userContext.distinctPersonId = distinctUserId
+    this.setStorageContext(this.userContext)
   }
 
   // TODO: Define return type
@@ -102,18 +94,14 @@ export default class MagicPixel {
 
     // TODO: Add better verification and validation before api requests get sent
     try {
-      if (!this.context?.accountSiteId) {
+      if (!this.userContext.accountSiteId) {
         console.warn('MP: Error: Missing ids, cannot track event')
         return false
       }
 
       let accountBody = {
         ...body,
-        accountSiteId: this.context?.accountSiteId,
-        fingerprint: this.fingerprint,
-        visitorUUID: this.context?.visitorUUID,
-        distinctPersonId: this.context?.distinctPersonId,
-        sessionId: this.sessionId,
+        ...this.userContext,
       }
 
       const response = await fetch(`${this.apiDomain}/${endpoint}`, {
@@ -136,27 +124,27 @@ export default class MagicPixel {
    * Will update the MP class object data and local/session storage on successful response.
    */
   async authenticateAccountId(): Promise<boolean> {
-    if (!this.fingerprint) {
-      this.fingerprint = await this._fingerprint()
+    if (!this.userContext.fingerprint) {
+      this.userContext.fingerprint = await this.fingerprint()
     }
-    if (this.context.accountSiteId) {
+    if (this.userContext.accountSiteId) {
       try {
         const authBody = {
-          accountSiteId: this.context.accountSiteId,
+          accountSiteId: this.userContext.accountSiteId,
         }
 
         const response = await this.apiRequest('POST', `authentication`, authBody)
 
         const mpContext = {
-          ...this.context,
-          accountSiteId: this.context.accountSiteId,
+          ...this.userContext,
+          accountSiteId: this.userContext.accountSiteId,
           accountStatus: response.accountStatus,
           lastVerified: Date.now(),
         }
 
         if (mpContext.accountStatus === 'active') {
-          this.context = mpContext
-          this._setStorageContext(mpContext)
+          this.userContext = mpContext
+          this.setStorageContext(mpContext)
           return true
         }
         return false
@@ -176,15 +164,15 @@ export default class MagicPixel {
    * account id, status, and the last time it was verified
    */
 
-  async authenticateHostData(mpStorageContext: MpDataProps): Promise<boolean> {
+  async authenticateHostData(mpStorageContext: MpUserProps): Promise<boolean> {
     try {
       // If no mpData kill it
-      if (!this.context) {
+      if (!this.userContext) {
         return false
       }
 
       // If account site ids don't match, re-authenticate and update any stale data
-      if (this.context.accountSiteId !== mpStorageContext.accountSiteId) {
+      if (this.userContext.accountSiteId !== mpStorageContext.accountSiteId) {
         return await this.authenticateAccountId()
       }
 
@@ -208,16 +196,9 @@ export default class MagicPixel {
       // If account is active but hasn't been verified for over an hour, re-authenticate again
       if (accountStatus === 'active') {
         if (lastVerifiedHours >= 1) {
-          console.debug(`MP: Re-authenticating account id ${this.context.accountSiteId}`)
+          console.debug(`MP: Re-authenticating account id ${this.userContext.accountSiteId}`)
           return await this.authenticateAccountId()
         } else {
-          if (!this.fingerprint) {
-            this.fingerprint = await this._fingerprint()
-          }
-          this.context = {
-            ...this.context,
-            ...mpStorageContext,
-          }
           return true
         }
       }
@@ -234,14 +215,14 @@ export default class MagicPixel {
    * based on either host id provided in script or existing local and session storage data
    */
   async authenticateAccount(): Promise<boolean> {
-    const mpStorageContext = this._getStorageContext()
+    const mpStorageContext = this.getStorageContext()
 
     if (!mpStorageContext) {
-      console.debug(`MP: Invalid browser data. Authenticating account site id ${this.context.accountSiteId}`)
+      console.debug(`MP: Invalid browser data. Authenticating account site id ${this.userContext.accountSiteId}`)
       // Call verification service to check account status and other data
       return await this.authenticateAccountId()
     } else {
-      console.debug(`MP: Authenticating host storage data for account site id ${this.context.accountSiteId}`)
+      console.debug(`MP: Authenticating host storage data for account site id ${this.userContext.accountSiteId}`)
       return await this.authenticateHostData(mpStorageContext)
     }
   }

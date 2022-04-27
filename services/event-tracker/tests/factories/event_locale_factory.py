@@ -1,4 +1,4 @@
-from magic_pixel.models import EventLocale
+from server.models import EventLocale
 from .meta import BaseFactory
 
 

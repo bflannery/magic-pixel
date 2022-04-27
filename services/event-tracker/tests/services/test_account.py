@@ -1,6 +1,6 @@
 import pytest
 
-from magic_pixel.services.account import create_new_account, verify_account_status
+from server.services.account import create_new_account, verify_account_status
 
 
 def test_create_new_account():

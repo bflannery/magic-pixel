@@ -1,7 +1,7 @@
 import pytest
-from magic_pixel.constants import EventFormTypeEnum, AttributeTypeEnum
-from magic_pixel.models import Person, EventForm
-from magic_pixel.services.event_form import (
+from server.constants import EventFormTypeEnum, AttributeTypeEnum
+from server.models import Person, EventForm
+from server.services.event_form import (
     get_form_type,
     build_form_field_map,
     ingest_event_form,

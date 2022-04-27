@@ -1,4 +1,4 @@
-import { MagicPixelType, PageIdentificationType } from './types'
+import { MagicPixelType } from './types'
 
 
 declare global {

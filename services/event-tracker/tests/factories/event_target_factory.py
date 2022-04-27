@@ -1,4 +1,4 @@
-from magic_pixel.models import EventTarget
+from server.models import EventTarget
 from .meta import BaseFactory
 
 

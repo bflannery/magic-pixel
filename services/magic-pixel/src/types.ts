@@ -12,9 +12,11 @@ export interface ParsedURLProps {
   query: toObjectInterface
 }
 
-export interface MpDataProps {
+export interface MpUserProps {
   accountSiteId: string | null
   accountStatus: string
+  fingerprint: string | null
+  sessionId: string | null
   lastVerified: number | null
   visitorUUID: string | null
   distinctPersonId: string | null
@@ -22,12 +24,11 @@ export interface MpDataProps {
 
 export interface MagicPixelType {
   apiDomain: string
-  fingerprint: string | null
-  context: MpDataProps
-  init: (accountId: string | null, accountSiteId: string | null) => Promise<void>
+  userContext: MpUserProps
+  init: () => Promise<void>
   setIdentifiedUser: (distinctUserId: string) => void
   apiRequest: (method: string, endpoint: string, body: object) => Promise<any | Boolean>
-  authenticateHostData: (mpData: MpDataProps) => Promise<boolean>
+  authenticateHostData: (mpData: MpUserProps) => Promise<boolean>
   authenticateAccountId: () => Promise<boolean>
   authenticateAccount: () => Promise<boolean>
 }

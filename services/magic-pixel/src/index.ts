@@ -2,7 +2,6 @@ import { getSiteId } from './utils'
 import MagicPixel from './magicPixel'
 
 const script = document.currentScript
-console.log({ script })
 
 /**
  * @function: init

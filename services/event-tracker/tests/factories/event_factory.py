@@ -1,6 +1,6 @@
 import datetime
 
-from magic_pixel.models import Event
+from server.models import Event
 from .meta import BaseFactory
 
 
