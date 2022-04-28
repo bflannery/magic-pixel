@@ -1,13 +1,15 @@
 import { ParsedURLProps, parseLocation } from './utils'
 import { MpUserProps } from './types'
 
+const API_DOMAIN = process.env.API_DOMAIN || 'http://localhost:5000/dev'
+
 export default class ContentIdentification {
   apiDomain: string
   url: ParsedURLProps | null
   userContext: MpUserProps
 
   constructor(accountSiteId: string) {
-    this.apiDomain = 'http://localhost:5000/dev'
+    this.apiDomain = API_DOMAIN
     this.userContext = {
       accountSiteId: accountSiteId,
       accountStatus: 'inactive',

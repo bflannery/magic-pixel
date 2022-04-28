@@ -5,12 +5,14 @@ import { MpUserProps } from './types'
 // Initialize an agent at application startup.
 const fpPromise = FingerprintJS.load()
 
+const API_DOMAIN = process.env.API_DOMAIN || 'http://localhost:5000/dev'
+
 export default class MagicPixel {
   apiDomain: string
   userContext: MpUserProps
 
   constructor(accountSiteId: string | null) {
-    this.apiDomain = 'http://localhost:5000/dev'
+    this.apiDomain = API_DOMAIN
     this.userContext = {
       accountSiteId: accountSiteId,
       accountStatus: 'inactive',

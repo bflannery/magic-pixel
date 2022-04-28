@@ -13,6 +13,8 @@ const defaultURLProps = {
   query: {},
 }
 
+const API_DOMAIN = process.env.API_DOMAIN || 'http://localhost:5000/dev'
+
 export default class EventTracker {
   apiDomain: string
   userContext: MpUserProps
@@ -22,7 +24,7 @@ export default class EventTracker {
   handlers: Function[]
 
   constructor(accountSiteId: string | null) {
-    this.apiDomain = 'http://localhost:5000/dev'
+    this.apiDomain = API_DOMAIN
     this.userContext = {
       accountSiteId: accountSiteId,
       accountStatus: 'inactive',

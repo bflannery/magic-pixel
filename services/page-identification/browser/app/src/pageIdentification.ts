@@ -14,6 +14,8 @@ import { getAncestors } from './dom'
 import {MISC_PAGE_PROPS, PageCategoryEnum} from './constants'
 import { ParsedURLProps, parseLocation } from './utils'
 
+const API_DOMAIN = process.env.API_DOMAIN || 'http://localhost:5000/dev'
+
 const DEFAULT_PAGE = {
   domKeywords: [],
   urlKeywords: [],
@@ -37,7 +39,7 @@ export default class PageIdentification {
   videos: DomVideoMapType[] | null
 
   constructor(accountSiteId: string) {
-    this.apiDomain = 'http://localhost:5000/dev'
+    this.apiDomain = API_DOMAIN
     this.userContext = {
       accountSiteId: accountSiteId,
       accountStatus: 'inactive',

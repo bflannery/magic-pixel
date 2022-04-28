@@ -13,6 +13,9 @@ DB_URL = "postgresql+psycopg2://{user}:{pw}@{url}/{db}".format(
     user=POSTGRES_USER, pw=POSTGRES_PW, url=POSTGRES_URL, db=POSTGRES_DB
 )
 
+# Service
+API_DOMAIN = os.environ.get("API_DOMAIN", default="__fake__")
+
 # Sqlalchemy
 SQLALCHEMY_DATABASE_URI = DB_URL
 SQLALCHEMY_TRACK_MODIFICATIONS = False
