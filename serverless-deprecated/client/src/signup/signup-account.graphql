@@ -1,9 +1,0 @@
-mutation SignupAccount($name: String!, $industry: String, $title: String) {
-  createAccount(name: $name, industry: $industry, title: $title) {
-    ok
-    account {
-      id
-      name
-    }
-  }
-}

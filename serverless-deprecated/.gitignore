@@ -1,9 +1,0 @@
-venv/**
-.venv/**
-node_modules/**
-**/*/.pytest_cache/*
-.idea/**
-.serverless
-.serverless-wsgi
-serverless_wsgi.py
-wsgi_handler.py

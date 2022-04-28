@@ -1,7 +1,0 @@
-query Account($accountId: ID!) {
-    account(id: $accountId) {
-        id
-        name
-        embedScript
-    }
-}

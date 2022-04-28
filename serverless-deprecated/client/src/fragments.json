@@ -1,5 +1,0 @@
-{
-  "possibleTypes": {
-    "Node": ["AccountType", "RoleType", "UserType"]
-  }
-}

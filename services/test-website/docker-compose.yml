@@ -1,0 +1,11 @@
+version: "3"
+services:
+  test-website:
+    container_name: test-website
+    build:
+      context: services/test-website
+      dockerfile: Dockerfile
+    ports:
+      - "8080:80"
+    volumes:
+      - ./test-website/src:/var/www

@@ -1,5 +1,0 @@
-mutation ResendUserInvite($userId: ID!) {
-  resendUserInvite(userId: $userId) {
-    ok
-  }
-}
