@@ -1,0 +1,28 @@
+version: "3"
+services:
+  content-identification-browser:
+    image: kyma/docker-nginx
+    container_name: content-identification-browser
+    restart: "always"
+    ports:
+      - "8084:80"
+    volumes:
+      - ./browser/app/build/index.js:/var/www/mp-content-identification.js
+  content-identification-db:
+    image: postgres
+    container_name: content-identification-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5434:5432
+    volumes:
+      - $HOME/docker/volumes/postgres/content-identification-db:/var/lib/postgresql/data
+  content-identification-sqs:
+    container_name: content-identification-sqs
+    image: softwaremill/elasticmq-native
+    ports:
+      - "9328:9324"
+      - "9329:9325"
+    volumes:
+      - ./config/elasticmq.conf:/opt/elasticmq.conf

@@ -28,17 +28,17 @@ provider:
         - sqs:GetQueueUrl
       Resource:
         - Fn::GetAtt:
-            - EventQueue
+            - EventTrackerQueue
             - Arn
         - Fn::GetAtt:
-            - EventIdentityQueue
+            - EventTrackerIdentityQueue
             - Arn
   environment:
     ENV: ${opt:stage, 'local'}
     SQS_REGION: ${self:custom.sqs.region}
     SQS_ENDPOINT_URL: ${self:custom.sqs.endpointUrl}
-    SQS_EVENT_QUEUE_NAME: ${self:custom.sqs.eventQueueName}
-    SQS_EVENT_IDENTITY_QUEUE_NAME: ${self:custom.sqs.eventIdentityQueueName}
+    SQS_EVENT_TRACKER_QUEUE_NAME: ${self:custom.sqs.eventTrackerQueueName}
+    SQS_EVENT_TRACKER_IDENTITY_QUEUE_NAME: ${self:custom.sqs.eventTrackerIdentityQueueName}
     SECRET_KEY: ${self:custom.flask.secretKey}
     POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
     POSTGRES_PW: ${self:custom.postgres.${opt:stage, 'dev'}.pw}
@@ -61,8 +61,8 @@ custom:
   sqs:
     region: 'us-east-1'
     endpointUrl: ''
-    eventQueueName: ${opt:stage, 'dev'}-event-queue
-    eventIdentityQueueName: ${opt:stage, 'dev'}-event-identity-queue
+    eventTrackerQueueName: ${opt:stage, 'dev'}-event-tracker-queue
+    eventTrackerIdentityQueueName: ${opt:stage, 'dev'}-event-tracker-identity-queue
   postgres:
     local:
       user: 'postgres'
@@ -159,7 +159,7 @@ functions:
       - sqs:
           arn:
             Fn::GetAtt:
-              - EventQueue
+              - EventTrackerQueue
               - Arn
   event-identity:
     handler: ./lambdas/events.event_identity
@@ -168,15 +168,15 @@ functions:
       - sqs:
           arn:
             Fn::GetAtt:
-              - EventIdentityQueue
+              - EventTrackerIdentityQueue
               - Arn
 
 resources:
   Resources:
-    EventQueue:
+    EventTrackerQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:custom.sqs.eventQueueName}
+        QueueName: ${self:custom.sqs.eventTrackerQueueName}
         VisibilityTimeout: 300
         RedrivePolicy:
           maxReceiveCount: 5
@@ -184,24 +184,24 @@ resources:
             Fn::GetAtt:
               - EventDLQueue
               - Arn
-    EventDLQueue:
+    EventTrackerDLQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:custom.sqs.eventQueueName}-deadletter
+        QueueName: ${self:custom.sqs.eventTrackerQueueName}-deadletter
         MessageRetentionPeriod: 604800
-    EventIdentityQueue:
+    EventTrackerIdentityQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:custom.sqs.eventIdentityQueueName}
+        QueueName: ${self:custom.sqs.eventTrackerIdentityQueueName}
         VisibilityTimeout: 300
         RedrivePolicy:
           maxReceiveCount: 5
           deadLetterTargetArn:
             Fn::GetAtt:
-              - EventIdentityDLQueue
+              - EventTrackerIdentityDLQueue
               - Arn
-    EventIdentityDLQueue:
+    EventTrackerIdentityDLQueue:
       Type: AWS::SQS::Queue
       Properties:
-        QueueName: ${self:custom.sqs.eventIdentityQueueName}-deadletter
+        QueueName: ${self:custom.sqs.eventTrackerIdentityQueueName}-deadletter
         MessageRetentionPeriod: 604800

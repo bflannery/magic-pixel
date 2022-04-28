@@ -57,7 +57,7 @@ custom:
   sqs:
     region: 'us-east-1'
     endpointUrl: ''
-    contentIdentificationQueueName: ${opt:stage, 'dev'}-content-identification-queue
+    pageIdentificationQueueName: ${opt:stage, 'dev'}-server-queue
   postgres:
     local:
       user: 'postgres'
@@ -97,7 +97,7 @@ package:
     - README.md
 
   include:
-    - page-identification/**
+    - server/**
 
 functions:
   app:

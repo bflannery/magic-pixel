@@ -109,7 +109,7 @@ custom:
     endpointUrl: ''
     eventQueueName: ${opt:stage, 'dev'}-event-queue
     eventIdentityQueueName: ${opt:stage, 'dev'}-event-identity-queue
-    pageIdentificationQueueName: ${opt:stage, 'dev'}-page-identification-queue
+    pageIdentificationQueueName: ${opt:stage, 'dev'}-server-queue
     contentIdentificationQueueName: ${opt:stage, 'dev'}-content-identification-queue
   postgres:
     local:

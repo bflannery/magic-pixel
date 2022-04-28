@@ -6,7 +6,7 @@ const script = document.currentScript
 /**
  * @function: init
  * @description: When page is ready, validates script and account status
- * before loading scribe-analytics tracking and page identification services
+ * before loading event tracking and identification services
  */
 async function init() {
   // get site id from script for validation
@@ -17,16 +17,16 @@ async function init() {
     return false
   }
   // create new MP class and add to window
-  const MP = new MagicPixel(siteId)
-  window.MP = MP
+  const magicPixel = new MagicPixel(siteId)
+  window.MP_INIT = magicPixel
 
   // check if account is active
-  const accountIsActive = await MP.authenticateAccount()
+  const accountIsActive = await magicPixel.authenticateAccount()
   if (accountIsActive) {
     console.debug('MP: Account is active.')
 
     // initialize MP class
-    await MP.init()
+    await magicPixel.init()
 
     // create a new event-tracker script element
     const eventTrackingScript = document.createElement('script')
@@ -36,13 +36,13 @@ async function init() {
     // insert the event-tracker script element into doc
     document.head.appendChild(eventTrackingScript)
 
-    // // create a new page-identification script element
-    // const pageIdentificationScript = document.createElement('script')
-    // pageIdentificationScript.src = `http://localhost:8083/mp-page-identification.js?sid=${siteId}`
-    // pageIdentificationScript.async = true
-    //
-    // // insert the page-identification script element into doc
-    // document.head.appendChild(pageIdentificationScript)
+    // create a new page identification script element
+    const pageIdentificationScript = document.createElement('script')
+    pageIdentificationScript.src = `http://localhost:8083/mp-page-identification.js?sid=${siteId}`
+    pageIdentificationScript.async = true
+
+    // insert the new page identification script element into doc
+    document.head.appendChild(pageIdentificationScript)
 
     // // create a new content-identification script element
     // const contentIdentificationScript = document.createElement('script')
@@ -56,7 +56,7 @@ async function init() {
   }
 }
 
-// wait until all elements are on the pageIdentification from initial load
+// wait until all elements are on the page from initial load
 if (document.readyState === 'loading') {
   document.addEventListener('DOMContentLoaded', init)
 } else {

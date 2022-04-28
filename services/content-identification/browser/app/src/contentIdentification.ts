@@ -1,9 +1,22 @@
 import { ParsedURLProps, parseLocation } from './utils'
+import { MpUserProps } from './types'
 
 export default class ContentIdentification {
+  apiDomain: string
   url: ParsedURLProps | null
+  userContext: MpUserProps
 
-  constructor() {
+  constructor(accountSiteId: string) {
+    this.apiDomain = 'http://localhost:5000/dev'
+    this.userContext = {
+      accountSiteId: accountSiteId,
+      accountStatus: 'inactive',
+      fingerprint: null,
+      sessionId: null,
+      lastVerified: null,
+      visitorUUID: null,
+      distinctPersonId: null,
+    }
     this.url = null
 
   }
@@ -20,16 +33,47 @@ export default class ContentIdentification {
     console.log({ ContentIdentification: this })
   }
 
+  isAccountActive() {
+    return this.userContext.accountStatus === 'active'
+  }
+
+  identifyContent() {
+    return true
+  }
+
+// TODO: Define return type
+  async apiRequest(method: string, endpoint: string, body: object = {}): Promise<any | boolean> {
+
+    // TODO: Add better verification and validation before api requests get sent
+    try {
+      if (!this.userContext.accountSiteId) {
+        console.warn('MP: Error: Missing ids, cannot track content')
+        return false
+      }
+
+      let accountBody = {
+        ...body,
+        ...this.userContext,
+      }
+
+      const response = await fetch(`${this.apiDomain}/${endpoint}`, {
+        method: method,
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(accountBody),
+      })
+      return response.json()
+    } catch (e) {
+      console.error(e)
+      return false
+    }
+  }
 
   async trackIdentifiedContent(): Promise<boolean> {
     try {
-      const MP = window.MP
-      if (!MP) {
-        console.error('MP: No MP instance exists.')
-        return false
-      }
       console.log(`Track Identified Content Request Body:`, { pageType: {} })
-      await MP.apiRequest('POST', 'identification/content', {})
+      await this.apiRequest('POST', 'identification/content', {})
       return true
     } catch(e) {
       console.error(`Error tracking page: ${e}`)

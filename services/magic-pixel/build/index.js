@@ -2889,11 +2889,11 @@
     /**
      * @function: init
      * @description: When page is ready, validates script and account status
-     * before loading scribe-analytics tracking and page identification services
+     * before loading event tracking and identification services
      */
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var siteId, MP, accountIsActive, eventTrackingScript;
+            var siteId, magicPixel, accountIsActive, eventTrackingScript, pageIdentificationScript;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -2902,15 +2902,15 @@
                             console.error('MP: Error verifying account. No site id provided');
                             return [2 /*return*/, false];
                         }
-                        MP = new MagicPixel(siteId);
-                        window.MP = MP;
-                        return [4 /*yield*/, MP.authenticateAccount()];
+                        magicPixel = new MagicPixel(siteId);
+                        window.MP_INIT = magicPixel;
+                        return [4 /*yield*/, magicPixel.authenticateAccount()];
                     case 1:
                         accountIsActive = _a.sent();
                         if (!accountIsActive) return [3 /*break*/, 3];
                         console.debug('MP: Account is active.');
                         // initialize MP class
-                        return [4 /*yield*/, MP.init()
+                        return [4 /*yield*/, magicPixel.init()
                             // create a new event-tracker script element
                         ];
                     case 2:
@@ -2921,6 +2921,11 @@
                         eventTrackingScript.async = true;
                         // insert the event-tracker script element into doc
                         document.head.appendChild(eventTrackingScript);
+                        pageIdentificationScript = document.createElement('script');
+                        pageIdentificationScript.src = "http://localhost:8083/mp-page-identification.js?sid=" + siteId;
+                        pageIdentificationScript.async = true;
+                        // insert the new page identification script element into doc
+                        document.head.appendChild(pageIdentificationScript);
                         return [3 /*break*/, 4];
                     case 3:
                         console.error("MP: Account is not active for site id " + siteId + ".");
@@ -2930,7 +2935,7 @@
             });
         });
     }
-    // wait until all elements are on the pageIdentification from initial load
+    // wait until all elements are on the page from initial load
     if (document.readyState === 'loading') {
         document.addEventListener('DOMContentLoaded', init);
     }

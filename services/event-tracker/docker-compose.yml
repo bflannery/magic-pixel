@@ -1,0 +1,29 @@
+version: "3"
+services:
+  event-tracker-browser:
+    image: kyma/docker-nginx
+    container_name: event-tracker-browser
+    restart: "always"
+    ports:
+      - "8082:80"
+    volumes:
+      - ./browser/app/scribe/scribe-analytics-debug.js:/var/www/scribe-analytics-debug.js
+      - ./browser/app/build/index.js:/var/www/mp-event-tracker.js
+  event-tracker-db:
+    image: postgres
+    container_name: event-tracker-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    volumes:
+      - $HOME/docker/volumes/postgres/event-tracker-db:/var/lib/postgresql/data
+  event-tracker-sqs:
+    container_name: event-tracker-sqs
+    image: softwaremill/elasticmq-native
+    ports:
+      - "9324:9324"
+      - "9325:9325"
+    volumes:
+      - ./config/elasticmq.conf:/opt/elasticmq.conf

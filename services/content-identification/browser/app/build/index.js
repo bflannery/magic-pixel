@@ -1,7 +1,7 @@
 (function () {
     'use strict';
 
-    /*! *****************************************************************************
+    /******************************************************************************
     Copyright (c) Microsoft Corporation.
 
     Permission to use, copy, modify, and/or distribute this software for any
@@ -15,6 +15,17 @@
     OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
     PERFORMANCE OF THIS SOFTWARE.
     ***************************************************************************** */
+
+    var __assign = function() {
+        __assign = Object.assign || function __assign(t) {
+            for (var s, i = 1, n = arguments.length; i < n; i++) {
+                s = arguments[i];
+                for (var p in s) if (Object.prototype.hasOwnProperty.call(s, p)) t[p] = s[p];
+            }
+            return t;
+        };
+        return __assign.apply(this, arguments);
+    };
 
     function __awaiter(thisArg, _arguments, P, generator) {
         function adopt(value) { return value instanceof P ? value : new P(function (resolve) { resolve(value); }); }
@@ -117,7 +128,17 @@
     };
 
     var ContentIdentification = /** @class */ (function () {
-        function ContentIdentification() {
+        function ContentIdentification(accountSiteId) {
+            this.apiDomain = 'http://localhost:5000/dev';
+            this.userContext = {
+                accountSiteId: accountSiteId,
+                accountStatus: 'inactive',
+                fingerprint: null,
+                sessionId: null,
+                lastVerified: null,
+                visitorUUID: null,
+                distinctPersonId: null,
+            };
             this.url = null;
         }
         ContentIdentification.prototype.init = function () {
@@ -134,26 +155,60 @@
                 });
             });
         };
-        ContentIdentification.prototype.trackIdentifiedContent = function () {
+        ContentIdentification.prototype.isAccountActive = function () {
+            return this.userContext.accountStatus === 'active';
+        };
+        ContentIdentification.prototype.identifyContent = function () {
+            return true;
+        };
+        // TODO: Define return type
+        ContentIdentification.prototype.apiRequest = function (method, endpoint, body) {
+            if (body === void 0) { body = {}; }
             return __awaiter(this, void 0, void 0, function () {
-                var MP, e_1;
+                var accountBody, response, e_1;
                 return __generator(this, function (_a) {
                     switch (_a.label) {
                         case 0:
                             _a.trys.push([0, 2, , 3]);
-                            MP = window.MP;
-                            if (!MP) {
-                                console.error('MP: No MP instance exists.');
+                            if (!this.userContext.accountSiteId) {
+                                console.warn('MP: Error: Missing ids, cannot track content');
                                 return [2 /*return*/, false];
                             }
+                            accountBody = __assign(__assign({}, body), this.userContext);
+                            return [4 /*yield*/, fetch("".concat(this.apiDomain, "/").concat(endpoint), {
+                                    method: method,
+                                    headers: {
+                                        'Content-Type': 'application/json',
+                                    },
+                                    body: JSON.stringify(accountBody),
+                                })];
+                        case 1:
+                            response = _a.sent();
+                            return [2 /*return*/, response.json()];
+                        case 2:
+                            e_1 = _a.sent();
+                            console.error(e_1);
+                            return [2 /*return*/, false];
+                        case 3: return [2 /*return*/];
+                    }
+                });
+            });
+        };
+        ContentIdentification.prototype.trackIdentifiedContent = function () {
+            return __awaiter(this, void 0, void 0, function () {
+                var e_2;
+                return __generator(this, function (_a) {
+                    switch (_a.label) {
+                        case 0:
+                            _a.trys.push([0, 2, , 3]);
                             console.log("Track Identified Content Request Body:", { pageType: {} });
-                            return [4 /*yield*/, MP.apiRequest('POST', 'identification/content', {})];
+                            return [4 /*yield*/, this.apiRequest('POST', 'identification/content', {})];
                         case 1:
                             _a.sent();
                             return [2 /*return*/, true];
                         case 2:
-                            e_1 = _a.sent();
-                            console.error("Error tracking page: " + e_1);
+                            e_2 = _a.sent();
+                            console.error("Error tracking page: ".concat(e_2));
                             return [2 /*return*/, false];
                         case 3: return [2 /*return*/];
                     }
@@ -210,7 +265,7 @@
      */
     function init() {
         return __awaiter(this, void 0, void 0, function () {
-            var siteId, MP, accountIsActive, ContentId;
+            var siteId, contentIdentification, accountIsActive;
             return __generator(this, function (_a) {
                 switch (_a.label) {
                     case 0:
@@ -219,28 +274,24 @@
                             console.error('MP: Error verifying account. No site id provided');
                             return [2 /*return*/, false];
                         }
-                        MP = window.MP;
-                        if (!MP) {
-                            console.error('MP: No MP object found on window');
-                            return [2 /*return*/, false];
-                        }
-                        return [4 /*yield*/, MP.authenticateAccount()];
-                    case 1:
-                        accountIsActive = _a.sent();
-                        if (!accountIsActive) return [3 /*break*/, 3];
-                        console.debug('MP: Account is active.');
-                        ContentId = new ContentIdentification();
-                        window.MP_ContentIdentification = ContentId;
+                        contentIdentification = new ContentIdentification(siteId);
+                        window.MP_CONTENT_IDENTIFICATION = contentIdentification;
                         // Initialize MP class
-                        return [4 /*yield*/, ContentId.init()];
-                    case 2:
+                        return [4 /*yield*/, contentIdentification.init()
+                            // Check if account is active
+                        ];
+                    case 1:
                         // Initialize MP class
                         _a.sent();
-                        return [3 /*break*/, 4];
-                    case 3:
-                        console.error("MP: Account is not active for site id " + siteId + ".");
-                        _a.label = 4;
-                    case 4: return [2 /*return*/];
+                        accountIsActive = contentIdentification.isAccountActive();
+                        if (accountIsActive) {
+                            console.debug('MP: Account is active.');
+                            contentIdentification.identifyContent();
+                        }
+                        else {
+                            console.error("MP: Account is not active for site id ".concat(siteId, "."));
+                        }
+                        return [2 /*return*/];
                 }
             });
         });
@@ -250,7 +301,7 @@
         document.addEventListener('DOMContentLoaded', init);
     }
     else {
-        init().then(function () { return 'Successfully initiated ContentIdentification Pixel'; });
+        init().then(function () { return 'Successfully initiated Magic Pixel'; });
     }
 
 })();

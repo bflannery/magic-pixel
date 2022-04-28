@@ -1,0 +1,79 @@
+{
+  "eCommerce": {
+    "paymentProcessors": [
+      {
+        "name": "paypal",
+        "identifier": {
+          "type": "element",
+          "query": "paypal-button-container",
+          "selector": "id"
+        }
+      },
+      {
+        "name": "google",
+        "identifier": {
+          "type": "element",
+          "query": "google-pay-button",
+          "selector": "all"
+        }
+      },
+      {
+        "name": "apple",
+        "identifier": {
+          "type": "element",
+          "query": "apple-pay-button",
+          "selector": "all"
+        }
+      }
+    ],
+    "keywords": [
+      "paypal",
+      "google_pay",
+      "apple_pay",
+      "bolt_pay",
+      "stripe_for",
+      "braintree_form",
+      "square_form",
+      "checkout",
+      "purchase",
+      "order",
+      "buy",
+      "order_summary",
+      "total",
+      "subtotal",
+      "shipping",
+      "tax",
+      "payment",
+      "promo_code",
+      "coupon",
+      "shipping_address",
+      "billing_address"
+    ]
+  },
+  "confirmation": {
+    "keywords": [
+      "thankyou",
+      "order",
+      "ordersummary",
+      "confirmation"
+    ]
+  },
+  "contactUs": {
+    "keywords": [
+      "contact",
+      "feedback"
+    ]
+  },
+  "careers": {
+    "keywords": [
+      "careers",
+      "jobs"
+    ]
+  },
+  "blog": {
+    "keywords": [
+      "blog",
+      "articles"
+    ]
+  }
+}

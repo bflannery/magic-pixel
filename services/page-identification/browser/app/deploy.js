@@ -7,7 +7,7 @@ const env = process.env.NODE_ENV || 'dev'
 const bucketName = 'magic-pixel-public'
 const distroId = ''
 
-let objectName = 'mp-content-identification'
+let objectName = 'mp-server'
 if (env !== 'production') {
   objectName += `.${env}`
 }

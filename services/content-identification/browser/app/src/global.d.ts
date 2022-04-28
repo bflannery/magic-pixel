@@ -1,10 +1,9 @@
-import { MagicPixelType, ContentIdentificationType } from './types'
+import { ContentIdentificationType } from './types'
 
 
 declare global {
   interface Window {
-    MP?: MagicPixelType
-    MP_ContentIdentification?: ContentIdentificationType
+    MP_CONTENT_IDENTIFICATION?: ContentIdentificationType
     MP_HID?: string | null
     MP_SID?: string | null
   }

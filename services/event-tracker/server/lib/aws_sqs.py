@@ -45,7 +45,7 @@ class Queue:
             logger.log_exception(e)
 
 
-event_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_EVENT_QUEUE_NAME")))
+event_queue = LocalProxy(lambda: Queue(current_app.config.get("SQS_EVENT_TRACKER_QUEUE_NAME")))
 event_identity_queue = LocalProxy(
-    lambda: Queue(current_app.config.get("SQS_EVENT_IDENTITY_QUEUE_NAME"))
+    lambda: Queue(current_app.config.get("SQS_EVENT_TRACKER_IDENTITY_QUEUE_NAME"))
 )

@@ -26,17 +26,17 @@ services:
     volumes:
       - ./services/event-tracker/browser/app/scribe/scribe-analytics-debug.js:/var/www/scribe-analytics-debug.js
       - ./services/event-tracker/browser/app/build/index.js:/var/www/mp-event-tracker.js
-#  browser-page-identification:
+  browser-page-identification:
+    image: kyma/docker-nginx
+    container_name: browser-page-identification
+    restart: "always"
+    ports:
+      - "8083:80"
+    volumes:
+      - ./services/page-identification/browser/app/build/index.js:/var/www/mp-page-identification.js
+#  browser-content-server:
 #    image: kyma/docker-nginx
-#    container_name: browser-page-identification
-#    restart: "always"
-#    ports:
-#      - "8083:80"
-#    volumes:
-#      - ./browser/page-identification/build/index.js:/var/www/mp-page-identification.js
-#  browser-content-page-identification:
-#    image: kyma/docker-nginx
-#    container_name: browser-content-page-identification
+#    container_name: browser-content-identification
 #    restart: "always"
 #    ports:
 #      - "8084:80"
@@ -52,16 +52,16 @@ services:
       - 5432:5432
     volumes:
       - $HOME/docker/volumes/postgres/event-db:/var/lib/postgresql/data
-#  page-identification-db:
+#  server-db:
 #    image: postgres
-#    container_name: pg-page-identification-db
+#    container_name: pg-server-db
 #    restart: unless-stopped
 #    environment:
 #      POSTGRES_PASSWORD: password
 #    ports:
 #      - 5433:5432
 #    volumes:
-#      - $HOME/docker/volumes/postgres/page-identification-db:/var/lib/postgresql/data
+#      - $HOME/docker/volumes/postgres/server-db:/var/lib/postgresql/data
 #  content-identification-db:
 #    image: postgres
 #    container_name: pg-content-identification-db

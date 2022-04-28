@@ -1,0 +1,10 @@
+version: "3"
+services:
+  magic-pixel-browser:
+    image: kyma/docker-nginx
+    container_name: magic-pixel-browser
+    restart: "always"
+    ports:
+      - "8081:80"
+    volumes:
+      - ./build/index.js:/var/www/magic-pixel.js

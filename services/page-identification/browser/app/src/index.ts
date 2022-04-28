@@ -1,5 +1,5 @@
 import { getSiteId } from './utils'
-import ContentIdentification from './contentIdentification'
+import PageIdentification from './pageIdentification'
 
 const script = document.currentScript
 
@@ -17,17 +17,17 @@ async function init() {
     return false
   }
   // Create new MP class and add to window
-  const contentIdentification = new ContentIdentification(siteId)
-  window.MP_CONTENT_IDENTIFICATION = contentIdentification
+  const pageIdentification = new PageIdentification(siteId)
+  window.MP_PAGE_IDENTIFICATION = pageIdentification
 
   // Initialize MP class
-  await contentIdentification.init()
+  await pageIdentification.init()
 
   // Check if account is active
-  const accountIsActive = contentIdentification.isAccountActive()
+  const accountIsActive = pageIdentification.isAccountActive()
   if (accountIsActive) {
     console.debug('MP: Account is active.')
-    contentIdentification.identifyContent()
+    pageIdentification.identifyPage()
   } else {
     console.error(`MP: Account is not active for site id ${siteId}.`)
   }
