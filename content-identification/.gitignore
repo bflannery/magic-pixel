@@ -7,3 +7,5 @@ node_modules/**
 .serverless-wsgi
 serverless_wsgi.py
 wsgi_handler.py
+__pycache__/
+**/*/node_modules/**
