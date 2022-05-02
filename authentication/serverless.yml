@@ -1,0 +1,103 @@
+service: magic-pixel-authentication
+
+frameworkVersion: "2"
+
+provider:
+  name: aws
+  runtime: python3.9
+  versionFunctions: false
+  region: us-east-1
+  tracing:
+    apiGateway: true
+  iamRoleStatements:
+    - Effect: Allow
+      Action:
+        - lambda:InvokeFunction
+        - cloudwatch:PutMetricData
+      Resource: "*"
+  environment:
+    ENV: ${opt:stage, 'local'}
+    SECRET_KEY: ${self:custom.flask.secretKey}
+    POSTGRES_USER: ${self:custom.postgres.${opt:stage, 'dev'}.user}
+    POSTGRES_PW: ${self:custom.postgres.${opt:stage, 'dev'}.pw}
+    POSTGRES_URL: ${self:custom.postgres.${opt:stage, 'dev'}.url}
+    POSTGRES_DB: ${self:custom.postgres.${opt:stage, 'dev'}.db}
+
+plugins:
+  - serverless-python-requirements
+  - serverless-wsgi
+  - serverless-finch
+
+custom:
+  flask:
+    secretKey: 'c0cbf5992af08ede97e11a3e'
+  postgres:
+    local:
+      user: 'postgres'
+      pw: 'docker'
+      url: 'localhost'
+      db: 'postgres'
+    dev:
+      user: 'root'
+      pw: 'password'
+      url: 'url'
+      db: 'db'
+  wsgi:
+    app: app.app
+    packRequirements: false
+    pythonBin: python
+    pythonRequirements:
+      dockerizePip: "non-linux"
+  serverless-offline:
+    httpPort: 5000
+
+package:
+  exclude:
+    - node_modules/**
+    - venv/**
+    - .venv/**
+    - package.json
+    - package-lock.json
+    - .pytest_cache/**
+    - README.md
+
+  include:
+    - authentication/**
+
+functions:
+  app:
+    handler: wsgi_handler.handler
+    timeout: 30
+    memorySize: 512
+#    vpc:
+#      securityGroupIds:
+#        - sg-0ca7e29791a26efe7 # lambda sg
+#      subnetIds:
+#        - subnet-01d66241214a2f8f0
+    events:
+      - http:
+          path: /
+          method: ANY
+      - http:
+          path: "/{proxy+}"
+          method: ANY
+          cors:
+            origins:
+              - "*"
+            headers:
+              - Content-Type
+              - X-Amz-Date
+              - Authorization
+              - X-Api-Key
+              - X-Amz-Security-Token
+              - X-Amz-User-Agent
+            allowCredentials: true
+            maxAge: 86400
+  authentication:
+    handler: ./lambdas/authentication.authentication
+    timeout: 30
+    memorySize: 512
+    events:
+      - http:
+          path: /authentication
+          method: post

@@ -1,0 +1,9 @@
+-c requirements.txt
+black==20.8b1
+factory_boy==2.12.0
+pycodestyle==2.6.0
+pytest-flask==0.12.0
+pytest-mock==2.0.0
+pytest==3.8.1
+sqlalchemy-stubs==0.4
+# flask-sqlalchemy-stubs @ git+https://github.com/ssfdust/flask-sqlalchemy-stubs.git@103bf6c7802d778c87938ea9d06ee24b1e552b52

@@ -1,0 +1,12 @@
+version: "3"
+services:
+  authentication-db:
+    image: postgres
+    container_name: authentication-db
+    restart: unless-stopped
+    environment:
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+    volumes:
+      - $HOME/docker/volumes/postgres/authentication-db:/var/lib/postgresql/data
